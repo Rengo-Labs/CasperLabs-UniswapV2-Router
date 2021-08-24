@@ -23,7 +23,7 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
         if token_a == token_b {
             runtime::revert(ApiError::from(ErrorCode::IdenticalAddresses));
         }
-        let (mut token_0, mut token_1):(ContractHash, ContractHash); 
+        let (token_0, token_1):(ContractHash, ContractHash); 
         if token_a < token_b {
             token_0 = token_a;
             token_1 = token_b;
@@ -46,12 +46,13 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
             "token_b" => token_b
         };
         let (token_0, token_1):(ContractHash, ContractHash) = 
-            runtime::call_versioned_contract(self_hash(), None, "sort_tokens", args);
+            runtime::call_contract(self_hash(), "sort_tokens", args);
         
         // let pair = address(uint(keccak256(abi.encodePacked( hex'ff', factory, keccak256(abi.encodePacked(token0, token1)), hex'96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f' ))));
         // let hex = 
-        let pair:ContractHash;
-        pair
+        // let pair:ContractHash;
+        // pair
+        token_0
     }
     
     fn get_reserves(&mut self, factory:ContractHash, token_a:ContractHash, token_b:ContractHash) -> (U256, U256) {
@@ -61,9 +62,9 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
             "token_b" => token_b
         };
         let (token_0, token_1):(ContractHash, ContractHash) = 
-            runtime::call_versioned_contract(self_hash(), None, "sort_tokens", args);
+            runtime::call_contract(self_hash(), "sort_tokens", args);
         let (reserve_0, reserve_1):(U256, U256) = (0.into(),0.into()); // IUniswapV2Pair(pairFor(factory, tokenA, tokenB)).getReserves();
-        let (mut reserve_a, mut reserve_b):(U256, U256);
+        let (reserve_a, reserve_b):(U256, U256);
         if token_a == token_0 {
             reserve_a = reserve_0;
             reserve_b = reserve_1;
@@ -99,7 +100,6 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
         }
         let amount_in_with_fee: U256 = amount_in * 997;
         let numerator:U256 = amount_in_with_fee * reserve_out;
-        let numerator:U256 = amount_in_with_fee * reserve_out;
         let denominator:U256 = (reserve_in * 1000) + amount_in_with_fee;
         let amount_out:U256 = numerator / denominator;
         amount_out
@@ -131,13 +131,13 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
         amounts[0] = amount_in;
         for i in 0..(path.len()-1) {
             let (reserve_in, reserve_out):(U256, U256) = 
-                runtime::call_versioned_contract(self_hash(), None, "get_reserves", runtime_args! {
+                runtime::call_contract(self_hash(), "get_reserves", runtime_args! {
                     "factory" => factory,
                     "token_a" => path[i],
                     "token_b" => path[i+1]
                 });
             amounts[i+1] = 
-                runtime::call_versioned_contract(self_hash(), None, "get_amount_out", runtime_args! {
+                runtime::call_contract(self_hash(), "get_amount_out", runtime_args! {
                     "amount_in" => amounts[i],
                     "reserve_in" => reserve_in,
                     "reserve_out" => reserve_out
@@ -153,16 +153,17 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
             runtime::revert(ApiError::from(ErrorCode::InvalidPath));
         }
         let mut amounts:Vec<U256> = vec![0.into(); path.len()];
-        amounts[amounts.len()-1] = amount_out;
+        let size = amounts.len();
+        amounts[size-1] = amount_out;
         for i in  (1..(path.len()-1)).rev() {
             let (reserve_in, reserve_out):(U256, U256) = 
-                runtime::call_versioned_contract(self_hash(), None, "get_reserves", runtime_args! {
+                runtime::call_contract(self_hash(), "get_reserves", runtime_args! {
                     "factory" => factory,
                     "token_a" => path[i-1],
                     "token_b" => path[i]
                 });
             amounts[i-1] = 
-                runtime::call_versioned_contract(self_hash(), None, "get_amount_in", runtime_args! {
+                runtime::call_contract(self_hash(), "get_amount_in", runtime_args! {
                     "amount_in" => amounts[i],
                     "reserve_in" => reserve_in,
                     "reserve_out" => reserve_out

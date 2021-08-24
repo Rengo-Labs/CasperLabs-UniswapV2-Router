@@ -11,35 +11,34 @@ use casper_contract::{
 use casper_types::{
     runtime_args, CLType, CLTyped, CLValue, EntryPoint, EntryPointAccess,
     Group, Key, Parameter, RuntimeArgs, URef, U256, EntryPointType,
-    ContractHash, EntryPoints, api_error::{ApiError}
+    ContractHash, EntryPoints
 };
 use crate::vec::Vec;
 
 use contract_utils::{ContractContext, OnChainContractStorage};
 use uniswap_v2_library::{self, UniswapV2Library};
-use uniswap_v2_library::config::*;
 
 #[derive(Default)]
-struct uniswap(OnChainContractStorage);
+struct Uniswap(OnChainContractStorage);
 
-impl ContractContext<OnChainContractStorage> for uniswap {
+impl ContractContext<OnChainContractStorage> for Uniswap {
     fn storage(&self) -> &OnChainContractStorage {
         &self.0
     }
 }
 
-impl uniswap_v2_library<OnChainContractStorage> for uniswap {}
+impl UniswapV2Library<OnChainContractStorage> for Uniswap {}
 
-impl uniswap {
+impl Uniswap {
     fn constructor(&mut self, contract_hash:ContractHash) {
-        uniswap_v2_library::init(self, contract_hash);
+        UniswapV2Library::init(self, contract_hash);
     }
 }
 
 #[no_mangle]
 fn constructor() {
     let contract_hash: ContractHash = runtime::get_named_arg("contract_hash");
-    uniswap::default().constructor(contract_hash);
+    Uniswap::default().constructor(contract_hash);
 }
 
 #[no_mangle]
@@ -48,7 +47,7 @@ fn sort_tokens() {
     let token_a:ContractHash = runtime::get_named_arg("token_a");
     let token_b:ContractHash = runtime::get_named_arg("token_b");
     
-    let (token_0, token_1) = uniswap::default().sort_tokens(token_a, token_b);
+    let (token_0, token_1) = Uniswap::default().sort_tokens(token_a, token_b);
     runtime::ret(CLValue::from_t((token_0, token_1)).unwrap_or_revert())
 }
 
@@ -72,7 +71,7 @@ fn get_reserves() {
     let token_a:ContractHash = runtime::get_named_arg("token_a");
     let token_b:ContractHash = runtime::get_named_arg("token_b");
     
-    let (reserve_a, reserve_b) = uniswap::default().get_reserves(factory, token_a, token_b);
+    let (reserve_a, reserve_b) = Uniswap::default().get_reserves(factory, token_a, token_b);
     runtime::ret(CLValue::from_t((reserve_a, reserve_b)).unwrap_or_revert())
 }
 
@@ -84,7 +83,7 @@ fn quote() {
     let reserve_a: U256 = runtime::get_named_arg("reserve_a");
     let reserve_b: U256 = runtime::get_named_arg("reserve_b");
     
-    let amount_b = uniswap::default().quote(amount_a, reserve_a, reserve_b);
+    let amount_b = Uniswap::default().quote(amount_a, reserve_a, reserve_b);
     runtime::ret(CLValue::from_t(amount_b).unwrap_or_revert())
 }
 
@@ -96,7 +95,7 @@ fn get_amount_out(){
     let reserve_in: U256 = runtime::get_named_arg("reserve_in");
     let reserve_out: U256 = runtime::get_named_arg("reserve_out");
     
-    let amount_out = uniswap::default().get_amount_out(amount_in, reserve_in, reserve_out);
+    let amount_out = Uniswap::default().get_amount_out(amount_in, reserve_in, reserve_out);
     runtime::ret(CLValue::from_t(amount_out).unwrap_or_revert())
 }
 
@@ -108,7 +107,7 @@ fn get_amount_in() {
     let reserve_in: U256 = runtime::get_named_arg("reserve_in");
     let reserve_out: U256 = runtime::get_named_arg("reserve_out");
 
-    let amount_in = uniswap::default().get_amount_in(amount_out, reserve_in, reserve_out);
+    let amount_in = Uniswap::default().get_amount_in(amount_out, reserve_in, reserve_out);
     runtime::ret(CLValue::from_t(amount_in).unwrap_or_revert())
 }
 
@@ -120,7 +119,7 @@ fn get_amounts_out(){
     let amount_in: U256 = runtime::get_named_arg("amount_in");
     let path: Vec<ContractHash> = runtime::get_named_arg("path");
 
-    let amounts:Vec<U256> = uniswap::default().get_amounts_out(factory, amount_in, path);
+    let amounts:Vec<U256> = Uniswap::default().get_amounts_out(factory, amount_in, path);
     runtime::ret(CLValue::from_t(amounts).unwrap_or_revert())
 }
 
@@ -132,7 +131,7 @@ fn get_amounts_in(){
     let amount_out: U256 = runtime::get_named_arg("amount_out");
     let path: Vec<ContractHash> = runtime::get_named_arg("path");
 
-    let amounts:Vec<U256> = uniswap::default().get_amounts_in(factory, amount_out, path);
+    let amounts:Vec<U256> = Uniswap::default().get_amounts_in(factory, amount_out, path);
     runtime::ret(CLValue::from_t(amounts).unwrap_or_revert())
 }
 
