@@ -58,10 +58,9 @@ fn pair_for() {
     let factory:ContractHash = runtime::get_named_arg("factory");
     let token_a:ContractHash = runtime::get_named_arg("token_a");
     let token_b:ContractHash = runtime::get_named_arg("token_b");
-    
-    // let pair = address(uint(keccak256(abi.encodePacked( hex'ff', factory, keccak256(abi.encodePacked(token0, token1)), hex'96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f' ))));
-    // let hex = 
-    // let pair:ContractHash = 
+
+    let pair = Uniswap::default().pair_for(factory, token_a, token_b);
+    runtime::ret(CLValue::from_t(pair).unwrap_or_revert())
 }
 
 #[no_mangle]

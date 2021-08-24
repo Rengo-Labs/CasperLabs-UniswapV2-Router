@@ -39,41 +39,41 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
     }
     
     // calculates the CREATE2 address for a pair without making any external calls
-    fn pair_for(&mut self, factory:ContractHash, token_a:ContractHash, token_b:ContractHash) -> ContractHash {
+    fn pair_for(&mut self, factory:ContractHash, token_a:ContractHash, token_b:ContractHash) /* -> ContractHash */ {
         
-        let args = runtime_args! {
-            "token_a" => token_a,
-            "token_b" => token_b
-        };
-        let (token_0, token_1):(ContractHash, ContractHash) = 
-            runtime::call_contract(self_hash(), "sort_tokens", args);
+        // let args = runtime_args! {
+        //     "token_a" => token_a,
+        //     "token_b" => token_b
+        // };
+        // let (token_0, token_1):(ContractHash, ContractHash) = 
+        //     runtime::call_contract(self_hash(), "sort_tokens", args);
         
-        // let pair = address(uint(keccak256(abi.encodePacked( hex'ff', factory, keccak256(abi.encodePacked(token0, token1)), hex'96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f' ))));
-        // let hex = 
-        // let pair:ContractHash;
-        // pair
-        token_0
+        // // let pair = address(uint(keccak256(abi.encodePacked( hex'ff', factory, keccak256(abi.encodePacked(token0, token1)), hex'96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f' ))));
+        // // let hex = 
+        // // let pair:ContractHash;
+        // // pair
+        // token_0
     }
     
-    fn get_reserves(&mut self, factory:ContractHash, token_a:ContractHash, token_b:ContractHash) -> (U256, U256) {
+    fn get_reserves(&mut self, factory:ContractHash, token_a:ContractHash, token_b:ContractHash) /* -> (U256, U256) */ {
         
-        let args = runtime_args! {
-            "token_a" => token_a,
-            "token_b" => token_b
-        };
-        let (token_0, token_1):(ContractHash, ContractHash) = 
-            runtime::call_contract(self_hash(), "sort_tokens", args);
-        let (reserve_0, reserve_1):(U256, U256) = (0.into(),0.into()); // IUniswapV2Pair(pairFor(factory, tokenA, tokenB)).getReserves();
-        let (reserve_a, reserve_b):(U256, U256);
-        if token_a == token_0 {
-            reserve_a = reserve_0;
-            reserve_b = reserve_1;
-        }
-        else{
-            reserve_a = reserve_1;
-            reserve_b = reserve_0;
-        }
-        (reserve_a, reserve_b)
+        // let args = runtime_args! {
+        //     "token_a" => token_a,
+        //     "token_b" => token_b
+        // };
+        // let (token_0, token_1):(ContractHash, ContractHash) = 
+        //     runtime::call_contract(self_hash(), "sort_tokens", args);
+        // let (reserve_0, reserve_1):(U256, U256) = (0.into(),0.into()); // IUniswapV2Pair(pairFor(factory, tokenA, tokenB)).getReserves();
+        // let (reserve_a, reserve_b):(U256, U256);
+        // if token_a == token_0 {
+        //     reserve_a = reserve_0;
+        //     reserve_b = reserve_1;
+        // }
+        // else{
+        //     reserve_a = reserve_1;
+        //     reserve_b = reserve_0;
+        // }
+        // (reserve_a, reserve_b)
     }
     
     // given some amount of an asset and pair reserves, returns an equivalent amount of the other asset
