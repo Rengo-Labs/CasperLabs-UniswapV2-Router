@@ -1,16 +1,36 @@
 #![no_main]
 #![no_std]
+#![feature(slice_range)]
 
 extern crate alloc;
-use alloc::{collections::BTreeSet, format, string::String, vec};
+use alloc::{collections::BTreeSet, format, vec, prelude::v1::Box};
 use casper_contract::{
     contract_api::{runtime, storage},
     unwrap_or_revert::UnwrapOrRevert,
 };
 use casper_types::{
-    runtime_args, CLTyped, CLValue, EntryPoint, EntryPointAccess, EntryPointType, EntryPoints,
-    Group, Key, Parameter, RuntimeArgs, URef, U256,
+    runtime_args, CLType, CLTyped, CLValue, EntryPoint, EntryPointAccess,
+    Group, Key, Parameter, RuntimeArgs, URef, U256, EntryPointType,
+    ContractHash, EntryPoints, api_error::{ApiError}
 };
+use crate::vec::Vec;
+#[repr(u16)]
+enum ErrorCode {
+    ZeroAddress = 0,
+    IdenticalAddresses = 1,
+    InsufficientAmount = 2,
+    InsufficientInputAmount = 3,
+    InsufficientOutputAmount = 4,
+    InsufficientLiquidity = 5,
+    InvalidPath = 6
+}
+
+impl From<ErrorCode> for ApiError {
+    fn from(code: ErrorCode) -> Self {
+        ApiError::User(code as u16)
+    }
+}
+
 use contract_utils::{ContractContext, OnChainContractStorage};
 use erc20::{self, ERC20};
 
@@ -26,64 +46,16 @@ impl ContractContext<OnChainContractStorage> for Token {
 impl ERC20<OnChainContractStorage> for Token {}
 
 impl Token {
-    fn constructor(&mut self, name: String, symbol: String, decimals: u8, initial_supply: U256, package_hash:ContractPackageHash) {
-        ERC20::init(self, name, symbol, decimals, package_hash, package_hash);
+    fn constructor(&mut self, contract_hash:ContractHash) {
+        ERC20::init(self, name, symbol, decimals, initial_supply, contract_hash);
         ERC20::mint(self, self.get_caller(), initial_supply);
     }
 }
 
-
 #[no_mangle]
 fn constructor() {
-    let name: String = runtime::get_named_arg("name");
-    let symbol: String = runtime::get_named_arg("symbol");
-    let decimals: u8 = runtime::get_named_arg("decimals");
-    let initial_supply: U256 = runtime::get_named_arg("initial_supply");
-    let package_hash: ContractPackageHash = runtime::get_named_arg("package_hash");            // HERE...
-    Token::default().constructor(name, symbol, decimals, initial_supply, package_hash);
-}
-
-#[no_mangle]
-fn transfer() {
-    let recipient: Key = runtime::get_named_arg("recipient");
-    let amount: U256 = runtime::get_named_arg("amount");
-    Token::default().transfer(recipient, amount);
-}
-
-#[no_mangle]
-fn transfer_from() {
-    let owner: Key = runtime::get_named_arg("owner");
-    let recipient: Key = runtime::get_named_arg("recipient");
-    let amount: U256 = runtime::get_named_arg("amount");
-    Token::default().transfer_from(owner, recipient, amount);
-}
-
-#[no_mangle]
-fn approve() {
-    let spender: Key = runtime::get_named_arg("spender");
-    let amount: U256 = runtime::get_named_arg("amount");
-    Token::default().approve(spender, amount);
-}
-
-#[no_mangle]
-fn balance_of() {
-    let owner: Key = runtime::get_named_arg("owner");
-    let ret: U256 = Token::default().balance_of(owner);
-    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
-}
-
-#[no_mangle]
-fn allowance() {
-    let owner: Key = runtime::get_named_arg("owner");
-    let spender: Key = runtime::get_named_arg("spender");
-    let ret: U256 = Token::default().allowance(owner, spender);
-    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
-}
-
-#[no_mangle]
-fn total_supply() {
-    let ret: U256 = Token::default().total_supply();
-    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
+    let contract_hash: ContractHash = runtime::get_named_arg("contract_hash");            // HERE...
+    Token::default().constructor(contract_hash);
 }
 
 #[no_mangle]
@@ -91,7 +63,7 @@ fn sort_tokens() {
     let token_a:ContractHash = runtime::get_named_arg("token_a");
     let token_b:ContractHash = runtime::get_named_arg("token_b");
     if token_a == token_b {
-        runtime::revert(error_codes::IDENTICAL_ADDRESSES);
+        runtime::revert(ApiError::from(ErrorCode::IdenticalAddresses));
     }
     let (mut token_0, mut token_1):(ContractHash, ContractHash); 
     if token_a < token_b {
@@ -103,7 +75,7 @@ fn sort_tokens() {
         token_1 = token_a;
     }
     if token_0.to_formatted_string() == "contract-hash-0000000000000000000000000000000000000000000000000000000000000000" {
-        runtime::revert(error_codes::ZERO_ADDRESS);
+        runtime::revert(ApiError::from(ErrorCode::ZeroAddress));
     }
     runtime::ret(CLValue::from_t((token_0, token_1)).unwrap_or_revert())
 }
@@ -137,7 +109,7 @@ fn get_reserves() {
     };
     let (token_0, token_1):(ContractHash, ContractHash) = 
         runtime::call_versioned_contract(Token::default().get_hash(), None, "sort_tokens", constructor_args);
-    let (reserve_0, reserve_1):(U256, U256) = (0,0); // IUniswapV2Pair(pairFor(factory, tokenA, tokenB)).getReserves();
+    let (reserve_0, reserve_1):(U256, U256) = (0.into(),0.into()); // IUniswapV2Pair(pairFor(factory, tokenA, tokenB)).getReserves();
     let (mut reserve_a, mut reserve_b):(U256, U256);
     if token_a == token_0 {
         reserve_a = reserve_0;
@@ -155,11 +127,11 @@ fn quote() {
     let amount_a: U256 = runtime::get_named_arg("amount_a");
     let reserve_a: U256 = runtime::get_named_arg("reserve_a");
     let reserve_b: U256 = runtime::get_named_arg("reserve_b");
-    if amount_a <= 0 {
-        runtime::revert(error_codes::INSUFFICIENT_AMOUNT);
+    if amount_a <= 0.into() {
+        runtime::revert(ApiError::from(ErrorCode::InsufficientAmount));        
     }
-    if reserve_a <= 0 || reserve_b <= 0 {
-        runtime::revert(error_codes::INSUFFICIENT_LIQUIDITY);
+    if reserve_a <= 0.into() || reserve_b <= 0.into() {
+        runtime::revert(ApiError::from(ErrorCode::InsufficientLiquidity));
     }
     let amount_b: U256 = (amount_a * reserve_b) / reserve_a;
     runtime::ret(CLValue::from_t(amount_b).unwrap_or_revert())
@@ -170,11 +142,11 @@ fn get_amount_out(){
     let amount_in: U256 = runtime::get_named_arg("amount_in");
     let reserve_in: U256 = runtime::get_named_arg("reserve_in");
     let reserve_out: U256 = runtime::get_named_arg("reserve_out");
-    if amount_in <= 0 {
-        runtime::revert(error_codes::INSUFFICIENT_INPUT_AMOUNT);
+    if amount_in <= 0.into() {
+        runtime::revert(ApiError::from(ErrorCode::InsufficientInputAmount)); 
     }
-    if reserve_in <= 0 || reserve_out <= 0 {
-        runtime::revert(error_codes::INSUFFICIENT_LIQUIDITY);
+    if reserve_in <= 0.into() || reserve_out <= 0.into() {
+        runtime::revert(ApiError::from(ErrorCode::InsufficientLiquidity));
     }
     let amount_in_with_fee: U256 = amount_in * 997;
     let numerator:U256 = amount_in_with_fee * reserve_out;
@@ -189,11 +161,11 @@ fn get_amount_in() {
     let amount_out: U256 = runtime::get_named_arg("amount_out");
     let reserve_in: U256 = runtime::get_named_arg("reserve_in");
     let reserve_out: U256 = runtime::get_named_arg("reserve_out");
-    if amount_out <= 0 {
-        runtime::revert(error_codes::INSUFFICIENT_OUTPUT_AMOUNT);
+    if amount_out <= 0.into() {
+        runtime::revert(ApiError::from(ErrorCode::InsufficientOutputAmount));
     }
-    if reserve_in <= 0 || reserve_out <= 0 {
-        runtime::revert(error_codes::INSUFFICIENT_LIQUIDITY);
+    if reserve_in <= 0.into() || reserve_out <= 0.into() {
+        runtime::revert(ApiError::from(ErrorCode::InsufficientLiquidity));
     }
     let numerator:U256 = reserve_in * amount_out * 1000;
     let denominator:U256 = (reserve_out - amount_out) * 997;
@@ -207,11 +179,12 @@ fn get_amounts_out(){
     let amount_in: U256 = runtime::get_named_arg("amount_in");
     let path: Vec<ContractHash> = runtime::get_named_arg("path");
     if path.len() < 2 {
-        runtime::revert(error_codes::INVALID_PATH);
+        // runtime::revert(error_codes::INVALID_PATH);
+        runtime::revert(ApiError::from(ErrorCode::InsufficientLiquidity));
     }
-    let mut amounts = vec![0; path.len()];
+    let mut amounts:Vec<U256> = vec![0.into(); path.len()];
     amounts[0] = amount_in;
-    for i in  i..(path.length-1) {
+    for i in 0..(path.len()-1) {
         let (reserve_in, reserve_out):(U256, U256) = 
             runtime::call_versioned_contract(Token::default().get_hash(), None, "get_reserves", runtime_args! {
                 "factory" => factory,
@@ -234,11 +207,11 @@ fn get_amounts_in(){
     let amount_out: U256 = runtime::get_named_arg("amount_out");
     let path: Vec<ContractHash> = runtime::get_named_arg("path");
     if path.len() < 2 {
-        runtime::revert(error_codes::INVALID_PATH);
+        runtime::revert(ApiError::from(ErrorCode::InvalidPath));
     }
-    let amounts = vec![0; path.len()];
+    let amounts:Vec<U256> = vec![0.into(); path.len()];
     amounts[amounts.len()-1] = amount_out;
-    for i in  range(1, path.length).rev() {
+    for i in  (1..(path.len()-1)).rev() {
         let (reserve_in, reserve_out):(U256, U256) = 
             runtime::call_versioned_contract(Token::default().get_hash(), None, "get_reserves", runtime_args! {
                 "factory" => factory,
@@ -262,68 +235,10 @@ fn get_entry_points() -> EntryPoints {
     entry_points.add_entry_point(EntryPoint::new(
         "constructor",
         vec![
-            Parameter::new("name", String::cl_type()),
-            Parameter::new("symbol", String::cl_type()),
-            Parameter::new("decimals", u8::cl_type()),
-            Parameter::new("initial_supply", U256::cl_type()),
+            Parameter::new("contract_hash", ContractHash::cl_type()),
         ],
         <()>::cl_type(),
         EntryPointAccess::Groups(vec![Group::new("constructor")]),
-        EntryPointType::Contract,
-    ));
-    entry_points.add_entry_point(EntryPoint::new(
-        "transfer",
-        vec![
-            Parameter::new("recipient", Key::cl_type()),
-            Parameter::new("amount", U256::cl_type()),
-        ],
-        <()>::cl_type(),
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
-    entry_points.add_entry_point(EntryPoint::new(
-        "transfer_from",
-        vec![
-            Parameter::new("owner", Key::cl_type()),
-            Parameter::new("recipient", Key::cl_type()),
-            Parameter::new("amount", U256::cl_type()),
-        ],
-        <()>::cl_type(),
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
-    entry_points.add_entry_point(EntryPoint::new(
-        "approve",
-        vec![
-            Parameter::new("spender", Key::cl_type()),
-            Parameter::new("amount", U256::cl_type()),
-        ],
-        <()>::cl_type(),
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
-    entry_points.add_entry_point(EntryPoint::new(
-        "balance_of",
-        vec![Parameter::new("owner", Key::cl_type())],
-        U256::cl_type(),
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
-    entry_points.add_entry_point(EntryPoint::new(
-        "allowance",
-        vec![
-            Parameter::new("owner", Key::cl_type()),
-            Parameter::new("spender", Key::cl_type()),
-        ],
-        U256::cl_type(),
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
-    entry_points.add_entry_point(EntryPoint::new(
-        "total_supply",
-        vec![],
-        U256::cl_type(),
-        EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
     entry_points.add_entry_point(EntryPoint::new(
@@ -366,7 +281,7 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("amount_in", Key::cl_type()),
             Parameter::new("path", Key::cl_type()),
         ],
-        U256::cl_type(),
+        CLType::List(Box::new(CLType::U256)),
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
@@ -377,7 +292,7 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("amount_out", Key::cl_type()),
             Parameter::new("path", Key::cl_type()),
         ],
-        U256::cl_type(),
+        CLType::List(Box::new(CLType::U256)),
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
@@ -392,19 +307,9 @@ fn call() {
     let (contract_hash, _) =
         storage::add_contract_version(package_hash, get_entry_points(), Default::default());
 
-    // Read arguments for the constructor call.
-    let name: String = runtime::get_named_arg("name");
-    let symbol: String = runtime::get_named_arg("symbol");
-    let decimals: u8 = runtime::get_named_arg("decimals");
-    let initial_supply: U256 = runtime::get_named_arg("initial_supply");
-
     // Prepare constructor args
     let constructor_args = runtime_args! {
-        "name" => name,
-        "symbol" => symbol,
-        "decimals" => decimals,
-        "initial_supply" => initial_supply,
-        "package_hash" => package_hash          // USING THIS FOR INTERNAL FUNCTION CALLS...
+        "contract_hash" => contract_hash          // USING THIS FOR INTERNAL FUNCTION CALLS...
     };
 
     // Add the constructor group to the package hash with a single URef.
