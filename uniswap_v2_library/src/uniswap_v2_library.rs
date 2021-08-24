@@ -9,7 +9,7 @@ use casper_types::{
 use contract_utils::{ContractContext, ContractStorage};
 
 use crate::data::{self, self_hash};
-use crate::config::config::ErrorCode;
+use crate::config::error::ErrorCode;
 
 pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
     
@@ -55,25 +55,31 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
         // token_0
     }
     
-    fn get_reserves(&mut self, factory:ContractHash, token_a:ContractHash, token_b:ContractHash) /* -> (U256, U256) */ {
+    fn get_reserves(&mut self, factory:ContractHash, token_a:ContractHash, token_b:ContractHash) -> (U256, U256) {
         
-        // let args = runtime_args! {
-        //     "token_a" => token_a,
-        //     "token_b" => token_b
-        // };
-        // let (token_0, token_1):(ContractHash, ContractHash) = 
-        //     runtime::call_contract(self_hash(), "sort_tokens", args);
-        // let (reserve_0, reserve_1):(U256, U256) = (0.into(),0.into()); // IUniswapV2Pair(pairFor(factory, tokenA, tokenB)).getReserves();
-        // let (reserve_a, reserve_b):(U256, U256);
-        // if token_a == token_0 {
-        //     reserve_a = reserve_0;
-        //     reserve_b = reserve_1;
-        // }
-        // else{
-        //     reserve_a = reserve_1;
-        //     reserve_b = reserve_0;
-        // }
-        // (reserve_a, reserve_b)
+        let args = runtime_args! {
+            "token_a" => token_a,
+            "token_b" => token_b
+        };
+        let pair_args = runtime_args! {
+            "factory" => factory,
+            "token_a" => token_a,
+            "token_b" => token_b
+        };
+        let pair_reserve_args = runtime_args! {};
+        let (token_0, _):(ContractHash, ContractHash) = runtime::call_contract(self_hash(), "sort_tokens", args);
+        let pair:ContractHash = runtime::call_contract(self_hash(), "pair_for", pair_args);
+        let (reserve_0, reserve_1):(U256, U256) = runtime::call_contract(pair, "get_reserves", pair_reserve_args);
+        let (reserve_a, reserve_b):(U256, U256);
+        if token_a == token_0 {
+            reserve_a = reserve_0;
+            reserve_b = reserve_1;
+        }
+        else{
+            reserve_a = reserve_1;
+            reserve_b = reserve_0;
+        }
+        (reserve_a, reserve_b)
     }
     
     // given some amount of an asset and pair reserves, returns an equivalent amount of the other asset
