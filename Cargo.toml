@@ -1,0 +1,10 @@
+[workspace]
+
+members = [
+    "uniswap_v2_library",
+    "uniswap_v2_library_tests"
+]
+
+[profile.release]
+codegen-units = 1
+lto = true

@@ -1,2 +1,0 @@
-cargo:rustc-env=TYPENUM_BUILD_CONSTS=/home/bassam/SCY_TASKS/UniSwapV2Library/tests/target/debug/build/typenum-0958079555841090/out/consts.rs
-cargo:rustc-env=TYPENUM_BUILD_OP=/home/bassam/SCY_TASKS/UniSwapV2Library/tests/target/debug/build/typenum-0958079555841090/out/op.rs
