@@ -8,8 +8,10 @@ use casper_types::{
 };
 use contract_utils::{ContractContext, ContractStorage};
 
-use crate::data::{self, self_hash};
+use crate::data::{self, *};
 use crate::config::error::ErrorCode;
+
+use renvm_sig::keccak256;
 
 pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
     
@@ -39,20 +41,26 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
     }
     
     // calculates the CREATE2 address for a pair without making any external calls
-    fn pair_for(&mut self, factory:ContractHash, token_a:ContractHash, token_b:ContractHash) /* -> ContractHash */ {
+    fn pair_for(&mut self, factory:ContractHash, token_a:ContractHash, token_b:ContractHash) -> ContractHash {
         
-        // let args = runtime_args! {
-        //     "token_a" => token_a,
-        //     "token_b" => token_b
-        // };
-        // let (token_0, token_1):(ContractHash, ContractHash) = 
-        //     runtime::call_contract(self_hash(), "sort_tokens", args);
+        let args = runtime_args! {
+            "token_a" => token_a,
+            "token_b" => token_b
+        };
+        let (token_0, token_1):(ContractHash, ContractHash) = runtime::call_contract(self_hash(), "sort_tokens", args);
         
-        // // let pair = address(uint(keccak256(abi.encodePacked( hex'ff', factory, keccak256(abi.encodePacked(token0, token1)), hex'96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f' ))));
-        // // let hex = 
-        // // let pair:ContractHash;
-        // // pair
-        // token_0
+        // In Solidity, keccak256 was not directly convertible into address so we use uint in between
+        // But here we can directly convert the keccak into ContractHash
+        let pair:ContractHash = keccak256(encode_packed(&[
+                &"ff".into(),
+                &make_hash(&factory),
+                &hex::encode(
+                    keccak256(encode_packed(&[&make_hash(&token_0), &make_hash(&token_1)]).as_bytes())
+                ),
+                &"96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f".into()
+            ]).as_bytes()).into();
+        
+        pair
     }
     
     fn get_reserves(&mut self, factory:ContractHash, token_a:ContractHash, token_b:ContractHash) -> (U256, U256) {
