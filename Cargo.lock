@@ -1506,7 +1506,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "tests"
+name = "test-env"
 version = "0.1.0"
 dependencies = [
  "casper-contract",
@@ -1666,6 +1666,19 @@ dependencies = [
  "contract-utils",
  "hex",
  "renvm-sig",
+]
+
+[[package]]
+name = "uniswap_v2_library_tests"
+version = "0.1.0"
+dependencies = [
+ "blake2",
+ "casper-contract",
+ "casper-engine-test-support",
+ "casper-types",
+ "contract-utils",
+ "hex",
+ "test-env",
 ]
 
 [[package]]

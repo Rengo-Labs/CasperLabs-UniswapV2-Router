@@ -42,12 +42,8 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
     
     // calculates the CREATE2 address for a pair without making any external calls
     fn pair_for(&mut self, factory:ContractHash, token_a:ContractHash, token_b:ContractHash) -> ContractHash {
-        
-        let args = runtime_args! {
-            "token_a" => token_a,
-            "token_b" => token_b
-        };
-        let (token_0, token_1):(ContractHash, ContractHash) = runtime::call_contract(self_hash(), "sort_tokens", args);
+                
+        let (token_0, token_1):(ContractHash, ContractHash) = self.sort_tokens(token_a, token_b);
         
         // In Solidity, keccak256 was not directly convertible into address so we use uint in between
         // But here we can directly convert the keccak into ContractHash
@@ -64,20 +60,10 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
     }
     
     fn get_reserves(&mut self, factory:ContractHash, token_a:ContractHash, token_b:ContractHash) -> (U256, U256) {
-        
-        let args = runtime_args! {
-            "token_a" => token_a,
-            "token_b" => token_b
-        };
-        let pair_args = runtime_args! {
-            "factory" => factory,
-            "token_a" => token_a,
-            "token_b" => token_b
-        };
-        let pair_reserve_args = runtime_args! {};
-        let (token_0, _):(ContractHash, ContractHash) = runtime::call_contract(self_hash(), "sort_tokens", args);
-        let pair:ContractHash = runtime::call_contract(self_hash(), "pair_for", pair_args);
-        let (reserve_0, reserve_1):(U256, U256) = runtime::call_contract(pair, "get_reserves", pair_reserve_args);
+                
+        let (token_0, _):(ContractHash, ContractHash) = self.sort_tokens(token_a, token_b);
+        let pair:ContractHash = self.pair_for(factory, token_a, token_b);
+        let (reserve_0, reserve_1):(U256, U256) = runtime::call_contract(pair, "get_reserves", runtime_args! {});
         let (reserve_a, reserve_b):(U256, U256);
         if token_a == token_0 {
             reserve_a = reserve_0;
@@ -144,18 +130,8 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
         let mut amounts:Vec<U256> = vec![0.into(); path.len()];
         amounts[0] = amount_in;
         for i in 0..(path.len()-1) {
-            let (reserve_in, reserve_out):(U256, U256) = 
-                runtime::call_contract(self_hash(), "get_reserves", runtime_args! {
-                    "factory" => factory,
-                    "token_a" => path[i],
-                    "token_b" => path[i+1]
-                });
-            amounts[i+1] = 
-                runtime::call_contract(self_hash(), "get_amount_out", runtime_args! {
-                    "amount_in" => amounts[i],
-                    "reserve_in" => reserve_in,
-                    "reserve_out" => reserve_out
-                });
+            let (reserve_in, reserve_out):(U256, U256) = self.get_reserves(factory, path[i], path[i+1]);
+            amounts[i+1] = self.get_amount_out(amounts[i], reserve_in, reserve_out);
         }
         amounts
     }
@@ -170,18 +146,8 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
         let size = amounts.len();
         amounts[size-1] = amount_out;
         for i in  (1..(path.len()-1)).rev() {
-            let (reserve_in, reserve_out):(U256, U256) = 
-                runtime::call_contract(self_hash(), "get_reserves", runtime_args! {
-                    "factory" => factory,
-                    "token_a" => path[i-1],
-                    "token_b" => path[i]
-                });
-            amounts[i-1] = 
-                runtime::call_contract(self_hash(), "get_amount_in", runtime_args! {
-                    "amount_in" => amounts[i],
-                    "reserve_in" => reserve_in,
-                    "reserve_out" => reserve_out
-                });
+            let (reserve_in, reserve_out):(U256, U256) = self.get_reserves(factory, path[i-1], path[i]);
+            amounts[i-1] = self.get_amount_in(amounts[i], reserve_in, reserve_out);
         }
         amounts
     }    
