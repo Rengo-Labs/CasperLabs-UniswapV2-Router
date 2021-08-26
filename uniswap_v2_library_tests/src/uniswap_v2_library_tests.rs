@@ -2,30 +2,25 @@ use casper_engine_test_support::AccountHash;
 use casper_types::U256;
 use test_env::{Sender, TestEnv};
 
-use crate::erc20_instance::ERC20Instance;
+use crate::uniswap_v2_library_instance::*;
 
-const NAME: &str = "my_token";
-const SYMBOL: &str = "MYT";
-const DECIMALS: u8 = 18;
-const INIT_TOTAL_SUPPLY: u64 = 1000;
+const NAME: &str = "UniSwap";
+const HASH: &str = "self_hash";
 
-fn deploy() -> (TestEnv, ERC20Instance, AccountHash) {
+fn deploy() -> (TestEnv, UniSwapV2LibraryInstance, AccountHash) {
     let env = TestEnv::new();
     let owner = env.next_user();
-    let token = ERC20Instance::new(
+    let token = UniSwapV2LibraryInstance::new(
         &env,
         NAME,
         Sender(owner),
-        NAME,
-        SYMBOL,
-        DECIMALS,
-        INIT_TOTAL_SUPPLY.into(),
+        
     );
     (env, token, owner)
 }
 
 #[test]
-fn test_erc20_deploy() {
+fn test_uniswap_deploy() {
     let (env, token, owner) = deploy();
     let user = env.next_user();
     assert_eq!(token.name(), NAME);

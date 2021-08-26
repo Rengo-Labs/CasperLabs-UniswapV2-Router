@@ -2,14 +2,14 @@ prepare:
 	rustup target add wasm32-unknown-unknown
 
 build-contract:
-	cargo build --release -p erc20 --target wasm32-unknown-unknown
-	wasm-strip target/wasm32-unknown-unknown/release/erc20-token.wasm 2>/dev/null | true
+	cargo build --release -p uniswap_v2_library --target wasm32-unknown-unknown
+	wasm-strip target/wasm32-unknown-unknown/release/uniswap.wasm 2>/dev/null | true
 
 test-only:
-	cargo test -p erc20-tests
+	cargo test -p uniswap_v2_library_tests
 
 copy-wasm-file-to-test:
-	cp target/wasm32-unknown-unknown/release/*.wasm erc20-tests/wasm
+	cp target/wasm32-unknown-unknown/release/*.wasm uniswap_v2_library_tests/wasm
 
 test: build-contract copy-wasm-file-to-test test-only
 
@@ -24,4 +24,4 @@ lint: clippy
 
 clean:
 	cargo clean
-	rm -rf erc20-tests/wasm/*.wasm
+	rm -rf uniswap_v2_library_tests/wasm/*.wasm

@@ -1,32 +1,23 @@
-use blake2::{
-    digest::{Update, VariableOutput},
-    VarBlake2b,
-};
-use casper_types::{bytesrepr::ToBytes, runtime_args, Key, RuntimeArgs, U256};
+use blake2::{digest::{Update, VariableOutput}, VarBlake2b};
+use casper_types::{bytesrepr::ToBytes, runtime_args, Key, RuntimeArgs, U256, ContractHash};
 use test_env::{Sender, TestContract, TestEnv};
 
-pub struct ERC20Instance(TestContract);
+pub struct UniSwapV2LibraryInstance(TestContract);
 
-impl ERC20Instance {
+impl UniSwapV2LibraryInstance {
     pub fn new(
         env: &TestEnv,
         contract_name: &str,
         sender: Sender,
-        name: &str,
-        symbol: &str,
-        decimals: u8,
-        supply: U256,
-    ) -> ERC20Instance {
-        ERC20Instance(TestContract::new(
+        contract_hash: ContractHash
+    ) -> UniSwapV2LibraryInstance {
+        UniSwapV2LibraryInstance(TestContract::new(
             env,
-            "erc20-token.wasm",
+            "uniswap.wasm",
             contract_name,
             sender,
             runtime_args! {
-                "initial_supply" => supply,
-                "name" => name,
-                "symbol" => symbol,
-                "decimals" => decimals
+                "contract_hash" => contract_hash
             },
         ))
     }
@@ -34,19 +25,13 @@ impl ERC20Instance {
     pub fn constructor(
         &self,
         sender: Sender,
-        name: &str,
-        symbol: &str,
-        decimals: u8,
-        initial_supply: U256,
+        contract_hash: ContractHash
     ) {
         self.0.call_contract(
             sender,
             "constructor",
             runtime_args! {
-                "initial_supply" => initial_supply,
-                "name" => name,
-                "symbol" => symbol,
-                "decimals" => decimals
+                "contract_hash" => contract_hash
             },
         );
     }

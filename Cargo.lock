@@ -1676,7 +1676,6 @@ dependencies = [
  "casper-contract",
  "casper-engine-test-support",
  "casper-types",
- "contract-utils",
  "hex",
  "test-env",
 ]
