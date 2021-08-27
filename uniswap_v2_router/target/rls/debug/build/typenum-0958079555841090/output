@@ -1,0 +1,2 @@
+cargo:rustc-env=TYPENUM_BUILD_CONSTS=/home/hussain/Desktop/Scytalelabs/Tasks/UniswapV2Router01_1.3_Update/uniswap_v2_router/target/rls/debug/build/typenum-0958079555841090/out/consts.rs
+cargo:rustc-env=TYPENUM_BUILD_OP=/home/hussain/Desktop/Scytalelabs/Tasks/UniswapV2Router01_1.3_Update/uniswap_v2_router/target/rls/debug/build/typenum-0958079555841090/out/op.rs
