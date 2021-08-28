@@ -220,7 +220,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             "to" => to,
             "value" => amount_token
         };
-        let () = Self::call_contract(&uniswapv2_transfer_helper_contract_hash, uniswapv2_contract_methods::TRASNFER_HELPER_SAFE_SAFE_TRANSFER, args);
+        let () = Self::call_contract(&uniswapv2_transfer_helper_contract_hash, uniswapv2_contract_methods::TRASNFER_HELPER_SAFE_TRANSFER, args);
 
 
         // call withdraw from IWETH

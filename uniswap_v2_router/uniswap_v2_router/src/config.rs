@@ -46,7 +46,7 @@ pub mod uniswapv2_contract_methods
     // Transfer_helper Contract methods
     pub const TRANSFER_HELPER_SAFE_TRANSFER_FROM: &str = "safe_transfer_from";
     pub const TRANSFER_HELPER_SAFE_TRANSFER_CSPR: &str = "safe_transfer_cspr";
-    pub const TRASNFER_HELPER_SAFE_SAFE_TRANSFER: &str = "safe_transfer";
+    pub const TRASNFER_HELPER_SAFE_TRANSFER: &str = "safe_transfer";
 
     // IWETH Contract methods
     pub const IWETH_DEPOSIT: &str = "deposit";
