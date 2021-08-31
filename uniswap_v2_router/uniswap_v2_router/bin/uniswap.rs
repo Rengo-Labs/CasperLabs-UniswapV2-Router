@@ -445,7 +445,6 @@ fn get_entry_points() -> EntryPoints {
             EntryPointType::Contract,
     ));
 
-    //swapExactTokensForTokens
     entry_points.add_entry_point(EntryPoint::new(
         String::from("swap_exact_tokens_for_tokens"),
 
@@ -461,7 +460,6 @@ fn get_entry_points() -> EntryPoints {
             EntryPointType::Contract,
     ));
 
-    //swapTokensForExactTokens
     entry_points.add_entry_point(EntryPoint::new(
         String::from("swap_tokens_for_exact_tokens"),
 
@@ -477,7 +475,6 @@ fn get_entry_points() -> EntryPoints {
             EntryPointType::Contract,
     ));
 
-    // swapExactETHForTokens(uint amountOutMin, address[] calldata path, address to, uint deadline)
     entry_points.add_entry_point(EntryPoint::new(
         String::from("swap_exact_cspr_for_tokens"),
 
@@ -493,7 +490,6 @@ fn get_entry_points() -> EntryPoints {
             EntryPointType::Contract,
     ));
 
-    // swapTokensForExactETH
     entry_points.add_entry_point(EntryPoint::new(
         String::from("swap_tokens_for_exact_cspr"),
 
