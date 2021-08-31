@@ -33,10 +33,10 @@ impl UniswapV2Router<OnChainContractStorage> for Uniswap {}
 
 impl Uniswap 
 {
-    fn constructor(&mut self, factory:ContractHash, weth: ContractHash, contract_hash: ContractHash, package_hash: ContractPackageHash,
-        library_hash: ContractHash, transfer_helper_hash: ContractHash) 
+    fn constructor(&mut self, factory:ContractHash, wcspr: ContractHash, contract_hash: ContractHash, package_hash: ContractPackageHash,
+        library_hash: ContractHash) 
     {
-        UniswapV2Router::init(self, factory, weth, Key::from(contract_hash), package_hash, Key::from(library_hash), Key::from(transfer_helper_hash));
+        UniswapV2Router::init(self, factory, wcspr, Key::from(contract_hash), package_hash, Key::from(library_hash));
     }
 }
 
@@ -47,13 +47,12 @@ impl Uniswap
 fn constructor() 
 {
     let factory: ContractHash= runtime::get_named_arg("factory");
-    let weth: ContractHash= runtime::get_named_arg("weth");
+    let wcspr: ContractHash= runtime::get_named_arg("wcspr");
     let contract_hash: ContractHash = runtime::get_named_arg("contract_hash");
     let package_hash: ContractPackageHash = runtime::get_named_arg("package_hash");
     let library_hash: ContractHash = runtime::get_named_arg("library_hash");
-    let transfer_helper_hash: ContractHash = runtime::get_named_arg("transfer_helper_hash");
 
-    Uniswap::default().constructor(factory, weth, contract_hash, package_hash, library_hash, transfer_helper_hash);
+    Uniswap::default().constructor(factory, wcspr, contract_hash, package_hash, library_hash);
 }
 
 #[no_mangle]
@@ -336,7 +335,6 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("contract_hash", ContractHash::cl_type()),
             Parameter::new("package_hash", ContractPackageHash::cl_type()),
             Parameter::new("library_hash", ContractHash::cl_type()),
-            Parameter::new("transfer_helper_hash", ContractHash::cl_type()),
         ],
         <()>::cl_type(),
         EntryPointAccess::Groups(vec![Group::new("constructor")]),
@@ -554,18 +552,16 @@ fn call() {
         storage::add_contract_version(package_hash, get_entry_points(), Default::default());
 
     let factory: ContractHash = runtime::get_named_arg("factory");
-    let weth: ContractHash = runtime::get_named_arg("weth");                        // do we need this?
+    let wcspr: ContractHash = runtime::get_named_arg("wcspr");
     let library_hash: ContractHash = runtime::get_named_arg("library");
-    let transfer_helper: ContractHash = runtime::get_named_arg("transfer_helper");  
 
     // Prepare constructor args
     let constructor_args = runtime_args! {
         "factory" => factory,
-        "weth" => weth,
+        "wcspr" => wcspr,
         "contract_hash" => contract_hash,
         "package_hash" => package_hash,
         "library_hash" =>  library_hash,
-        "transfer_helper_hash" => transfer_helper
     };
 
     // Add the constructor group to the package hash with a single URef.
@@ -607,27 +603,3 @@ fn call() {
          access_token.into(),
     );
 }
-
-
-
-/*
-- Weth?
-- IWETH deposit, transfer
-- Need to fix contract return type in entry points definations
-- 'to' can either be contract or account, currently it is only contract. Replace it with the Key-type
-- Change error codes to enum
-- replace static with constants in config file
-- uint in solidity is an alias for uint256, a 256-bit unsigned integer. 
-
-- Done yesterday.
-    - Contract return type
-    - U32 to u256
-
-
-- Today?
-    - replace static and const,
-    - fix hardcoded contract hash,
-    - weth?
-    - events
-    - docs
-*/

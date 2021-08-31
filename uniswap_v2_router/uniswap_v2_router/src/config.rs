@@ -49,7 +49,10 @@ pub mod uniswapv2_contract_methods
     pub const TRASNFER_HELPER_SAFE_TRANSFER: &str = "safe_transfer";
 
     // IWETH Contract methods
-    pub const IWETH_DEPOSIT: &str = "deposit";
-    pub const IWETH_TRANSFER: &str = "transfer";
-    pub const IWETH_WITHDRAW: &str = "withdraw";
+    pub const WCSPR_DEPOSIT: &str = "deposit";
+    pub const WCSPR_TRANSFER: &str = "transfer";
+    pub const WCSPR_WITHDRAW: &str = "withdraw";
+
+    // ERC20 Based Contracts Methods
+    pub const ERC20_TRANSFER_FROM: &str = "transfer_from";
 }
