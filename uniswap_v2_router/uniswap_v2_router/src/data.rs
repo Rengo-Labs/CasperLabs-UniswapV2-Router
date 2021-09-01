@@ -16,11 +16,11 @@ pub fn set_wcspr(_wcspr: ContractHash) { set_key(WCSPR, _wcspr); }
 pub fn factory() -> ContractHash { get_key(FACTORY).unwrap_or_revert()}
 pub fn set_factory(_factory: ContractHash) { set_key(FACTORY, _factory);}
 
+pub fn library_hash() -> ContractHash { get_key(LIBRARY_HASH).unwrap_or_revert()}
+pub fn set_library_hash(contract_hash: ContractHash) { set_key(LIBRARY_HASH, contract_hash);}
+
 pub fn self_hash() -> Key { get_key(SELF_HASH).unwrap_or_revert()}
 pub fn set_self_hash(contract_hash: Key) { set_key(SELF_HASH, contract_hash);}
 
 pub fn package_hash() -> ContractPackageHash { get_key(PACKAGE_HASH).unwrap_or_revert()}
 pub fn set_package_hash(package_hash: ContractPackageHash) { set_key(PACKAGE_HASH, package_hash);}
-
-pub fn library_hash() -> Key { get_key(LIBRARY_HASH).unwrap_or_revert()}
-pub fn set_library_hash(contract_hash: Key) { set_key(LIBRARY_HASH, contract_hash);}

@@ -14,14 +14,14 @@ use crate::transfer_helper::transfer_helper;
 pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
     
     // Will be called by constructor
-    fn init(&mut self, factory: ContractHash, wcspr: ContractHash, contract_hash: Key, package_hash: ContractPackageHash, 
-        library_hash: Key) {
+    fn init(&mut self, factory: ContractHash, wcspr: ContractHash, library_hash: ContractHash, 
+        contract_hash: Key, package_hash: ContractPackageHash) {
 
         data::set_factory(factory);
         data::set_wcspr(wcspr);
+        data::set_library_hash(library_hash);
         data::set_self_hash(contract_hash);
         data::set_package_hash(package_hash);
-        data::set_library_hash(library_hash);
     }
 
 

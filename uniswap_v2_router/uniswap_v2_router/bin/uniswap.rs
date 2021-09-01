@@ -33,10 +33,13 @@ impl UniswapV2Router<OnChainContractStorage> for Uniswap {}
 
 impl Uniswap 
 {
-    fn constructor(&mut self, factory:ContractHash, wcspr: ContractHash, contract_hash: ContractHash, package_hash: ContractPackageHash,
-        library_hash: ContractHash) 
+    fn constructor(&mut self, factory:Key, wcspr: Key, library_hash: Key, 
+        contract_hash: ContractHash, package_hash: ContractPackageHash) 
     {
-        UniswapV2Router::init(self, factory, wcspr, Key::from(contract_hash), package_hash, Key::from(library_hash));
+        let _factory: ContractHash = ContractHash::from(factory.into_hash().unwrap_or_default());
+        let _wcspr: ContractHash = ContractHash::from(wcspr.into_hash().unwrap_or_default());
+        let _library_hash: ContractHash = ContractHash::from(library_hash.into_hash().unwrap_or_default());
+        UniswapV2Router::init(self, _factory, _wcspr, _library_hash, Key::from(contract_hash), package_hash);
     }
 }
 
@@ -46,13 +49,13 @@ impl Uniswap
 /// Parameters-> factory:ContractHash, contract_hash:ContractHash, package_hash:ContractHash, library_hash:ContractHash, transfer_helper_hash:ContractHash
 fn constructor() 
 {
-    let factory: ContractHash= runtime::get_named_arg("factory");
-    let wcspr: ContractHash= runtime::get_named_arg("wcspr");
+    let factory: Key= runtime::get_named_arg("factory");
+    let wcspr: Key= runtime::get_named_arg("wcspr");
+    let library_hash: Key = runtime::get_named_arg("library_hash");
     let contract_hash: ContractHash = runtime::get_named_arg("contract_hash");
     let package_hash: ContractPackageHash = runtime::get_named_arg("package_hash");
-    let library_hash: ContractHash = runtime::get_named_arg("library_hash");
 
-    Uniswap::default().constructor(factory, wcspr, contract_hash, package_hash, library_hash);
+    Uniswap::default().constructor(factory, wcspr, library_hash, contract_hash, package_hash);
 }
 
 #[no_mangle]
@@ -330,11 +333,11 @@ fn get_entry_points() -> EntryPoints {
     entry_points.add_entry_point(EntryPoint::new(
         "constructor",
         vec![
-            Parameter::new("factory", ContractHash::cl_type()),
-            Parameter::new("weth", ContractHash::cl_type()),
+            Parameter::new("factory", Key::cl_type()),
+            Parameter::new("wcspr", Key::cl_type()),
+            Parameter::new("library_hash", Key::cl_type()),
             Parameter::new("contract_hash", ContractHash::cl_type()),
-            Parameter::new("package_hash", ContractPackageHash::cl_type()),
-            Parameter::new("library_hash", ContractHash::cl_type()),
+            Parameter::new("package_hash", ContractPackageHash::cl_type())
         ],
         <()>::cl_type(),
         EntryPointAccess::Groups(vec![Group::new("constructor")]),
@@ -547,17 +550,17 @@ fn call() {
     let (contract_hash, _) : (ContractHash, _) =
         storage::add_contract_version(package_hash, get_entry_points(), Default::default());
 
-    let factory: ContractHash = runtime::get_named_arg("factory");
-    let wcspr: ContractHash = runtime::get_named_arg("wcspr");
-    let library_hash: ContractHash = runtime::get_named_arg("library");
+    let factory: Key = runtime::get_named_arg("factory");
+    let wcspr: Key = runtime::get_named_arg("wcspr");
+    let library_hash: Key = runtime::get_named_arg("library");
 
     // Prepare constructor args
     let constructor_args = runtime_args! {
         "factory" => factory,
         "wcspr" => wcspr,
+        "library_hash" =>  library_hash,
         "contract_hash" => contract_hash,
         "package_hash" => package_hash,
-        "library_hash" =>  library_hash,
     };
 
     // Add the constructor group to the package hash with a single URef.
