@@ -29,6 +29,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         amount_b_desired: U256, amount_a_min: U256, amount_b_min: U256, to: Key
     ) -> (U256, U256, U256)
     {
+        
         let factory: ContractHash = data::factory();
         let (amount_a, amount_b) : (U256, U256) = Self::_add_liquidity(token_a, token_b, amount_a_desired, amount_b_desired, amount_a_min, amount_b_min);
 
@@ -44,7 +45,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
 
         transfer_helper::safe_transfer_from(Key::from(token_a), Key::from(runtime::get_caller()), Key::from(pair), amount_a);
         transfer_helper::safe_transfer_from(Key::from(token_b), Key::from(runtime::get_caller()), Key::from(pair), amount_b);
-        
+
 
         // call mint function from IUniswapV2Pair contract
         let args: RuntimeArgs= runtime_args!{
@@ -125,6 +126,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         amount_b_min: U256, to: Key
     ) -> (U256, U256)
     {
+        
         let factory: ContractHash = data::factory();
 
         // call pair_for from library contract
@@ -215,8 +217,9 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
 
 
     fn remove_liquidity_with_permit(&mut self, token_a: ContractHash, token_b: ContractHash, liquidity: U256, amount_a_min: U256, amount_b_min: U256, 
-        to: Key, approve_max: bool, v: u8, r: Bytes, s: Bytes, deadline: U256) -> (U256, U256)
+        to: Key, approve_max: bool, v: u8, r: u32, s: u32, deadline: U256) -> (U256, U256)
     {
+        
         let factory: ContractHash = data::factory();
         let self_hash: Key = data::self_hash();
 
@@ -259,12 +262,14 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         let package_hash = data::package_hash();
         let (amount_a, amount_b):(U256, U256) = runtime::call_versioned_contract(package_hash, None, "remove_liquidity", args);
         (amount_a, amount_b)
+
     }
 
 
     fn remove_liquidity_cspr_with_permit(&mut self, token: ContractHash, liquidity: U256, amount_token_min: U256, amount_cspr_min: U256, 
-        to: Key, approve_max: bool, v: u8, r: Bytes, s: Bytes, deadline: U256) -> (U256, U256)
+        to: Key, approve_max: bool, v: u8, r: u32, s: u32, deadline: U256) -> (U256, U256)
     {
+
         let factory: ContractHash = data::factory();
         let wcspr: ContractHash = data::wcspr();
         let self_hash: Key = data::self_hash();
