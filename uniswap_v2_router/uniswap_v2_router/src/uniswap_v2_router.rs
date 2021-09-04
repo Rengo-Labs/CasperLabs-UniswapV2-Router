@@ -269,7 +269,6 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
     fn remove_liquidity_cspr_with_permit(&mut self, token: ContractHash, liquidity: U256, amount_token_min: U256, amount_cspr_min: U256, 
         to: Key, approve_max: bool, v: u8, r: u32, s: u32, deadline: U256) -> (U256, U256)
     {
-
         let factory: ContractHash = data::factory();
         let wcspr: ContractHash = data::wcspr();
         let self_hash: Key = data::self_hash();

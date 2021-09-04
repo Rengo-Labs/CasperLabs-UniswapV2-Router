@@ -226,10 +226,10 @@ fn swap_exact_tokens_for_tokens()
     let amount_out_min: U256 = runtime::get_named_arg("amount_out_min");
     let path: Vec<Key> = runtime::get_named_arg("path");
     let to: Key = runtime::get_named_arg("to");
-
+    
     let mut _path: Vec<ContractHash> = vec!();
     for p in path {
-        _path.push(ContractHash::from(p.into_hash().unwrap_or_default()))
+       _path.push(ContractHash::from(p.into_hash().unwrap_or_default()))
     }
 
     let amounts : Vec<U256> = Uniswap::default().swap_exact_tokens_for_tokens(amount_in, amount_out_min, _path, to);
@@ -265,7 +265,7 @@ fn swap_tokens_for_exact_tokens()
 #[no_mangle]
 /// Swap exact cspr for tokens.
 /// 
-/// Parameters-> amount_out_min:U256, amount_in:U256, path:Vec<ContractHash>, to:Key, deadline:U256
+/// Parameters-> amount_out_min:U256, amount_in:U256, path:Vec<Key>, to:Key, deadline:U256
 fn swap_exact_cspr_for_tokens()
 {
     let deadline: U256 = runtime::get_named_arg("deadline");
@@ -276,17 +276,22 @@ fn swap_exact_cspr_for_tokens()
 
     let amount_out_min: U256 = runtime::get_named_arg("amount_out_min");
     let amount_in: U256 = runtime::get_named_arg("amount_in");
-    let path: Vec<ContractHash>  = runtime::get_named_arg("path");
+    let path: Vec<Key>  = runtime::get_named_arg("path");
     let to: Key = runtime::get_named_arg("to");
 
-    let amounts : Vec<U256> = Uniswap::default().swap_exact_cspr_for_tokens(amount_out_min, amount_in, path, to);
+    let mut _path: Vec<ContractHash> = vec!();
+    for p in path {
+        _path.push(ContractHash::from(p.into_hash().unwrap_or_default()))
+    }
+
+    let amounts : Vec<U256> = Uniswap::default().swap_exact_cspr_for_tokens(amount_out_min, amount_in, _path, to);
     runtime::ret(CLValue::from_t(amounts).unwrap_or_revert());
 }
 
 #[no_mangle]
 /// Swap tokens for exact cspr.
 /// 
-/// Parameters-> amount_out:U256, amount_in_max:U256, path:Vec<ContractHash>, to:Key, deadline:U256
+/// Parameters-> amount_out:U256, amount_in_max:U256, path:Vec<Key>, to:Key, deadline:U256
 fn swap_tokens_for_exact_cspr()
 {
     let deadline: U256 = runtime::get_named_arg("deadline");
@@ -297,17 +302,22 @@ fn swap_tokens_for_exact_cspr()
 
     let amount_out: U256 = runtime::get_named_arg("amount_out");
     let amount_in_max: U256 = runtime::get_named_arg("amount_in_max");
-    let path: Vec<ContractHash>  = runtime::get_named_arg("path");
+    let path: Vec<Key>  = runtime::get_named_arg("path");
     let to: Key = runtime::get_named_arg("to");
 
-    let amounts : Vec<U256> = Uniswap::default().swap_tokens_for_exact_cspr(amount_out, amount_in_max, path, to);
+    let mut _path: Vec<ContractHash> = vec!();
+    for p in path {
+        _path.push(ContractHash::from(p.into_hash().unwrap_or_default()))
+    }
+
+    let amounts : Vec<U256> = Uniswap::default().swap_tokens_for_exact_cspr(amount_out, amount_in_max, _path, to);
     runtime::ret(CLValue::from_t(amounts).unwrap_or_revert());
 }
 
 #[no_mangle]
 /// Swap exact tokens for cspr.
 /// 
-/// Parameters-> amount_in:U256, amount_out_min:U256, path:Vec<ContractHash>, to:Key, deadline:U256
+/// Parameters-> amount_in:U256, amount_out_min:U256, path:Vec<Key>, to:Key, deadline:U256
 fn swap_exact_tokens_for_cspr()
 {
     let deadline: U256 = runtime::get_named_arg("deadline");
@@ -318,17 +328,22 @@ fn swap_exact_tokens_for_cspr()
 
     let amount_in: U256 = runtime::get_named_arg("amount_in");
     let amount_out_min: U256 = runtime::get_named_arg("amount_out_min");
-    let path: Vec<ContractHash>  = runtime::get_named_arg("path");
+    let path: Vec<Key>  = runtime::get_named_arg("path");
     let to: Key = runtime::get_named_arg("to");
 
-    let amounts : Vec<U256> = Uniswap::default().swap_exact_tokens_for_cspr(amount_in, amount_out_min, path, to);
+    let mut _path: Vec<ContractHash> = vec!();
+    for p in path {
+        _path.push(ContractHash::from(p.into_hash().unwrap_or_default()))
+    }
+    
+    let amounts : Vec<U256> = Uniswap::default().swap_exact_tokens_for_cspr(amount_in, amount_out_min, _path, to);
     runtime::ret(CLValue::from_t(amounts).unwrap_or_revert());
 }
 
 #[no_mangle]
 /// Swap cspr for exact tokens
 /// 
-/// Parameters-> amount_out:U256, amount_in_max:U256, path:Vec<ContractHash>, to:Key, deadline:U256
+/// Parameters-> amount_out:U256, amount_in_max:U256, path:Vec<Key>, to:Key, deadline:U256
 fn swap_cspr_for_exact_tokens()
 {
     let deadline: U256 = runtime::get_named_arg("deadline");
@@ -339,10 +354,15 @@ fn swap_cspr_for_exact_tokens()
 
     let amount_out: U256 = runtime::get_named_arg("amount_out");
     let amount_in_max: U256 = runtime::get_named_arg("amount_in_max");
-    let path: Vec<ContractHash>  = runtime::get_named_arg("path");
+    let path: Vec<Key>  = runtime::get_named_arg("path");
     let to: Key = runtime::get_named_arg("to");
 
-    let amounts : Vec<U256> = Uniswap::default().swap_cspr_for_exact_tokens(amount_out, amount_in_max, path, to);
+    let mut _path: Vec<ContractHash> = vec!();
+    for p in path {
+        _path.push(ContractHash::from(p.into_hash().unwrap_or_default()))
+    }
+
+    let amounts : Vec<U256> = Uniswap::default().swap_cspr_for_exact_tokens(amount_out, amount_in_max, _path, to);
     runtime::ret(CLValue::from_t(amounts).unwrap_or_revert());
 }
 
@@ -432,6 +452,7 @@ fn get_entry_points() -> EntryPoints {
 
     entry_points.add_entry_point(EntryPoint::new(
         String::from("remove_liquidity_with_permit"),
+        
         vec![
             Parameter::new("token_a", Key::cl_type()),
             Parameter::new("token_b", Key::cl_type()),
@@ -476,8 +497,8 @@ fn get_entry_points() -> EntryPoints {
         vec![
             Parameter::new("amount_in", CLType::U256),
             Parameter::new("amount_out_min", CLType::U256),
-            Parameter::new("path", CLType::List(Box::new(Key::cl_type()))),
-            Parameter::new("to", Key::cl_type()),
+            Parameter::new("path", CLType::List(Box::new(CLType::Key))),
+            Parameter::new("to", CLType::Key),
             Parameter::new("deadline", CLType::U256),
             ],
             CLType::List(Box::new(CLType::U256)),
@@ -491,8 +512,8 @@ fn get_entry_points() -> EntryPoints {
         vec![
             Parameter::new("amount_out", CLType::U256),
             Parameter::new("amount_in_max", CLType::U256),
-            Parameter::new("path", CLType::List(Box::new(Key::cl_type()))),
-            Parameter::new("to", Key::cl_type()),
+            Parameter::new("path", CLType::List(Box::new(CLType::Key))),
+            Parameter::new("to", CLType::Key),
             Parameter::new("deadline", CLType::U256),
             ],
             CLType::List(Box::new(CLType::U256)),
@@ -506,8 +527,8 @@ fn get_entry_points() -> EntryPoints {
         vec![
             Parameter::new("amount_out_min", CLType::U256),
             Parameter::new("amount_in", CLType::U256),
-            Parameter::new("path", CLType::List(Box::new(ContractHash::cl_type()))),
-            Parameter::new("to", Key::cl_type()),
+            Parameter::new("path", CLType::List(Box::new(CLType::Key))),
+            Parameter::new("to", CLType::Key),
             Parameter::new("deadline", CLType::U256),
             ],
             CLType::List(Box::new(CLType::U256)),
@@ -521,8 +542,8 @@ fn get_entry_points() -> EntryPoints {
         vec![
             Parameter::new("amount_out", CLType::U256),
             Parameter::new("amount_in_max", CLType::U256),
-            Parameter::new("path", CLType::List(Box::new(ContractHash::cl_type()))),
-            Parameter::new("to", Key::cl_type()),
+            Parameter::new("path", CLType::List(Box::new(CLType::Key))),
+            Parameter::new("to", CLType::Key),
             Parameter::new("deadline", CLType::U256),
             ],
             CLType::List(Box::new(CLType::U256)),
@@ -536,8 +557,8 @@ fn get_entry_points() -> EntryPoints {
         vec![
             Parameter::new("amount_in", CLType::U256),
             Parameter::new("amount_out_min", CLType::U256),
-            Parameter::new("path", CLType::List(Box::new(ContractHash::cl_type()))),
-            Parameter::new("to", Key::cl_type()),
+            Parameter::new("path", CLType::List(Box::new(CLType::Key))),
+            Parameter::new("to", CLType::Key),
             Parameter::new("deadline", CLType::U256),
             ],
             CLType::List(Box::new(CLType::U256)),
@@ -551,8 +572,8 @@ fn get_entry_points() -> EntryPoints {
         vec![
             Parameter::new("amount_out", CLType::U256),
             Parameter::new("amount_in_max", CLType::U256),
-            Parameter::new("path", CLType::List(Box::new(ContractHash::cl_type()))),
-            Parameter::new("to", Key::cl_type()),
+            Parameter::new("path", CLType::List(Box::new(CLType::Key))),
+            Parameter::new("to", CLType::Key),
             Parameter::new("deadline", CLType::U256),
             ],
             CLType::List(Box::new(CLType::U256)),
