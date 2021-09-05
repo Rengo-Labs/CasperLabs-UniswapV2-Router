@@ -1,7 +1,7 @@
 [package]
-name = "erc20-tests"
+name = "uniswap_v2_router_tests"
 version = "0.2.1"
-authors = ["karandh <karan@casperlabs.io>", "Maciej Zieliński <maciej@casperlabs.io>"]
+authors = ["Muzahir Hussain <muzahir.hussain@scytalelabs.com>", "Bassam Munib <bassam.munib@scytalelabs.com>"]
 edition = "2018"
 
 [dependencies]

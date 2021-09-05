@@ -1,5 +1,5 @@
 #[cfg(test)]
-pub mod erc20_tests;
+pub mod uniswap_tests;
 
 #[cfg(test)]
-pub mod erc20_instance;
+pub mod uniswap_instance;

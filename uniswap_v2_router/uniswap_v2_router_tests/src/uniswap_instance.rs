@@ -5,28 +5,27 @@ use blake2::{
 use casper_types::{bytesrepr::ToBytes, runtime_args, Key, RuntimeArgs, U256};
 use test_env::{Sender, TestContract, TestEnv};
 
-pub struct ERC20Instance(TestContract);
+pub struct UniswapInstance(TestContract);
 
-impl ERC20Instance {
+impl UniswapInstance {
     pub fn new(
         env: &TestEnv,
         contract_name: &str,
-        sender: Sender,
-        name: &str,
-        symbol: &str,
-        decimals: u8,
-        supply: U256,
-    ) -> ERC20Instance {
-        ERC20Instance(TestContract::new(
+        factory: Key,
+        wcspr: Key, 
+        library: Key,
+        sender: Sender
+    ) -> UniswapInstance {
+        UniswapInstance(TestContract::new(
             env,
-            "erc20-token.wasm",
+            "uniswap-v2-router.wasm",
             contract_name,
             sender,
             runtime_args! {
-                "initial_supply" => supply,
-                "name" => name,
-                "symbol" => symbol,
-                "decimals" => decimals
+                "factory" => factory,
+                "wcspr" => wcspr,
+                "library" => library
+                // contract_name is passed seperately, so we don't need to pass it here.
             },
         ))
     }
@@ -49,6 +48,10 @@ impl ERC20Instance {
                 "decimals" => decimals
             },
         );
+    }
+
+    pub fn uniswap_contract_address(&self) -> Key {
+        self.0.query_named_key(String::from("self_hash"))
     }
 
     pub fn balance_of<T: Into<Key>>(&self, account: T) -> U256 {

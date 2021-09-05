@@ -1,29 +1,76 @@
 use casper_engine_test_support::AccountHash;
-use casper_types::U256;
-use test_env::{Sender, TestEnv};
+use casper_types::{U256, Key, runtime_args, RuntimeArgs, contracts::{ContractHash}};
+use test_env::{Sender, TestEnv, TestContract};
 
-use crate::erc20_instance::ERC20Instance;
+use crate::uniswap_instance::UniswapInstance;
 
-const NAME: &str = "my_token";
-const SYMBOL: &str = "MYT";
-const DECIMALS: u8 = 18;
-const INIT_TOTAL_SUPPLY: u64 = 1000;
+const NAME: &str = "uniswap_router";
 
-fn deploy() -> (TestEnv, ERC20Instance, AccountHash) {
+fn deploy() -> (TestEnv, UniswapInstance, AccountHash) {
     let env = TestEnv::new();
     let owner = env.next_user();
-    let token = ERC20Instance::new(
+
+
+    // deploy factory contract
+    let env_factory = TestEnv::new();
+    let owner_factory = env_factory.next_user();
+    let factory_contract = TestContract::new(
+        &env_factory,
+        "factory.wasm",
+        "factory",
+        Sender(owner_factory),
+        runtime_args! {
+            "fee_to_setter" => Key::from(owner_factory)
+            // contract_name is passed seperately, so we don't need to pass it here.
+        }
+    );
+    
+    // deploy wcspr contract
+    let env_wcspr = TestEnv::new();
+    let owner_wcspr = env_wcspr.next_user();
+    let wcspr = TestContract::new(
+        &env_wcspr,
+        "wcspr.wasm",
+        "wcspr",
+        Sender(owner_wcspr),
+        runtime_args! {}
+    );
+
+    // deploy library contract
+    let env_library = TestEnv::new();
+    let owner_library = env_library.next_user();
+    let library_contract = TestContract::new(
+        &env_library,
+        "library.wasm",
+        "library",
+        Sender(owner_library),
+        runtime_args! {}
+    );
+    
+    let token = UniswapInstance::new(
         &env,
         NAME,
-        Sender(owner),
-        NAME,
-        SYMBOL,
-        DECIMALS,
-        INIT_TOTAL_SUPPLY.into(),
+        Key::Hash(factory_contract.contract_hash()),
+        Key::Hash(wcspr.contract_hash()),
+        Key::Hash(library_contract.contract_hash()),
+        Sender(owner)
     );
+    
     (env, token, owner)
 }
 
+#[test]
+fn test_uniswap_deploy()
+{
+    let (env, token, owner) = deploy();
+    println!("{}", owner);
+    let self_hash: Key = token.uniswap_contract_address();
+    let zero_addr:Key = Key::from_formatted_str("hash-0000000000000000000000000000000000000000000000000000000000000000").unwrap();
+    assert_ne!(self_hash, zero_addr);
+}
+
+
+/*
 #[test]
 fn test_erc20_deploy() {
     let (env, token, owner) = deploy();
@@ -37,6 +84,7 @@ fn test_erc20_deploy() {
     assert_eq!(token.allowance(owner, user), 0.into());
     assert_eq!(token.allowance(user, owner), 0.into());
 }
+
 
 #[test]
 fn test_erc20_transfer() {
@@ -114,3 +162,4 @@ fn test_calling_construction() {
         INIT_TOTAL_SUPPLY.into(),
     );
 }
+*/
