@@ -51,6 +51,24 @@ impl UniswapInstance {
         );
     }
 
+    pub fn add_liquidity(&self, sender: Sender, token_a: Key, token_b: Key, amount_a_desired: U256, amount_b_desired: U256, amount_a_min: U256, amount_b_min: U256, to:Key, deadline: U256)
+    {
+        self.0.call_contract(
+            sender,
+            "add_liquidity", 
+            runtime_args! {
+                "token_a" => token_a,
+                "token_b" => token_b,
+                "amount_a_desired" => amount_a_desired,
+                "amount_b_desired" => amount_b_desired,
+                "amount_a_min" => amount_a_min,
+                "amount_b_min" => amount_b_min,
+                "to" => to,
+                "deadline" => deadline
+            }
+        );
+    }
+
     pub fn uniswap_contract_address(&self) -> Key {
         self.0.query_named_key(String::from("self_hash"))
     }
