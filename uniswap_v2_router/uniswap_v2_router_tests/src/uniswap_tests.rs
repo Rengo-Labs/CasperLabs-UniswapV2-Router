@@ -69,6 +69,60 @@ fn test_uniswap_deploy()
     assert_ne!(self_hash, zero_addr);
 }
 
+#[test]
+fn test_uniswap_swap_exact_tokens_for_tokens()
+{
+    let (env, token, owner) = deploy();
+    let user = env.next_user();
+    let ret = token.swap_exact_tokens_for_tokens(200.into(), 100.into(), [].into(), user);
+    println!("{:?}", ret);
+}
+
+#[test]
+fn test_uniswap_swap_tokens_for_exact_tokens()
+{
+    let (env, token, owner) = deploy();
+    let user = env.next_user();
+    let ret = token.swap_tokens_for_exact_tokens(200.into(), 100.into(), [].into(), user);
+    println!("{:?}", ret);
+}
+
+#[test]
+fn test_uniswap_swap_exact_cspr_for_tokens()
+{
+    let (env, token, owner) = deploy();
+    let user = env.next_user();
+    let ret = token.swap_exact_cspr_for_tokens(200.into(), 100.into(), [].into(), user);
+    println!("{:?}", ret);
+}
+
+#[test]
+fn test_uniswap_swap_tokens_for_exact_cspr()
+{
+    let (env, token, owner) = deploy();
+    let user = env.next_user();
+    let ret = token.swap_tokens_for_exact_cspr(200.into(), 100.into(), [].into(), user);
+    println!("{:?}", ret);
+}
+
+#[test]
+fn test_uniswap_swap_exact_tokens_for_cspr()
+{
+    let (env, token, owner) = deploy();
+    let user = env.next_user();
+    let ret = token.swap_exact_tokens_for_cspr(200.into(), 100.into(), [].into(), user);
+    println!("{:?}", ret);
+}
+
+#[test]
+fn test_uniswap_swap_cspr_for_exact_tokens()
+{
+    let (env, token, owner) = deploy();
+    let user = env.next_user();
+    let ret = token.swap_cspr_for_exact_tokens(200.into(), 100.into(), [].into(), user);
+    println!("{:?}", ret);
+}
+
 
 /*
 #[test]
