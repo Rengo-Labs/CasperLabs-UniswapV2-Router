@@ -7,16 +7,14 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 const NAME: &str = "uniswap_router";
 
-fn deploy_dummy_tokens() -> (TestContract, TestContract, TestContract) 
+fn deploy_dummy_tokens(env:&TestEnv) -> (TestContract, TestContract, TestContract) 
 {
     let decimals: u8 = 18;
     let init_total_supply: U256 = 1000.into();
 
-    let token1_env = TestEnv::new();
-    let token1_owner = token1_env.next_user();
-
+    let token1_owner = env.next_user();
     let token1_contract = TestContract::new(
-        &token1_env,
+        &env,
         "token.wasm",
         "token1_contract",
         Sender(token1_owner),
@@ -28,11 +26,9 @@ fn deploy_dummy_tokens() -> (TestContract, TestContract, TestContract)
         }
     );
 
-    let token2_env = TestEnv::new();
-    let token2_owner = token2_env.next_user();
-
+    let token2_owner = env.next_user();
     let token2_contract = TestContract::new(
-        &token2_env,
+        &env,
         "token.wasm",
         "token2_contract",
         Sender(token2_owner),
@@ -44,11 +40,9 @@ fn deploy_dummy_tokens() -> (TestContract, TestContract, TestContract)
         }
     );
 
-    let token3_env = TestEnv::new();
-    let token3_owner = token3_env.next_user();
-
+    let token3_owner = env.next_user();
     let token3_contract = TestContract::new(
-        &token3_env,
+        &env,
         "token.wasm",
         "token3_contract",
         Sender(token3_owner),
@@ -133,11 +127,11 @@ fn test_uniswap_deploy()
 fn test_add_liquidity()
 {
     let (env, uniswap, owner) = deploy_uniswap_router();
-    let (token1, token2, token3) = deploy_dummy_tokens();
+    let (token1, token2, token3) = deploy_dummy_tokens(&env);
 
 
     // token_a: Key, token_b: Key, amount_a_desired: U256, amount_b_desired: U256, amount_a_min: U256, amount_b_min: U256, to:Key, deadline: U256
-
+  
     let token1 = Key::Hash(token1.contract_hash());
     let token2 = Key::Hash(token2.contract_hash());
     let to = Key::Hash(token3.contract_hash());
