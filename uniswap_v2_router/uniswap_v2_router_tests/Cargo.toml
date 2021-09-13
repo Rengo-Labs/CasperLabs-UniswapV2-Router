@@ -12,6 +12,7 @@ test-env = { path = "../utils/test-env" }
 contract-utils = { path = "../utils/contract-utils" }
 hex = "0.4.3"
 blake2 = "0.9.1"
+rand = "0.8.4"
 
 [features]
 default = ["casper-contract/std", "casper-types/std", "casper-contract/test-support"]

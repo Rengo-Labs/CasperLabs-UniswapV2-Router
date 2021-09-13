@@ -69,6 +69,99 @@ impl UniswapInstance {
         );
     }
 
+    pub fn add_liquidity_cspr(&self, sender: Sender, token: Key, amount_token_desired: U256, amount_cspr_desired: U256, amount_token_min: U256, amount_cspr_min: U256, to: Key, deadline: U256)
+    {
+        self.0.call_contract(
+            sender,
+            "add_liquidity_cspr", 
+            runtime_args! {
+                "token" => token,
+                "amount_token_desired" => amount_token_desired,
+                "amount_cspr_desired" => amount_cspr_desired,
+                "amount_token_min" => amount_token_min,
+                "amount_cspr_min" => amount_cspr_min,
+                "to" => to,
+                "deadline" => deadline
+            }
+        );
+    }
+
+    pub fn remove_liquidity(&self, sender: Sender, token_a: Key, token_b: Key, liquidity: U256, amount_a_min: U256, amount_b_min: U256, to: Key, deadline: U256)
+    {
+        self.0.call_contract(
+            sender,
+            "remove_liquidity", 
+            runtime_args! {
+                "token_a" => token_a,
+                "token_b" => token_b,
+                "liquidity" => liquidity,
+                "amount_a_min" => amount_a_min,
+                "amount_b_min" => amount_b_min,
+                "to" => to,
+                "deadline" => deadline
+            }
+        );
+    }
+
+    pub fn remove_liquidity_cspr(&self, sender: Sender, token: Key, liquidity: U256, amount_token_min: U256, amount_cspr_min: U256, to: Key, deadline: U256)
+    {
+        self.0.call_contract(
+            sender,
+            "remove_liquidity_cspr", 
+            runtime_args! {
+                "token" => token,
+                "liquidity" => liquidity,
+                "amount_token_min" => amount_token_min,
+                "amount_cspr_min" => amount_cspr_min,
+                "to" => to,
+                "deadline" => deadline
+            }
+        ); 
+    }
+
+    pub fn remove_liquidity_with_permit(&self, sender: Sender, token_a: Key, token_b: Key, liquidity: U256, amount_a_min: U256, amount_b_min: U256,
+    to: Key, deadline: U256, approve_max: bool, v: u8, r: u32, s: u32)
+    {
+        self.0.call_contract(
+            sender,
+            "remove_liquidity_with_permit", 
+            runtime_args! {
+                "token_a" => token_a,
+                "token_b" => token_b,
+                "liquidity" => liquidity,
+                "amount_a_min" => amount_a_min,
+                "amount_b_min" => amount_b_min,
+                "to" => to,
+                "deadline" => deadline,
+                "approve_max" => approve_max,
+                "v" => v,
+                "r" => r,
+                "s" => s
+            }
+        );
+    }
+
+    pub fn remove_liquidity_cspr_with_permit(&self, sender: Sender, token: Key, liquidity: U256, amount_token_min: U256, amount_cspr_min:U256, to: Key,
+        deadline: U256, approve_max: bool, v: u8, r: u32, s: u32)
+    {
+        self.0.call_contract(
+            sender,
+            "remove_liquidity_cspr_with_permit", 
+            runtime_args! {
+                "token" => token,
+                "liquidity" => liquidity,
+                "amount_token_min" => amount_token_min,
+                "amount_cspr_min" => amount_cspr_min,
+                "to" => to,
+                "deadline" => deadline,
+                "approve_max" => approve_max,
+                "v" => v,
+                "r" => r,
+                "s" => s
+            }
+        );
+    }
+
     pub fn uniswap_contract_address(&self) -> Key {
         self.0.query_named_key(String::from("self_hash"))
     }
@@ -114,76 +207,6 @@ impl UniswapInstance {
             .query_dictionary("swap_cspr_for_exact_tokens", _keys_to_str(&amount_out, &amount_in_max, &path, &_to))
             .unwrap_or_default()
     }
-
-    // pub fn balance_of<T: Into<Key>>(&self, account: T) -> U256 {
-    //     self.0
-    //         .query_dictionary("balances", key_to_str(&account.into()))
-    //         .unwrap_or_default()
-    // }
-
-    // pub fn allowance<T: Into<Key>>(&self, owner: T, spender: T) -> U256 {
-    //     let owner: Key = owner.into();
-    //     let spender: Key = spender.into();
-    //     self.0
-    //         .query_dictionary("allowances", keys_to_str(&owner, &spender))
-    //         .unwrap_or_default()
-    // }
-
-    // pub fn transfer<T: Into<Key>>(&self, sender: Sender, recipient: T, amount: U256) {
-    //     self.0.call_contract(
-    //         sender,
-    //         "transfer",
-    //         runtime_args! {
-    //             "recipient" => recipient.into(),
-    //             "amount" => amount
-    //         },
-    //     );
-    // }
-
-    // pub fn transfer_from<T: Into<Key>>(
-    //     &self,
-    //     sender: Sender,
-    //     owner: T,
-    //     recipient: T,
-    //     amount: U256,
-    // ) {
-    //     self.0.call_contract(
-    //         sender,
-    //         "transfer_from",
-    //         runtime_args! {
-    //             "owner" => owner.into(),
-    //             "recipient" => recipient.into(),
-    //             "amount" => amount
-    //         },
-    //     );
-    // }
-
-    // pub fn approve<T: Into<Key>>(&self, sender: Sender, spender: T, amount: U256) {
-    //     self.0.call_contract(
-    //         sender,
-    //         "approve",
-    //         runtime_args! {
-    //             "spender" => spender.into(),
-    //             "amount" => amount
-    //         },
-    //     );
-    // }
-
-    // pub fn name(&self) -> String {
-    //     self.0.query_named_key(String::from("name"))
-    // }
-
-    // pub fn symbol(&self) -> String {
-    //     self.0.query_named_key(String::from("symbol"))
-    // }
-
-    // pub fn decimals(&self) -> u8 {
-    //     self.0.query_named_key(String::from("decimals"))
-    // }
-
-    // pub fn total_supply(&self) -> U256 {
-    //     self.0.query_named_key(String::from("total_supply"))
-    // }
 }
 
 pub fn key_to_str(key: &Key) -> String {

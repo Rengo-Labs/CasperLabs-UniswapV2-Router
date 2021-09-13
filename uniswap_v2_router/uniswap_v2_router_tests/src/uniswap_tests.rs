@@ -4,6 +4,7 @@ use test_env::{Sender, TestEnv, TestContract};
 
 use crate::uniswap_instance::UniswapInstance;
 use std::time::{SystemTime, UNIX_EPOCH};
+use rand::Rng;
 
 const NAME: &str = "uniswap_router";
 
@@ -81,7 +82,8 @@ fn deploy_uniswap_router() -> (TestEnv, UniswapInstance, AccountHash)
     let env_wcspr = TestEnv::new();
     let owner_wcspr = env_wcspr.next_user();
     let wcspr = TestContract::new(
-        &env_wcspr,
+        // &env_wcspr,
+        &env,
         "wcspr.wasm",
         "wcspr",
         Sender(owner_wcspr),
@@ -92,7 +94,8 @@ fn deploy_uniswap_router() -> (TestEnv, UniswapInstance, AccountHash)
     let env_library = TestEnv::new();
     let owner_library = env_library.next_user();
     let library_contract = TestContract::new(
-        &env_library,
+        // &env_library,
+        &env,
         "library.wasm",
         "library",
         Sender(owner_library),
@@ -112,6 +115,7 @@ fn deploy_uniswap_router() -> (TestEnv, UniswapInstance, AccountHash)
     (env, token, owner)
 }
 
+/*
 #[test]
 fn test_uniswap_deploy()
 {
@@ -139,17 +143,122 @@ fn test_add_liquidity()
     //let myKey: Key = Key::from_formatted_str("hash-0000000000000000000000000000000000000000000000000000000000000000").unwrap();
     //println!("{}, \n{}, \n{}", token1, token2, to);
 
-    let amount_a_desired: U256 = 500.into();
-    let amount_b_desired: U256 = 600.into();
-    let amount_a_min: U256 = 200.into();
-    let amount_b_min: U256 = 250.into();
+    let mut rng = rand::thread_rng();
+    let amount_a_desired: U256 = rng.gen_range(0..500).into();
+    let amount_b_desired: U256 = rng.gen_range(0..500).into();
+    let amount_a_min: U256 = rng.gen_range(0..250).into();
+    let amount_b_min: U256 = rng.gen_range(0..250).into();
 
     let deadline: u128 = match SystemTime::now().duration_since(UNIX_EPOCH) {
-        Ok(n) => n.as_millis() + (1000 * (30 * 60)),      // current time in milisecond + 30 minutes
+        Ok(n) => n.as_millis() + (1000 * (30 * 60)),      // current epoch time in milisecond + 30 minutes
         Err(_) => 0
     };
 
     uniswap.add_liquidity(Sender(owner), token1, token2, amount_a_desired, amount_b_desired, amount_a_min, amount_b_min, to, deadline.into());
+}
+*/
+
+#[test]
+fn add_liquidity_cspr()
+{
+    let (env, uniswap, owner) = deploy_uniswap_router();
+    let (token1, token2, token3) = deploy_dummy_tokens(&env);
+
+    let mut rng = rand::thread_rng();
+    let token = Key::Hash(token1.contract_hash());
+    let amount_token_desired: U256 = rng.gen_range(0..500).into();
+    let amount_cspr_desired: U256 = rng.gen_range(0..500).into();
+    let amount_token_min: U256 = rng.gen_range(0..200).into();
+    let amount_cspr_min: U256 = rng.gen_range(0..200).into();
+
+    let deadline: u128 = match SystemTime::now().duration_since(UNIX_EPOCH) {
+        Ok(n) => n.as_millis() + (1000 * (30 * 60)),      // current epoch time in milisecond + 30 minutes
+        Err(_) => 0
+    };
+}
+
+#[test]
+fn remove_liquidity()
+{
+    let (env, uniswap, owner) = deploy_uniswap_router();
+    let (token1, token2, token3) = deploy_dummy_tokens(&env);
+    let mut rng = rand::thread_rng();
+    
+    let token_a = Key::Hash(token1.contract_hash());
+    let token_b = Key::Hash(token2.contract_hash());
+    let liquidity:U256 = rng.gen_range(0..500).into();
+    let amount_a_min:U256 = rng.gen_range(0..250).into();
+    let amount_b_min:U256 = rng.gen_range(0..250).into();
+    let to = Key::Hash(token3.contract_hash());
+
+    let deadline: u128 = match SystemTime::now().duration_since(UNIX_EPOCH) {
+        Ok(n) => n.as_millis() + (1000 * (30 * 60)),      // current epoch time in milisecond + 30 minutes
+        Err(_) => 0
+    };
+}
+
+#[test]
+fn remove_liquidity_cspr()
+{
+    let (env, uniswap, owner) = deploy_uniswap_router();
+    let (token1, token2, token3) = deploy_dummy_tokens(&env);
+    let mut rng = rand::thread_rng();
+
+    let token: Key = Key::Hash(token1.contract_hash());
+    let liquidity:U256 = rng.gen_range(0..500).into();
+    let amount_token_min: U256 = rng.gen_range(0..200).into();
+    let amount_cspr_min: U256 = rng.gen_range(0..200).into();
+    let to = Key::Hash(token2.contract_hash());
+    let deadline: u128 = match SystemTime::now().duration_since(UNIX_EPOCH) {
+        Ok(n) => n.as_millis() + (1000 * (30 * 60)),      // current epoch time in milisecond + 30 minutes
+        Err(_) => 0
+    };
+}
+
+#[test]
+pub fn remove_liquidity_with_permit()
+{
+    let (env, uniswap, owner) = deploy_uniswap_router();
+    let (token1, token2, token3) = deploy_dummy_tokens(&env);
+    let mut rng = rand::thread_rng();
+
+    let token_a = Key::Hash(token1.contract_hash());
+    let token_b = Key::Hash(token2.contract_hash());
+    let liquidity: U256 = rng.gen_range(0..500).into();
+    let amount_a_min: U256 = rng.gen_range(0..200).into();
+    let amount_b_min: U256 = rng.gen_range(0..200).into();
+    let to = Key::Hash(token3.contract_hash());
+    let approve_max = false;
+    let v: u8 = rng.gen_range(0..200);
+    let r: u32 = rng.gen_range(0..200);
+    let s: u32 = rng.gen_range(0..200);
+    let deadline: u128 = match SystemTime::now().duration_since(UNIX_EPOCH) {
+        Ok(n) => n.as_millis() + (1000 * (30 * 60)),      // current epoch time in milisecond + 30 minutes
+        Err(_) => 0
+    };
+
+}
+
+#[test]
+fn remove_liquidity_cspr_with_permit()
+{
+    let (env, uniswap, owner) = deploy_uniswap_router();
+    let (token1, token2, token3) = deploy_dummy_tokens(&env);
+    let mut rng = rand::thread_rng();
+
+    let token = Key::Hash(token1.contract_hash());
+    let liquidity: U256 = rng.gen_range(0..500).into();
+    let amount_token_min: U256 = rng.gen_range(0..500).into();
+    let amount_cspr_min: U256 = rng.gen_range(0..500).into();
+    let to = Key::Hash(token2.contract_hash());
+    let approve_max = false;
+    let v: u8 = rng.gen_range(0..200);
+    let r: u32 = rng.gen_range(0..200);
+    let s: u32 = rng.gen_range(0..200);
+    let deadline: u128 = match SystemTime::now().duration_since(UNIX_EPOCH) {
+        Ok(n) => n.as_millis() + (1000 * (30 * 60)),      // current epoch time in milisecond + 30 minutes
+        Err(_) => 0
+    };
 }
 
 /*
