@@ -1,111 +1,184 @@
-// use casper_engine_test_support::AccountHash;
-// use casper_types::U256;
-// use test_env::{Sender, TestEnv};
+use casper_engine_test_support::AccountHash;
+use casper_types::{U256, Key, runtime_args, RuntimeArgs, contracts::{ContractHash}};
+use test_env::{Sender, TestEnv, TestContract};
 
-// use crate::uniswap_v2_library_instance::*;
+use crate::uniswap_v2_library_instance::UniswapInstance;
+use std::time::{SystemTime, UNIX_EPOCH};
 
-// const NAME: &str = "UniSwap";
-// const HASH: &str = "self_hash";
+const NAME: &str = "uniswap_router";
 
-// fn deploy() -> (TestEnv, UniSwapV2LibraryInstance, AccountHash) {
-//     let env = TestEnv::new();
-//     let owner = env.next_user();
-//     let token = UniSwapV2LibraryInstance::new(
-//         &env,
-//         NAME,
-//         Sender(owner),
-        
-//     );
-//     (env, token, owner)
-// }
+fn deploy_dummy_tokens(env:&TestEnv) -> (TestContract, TestContract, TestContract) 
+{
+    let decimals: u8 = 18;
+    let init_total_supply: U256 = 1000.into();
 
-// #[test]
-// fn test_uniswap_deploy() {
-//     let (env, token, owner) = deploy();
-//     let user = env.next_user();
-//     assert_eq!(token.name(), NAME);
-//     assert_eq!(token.symbol(), SYMBOL);
-//     assert_eq!(token.decimals(), DECIMALS);
-//     assert_eq!(token.total_supply(), INIT_TOTAL_SUPPLY.into());
-//     assert_eq!(token.balance_of(owner), INIT_TOTAL_SUPPLY.into());
-//     assert_eq!(token.balance_of(user), 0.into());
-//     assert_eq!(token.allowance(owner, user), 0.into());
-//     assert_eq!(token.allowance(user, owner), 0.into());
-// }
+    let token1_owner = env.next_user();
+    let token1_contract = TestContract::new(
+        &env,
+        "token.wasm",
+        "token1_contract",
+        Sender(token1_owner),
+        runtime_args! {
+            "initial_supply" => init_total_supply,
+            "name" => "token1",
+            "symbol" => "tk1",
+            "decimals" => decimals
+        }
+    );
 
-// #[test]
-// fn test_erc20_transfer() {
-//     let (env, token, owner) = deploy();
-//     let user = env.next_user();
-//     let amount = 10.into();
-//     token.transfer(Sender(owner), user, amount);
-//     assert_eq!(
-//         token.balance_of(owner),
-//         U256::from(INIT_TOTAL_SUPPLY) - amount
-//     );
-//     assert_eq!(token.balance_of(user), amount);
-// }
+    let token2_owner = env.next_user();
+    let token2_contract = TestContract::new(
+        &env,
+        "token.wasm",
+        "token2_contract",
+        Sender(token2_owner),
+        runtime_args! {
+            "initial_supply" => init_total_supply,
+            "name" => "token2",
+            "symbol" => "tk2",
+            "decimals" => decimals
+        }
+    );
 
-// #[test]
-// #[should_panic]
-// fn test_erc20_transfer_too_much() {
-//     let (env, token, owner) = deploy();
-//     let user = env.next_user();
-//     let amount = U256::from(INIT_TOTAL_SUPPLY) + U256::one();
-//     token.transfer(Sender(owner), user, amount);
-// }
+    let token3_owner = env.next_user();
+    let token3_contract = TestContract::new(
+        &env,
+        "token.wasm",
+        "token3_contract",
+        Sender(token3_owner),
+        runtime_args! {
+            "initial_supply" => init_total_supply,
+            "name" => "token3",
+            "symbol" => "tk3",
+            "decimals" => decimals
+        }
+    );
 
-// #[test]
-// fn test_erc20_approve() {
-//     let (env, token, owner) = deploy();
-//     let user = env.next_user();
-//     let amount = 10.into();
-//     token.approve(Sender(owner), user, amount);
-//     assert_eq!(token.balance_of(owner), INIT_TOTAL_SUPPLY.into());
-//     assert_eq!(token.balance_of(user), 0.into());
-//     assert_eq!(token.allowance(owner, user), amount);
-//     assert_eq!(token.allowance(user, owner), 0.into());
-// }
+    println!("DT1: {}", Key::Hash(token1_contract.contract_hash()).to_formatted_string());
+    println!("DT2: {}", Key::Hash(token2_contract.contract_hash()).to_formatted_string());
+    println!("DT3: {}", Key::Hash(token3_contract.contract_hash()).to_formatted_string());
 
-// #[test]
-// fn test_erc20_transfer_from() {
-//     let (env, token, owner) = deploy();
-//     let spender = env.next_user();
-//     let recipient = env.next_user();
-//     let allowance = 10.into();
-//     let amount = 3.into();
-//     token.approve(Sender(owner), spender, allowance);
-//     token.transfer_from(Sender(spender), owner, recipient, amount);
-//     assert_eq!(
-//         token.balance_of(owner),
-//         U256::from(INIT_TOTAL_SUPPLY) - amount
-//     );
-//     assert_eq!(token.balance_of(spender), 0.into());
-//     assert_eq!(token.balance_of(recipient), amount);
-//     assert_eq!(token.allowance(owner, spender), allowance - amount);
-// }
+    (token1_contract, token2_contract, token3_contract)
+}
 
-// #[test]
-// #[should_panic]
-// fn test_erc20_transfer_from_too_much() {
-//     let (env, token, owner) = deploy();
-//     let spender = env.next_user();
-//     let recipient = env.next_user();
-//     let allowance = 10.into();
-//     let amount = 12.into();
-//     token.approve(Sender(owner), spender, allowance);
-//     token.transfer_from(Sender(spender), owner, recipient, amount);
-// }
+fn deploy_uniswap_router() -> (TestEnv, UniswapInstance, AccountHash, TestContract) 
+{
+    let env = TestEnv::new();
+    let owner = env.next_user();
 
-// #[test]
-// #[should_panic]
-// fn test_calling_construction() {
-//     let (_, token, owner) = deploy();
-//     token.constructor(
-//         Sender(owner),
-//         NAME,
-//         SYMBOL,
-//         DECIMALS,
-//         INIT_TOTAL_SUPPLY.into(),
-//     );
-// }
+    // deploy factory contract
+    let owner_factory = env.next_user();
+    let factory_contract = TestContract::new(
+        &env,
+        "factory.wasm",
+        "factory",
+        Sender(owner_factory),
+        runtime_args! {
+            "fee_to_setter" => Key::from(owner_factory)
+            // contract_name is passed seperately, so we don't need to pass it here.
+        }
+    );
+    
+    // deploy wcspr contract
+    let owner_wcspr = env.next_user();
+    let wcspr = TestContract::new(
+        &env,
+        "wcspr.wasm",
+        "wcspr",
+        Sender(owner_wcspr),
+        runtime_args! {}
+    );
+
+    // deploy library contract
+    let owner_library = env.next_user();
+    let library_contract = TestContract::new(
+        &env,
+        "uniswap.wasm",
+        "library",
+        Sender(owner_library),
+        runtime_args! {}
+    );
+    
+    let token = UniswapInstance::new(
+        &env,
+        NAME,
+        Key::Hash(factory_contract.contract_hash()),
+        Key::Hash(wcspr.contract_hash()),
+        Key::Hash(library_contract.contract_hash()),
+        Sender(owner)
+    );
+    
+    println!("Factory: {}", Key::Hash(factory_contract.contract_hash()).to_formatted_string());
+    println!("WCSPR: {}", Key::Hash(wcspr.contract_hash()).to_formatted_string());
+    println!("Library: {}", Key::Hash(library_contract.contract_hash()).to_formatted_string());
+    (env, token, owner, factory_contract)
+}
+
+#[test]
+fn test_uniswap_deploy()
+{
+    // let (env, token, owner, _) = deploy_uniswap_router();
+    // println!("Owner: {}", owner);
+    // let self_hash: Key = token.uniswap_contract_address();
+    // let zero_addr:Key = Key::from_formatted_str("hash-0000000000000000000000000000000000000000000000000000000000000000").unwrap();
+    // assert_ne!(self_hash, zero_addr);
+}
+
+#[test]
+fn quote()
+{
+    let (env, uniswap, owner, factory) = deploy_uniswap_router();
+
+    uniswap.quote(Sender(owner), 100.into(), 200.into(), 300.into());
+}
+
+#[test]
+fn test_uniswap_get_reserves()
+{
+    let (env, uniswap, owner, factory) = deploy_uniswap_router();
+    let (token1, token2, _) = deploy_dummy_tokens(&env);
+
+    uniswap.get_reserves(Sender(owner), factory.contract_hash().into(), token1.contract_hash().into(), token2.contract_hash().into());
+}
+
+#[test]
+fn test_uniswap_get_amount_out()
+{
+    let (env, uniswap, owner, factory) = deploy_uniswap_router();
+
+    uniswap.get_amount_out(Sender(owner), 100.into(), 200.into(), 300.into());
+}
+
+#[test]
+fn test_uniswap_get_amount_in()
+{
+    let (env, uniswap, owner, factory) = deploy_uniswap_router();
+
+    uniswap.get_amount_in(Sender(owner), 100.into(), 200.into(), 300.into());
+}
+
+#[test]
+fn test_uniswap_get_amounts_out()
+{
+    let (env, uniswap, owner, factory) = deploy_uniswap_router();
+    let (token1, token2, _) = deploy_dummy_tokens(&env);
+
+    let mut path:Vec<ContractHash> = Vec::new();
+    path.push(token1.contract_hash().into());
+    path.push(token2.contract_hash().into());
+
+    uniswap.get_amounts_out(Sender(owner), factory.contract_hash().into(), 100.into(), path);
+}
+
+#[test]
+fn test_uniswap_get_amounts_in()
+{
+    let (env, uniswap, owner, factory) = deploy_uniswap_router();
+    let (token1, token2, _) = deploy_dummy_tokens(&env);
+
+    let mut path:Vec<ContractHash> = Vec::new();
+    path.push(token1.contract_hash().into());
+    path.push(token2.contract_hash().into());
+
+    uniswap.get_amounts_in(Sender(owner), factory.contract_hash().into(), 100.into(), path);
+}

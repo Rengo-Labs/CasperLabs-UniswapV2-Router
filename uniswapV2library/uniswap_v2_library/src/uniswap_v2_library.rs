@@ -41,28 +41,26 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
     }
     
     // calculates the CREATE2 address for a pair without making any external calls
-    fn pair_for(&mut self, factory:ContractHash, token_a:ContractHash, token_b:ContractHash) -> ContractHash {
+    // fn pair_for(&mut self, factory:ContractHash, token_a:ContractHash, token_b:ContractHash) -> ContractHash {
                 
-        let (token_0, token_1):(ContractHash, ContractHash) = self.sort_tokens(token_a, token_b);
+    //     let (token_0, token_1):(ContractHash, ContractHash) = self.sort_tokens(token_a, token_b);
         
-        // In Solidity, keccak256 was not directly convertible into address so we use uint in between
-        // But here we can directly convert the keccak into ContractHash
-        let pair:ContractHash = keccak256(encode_packed(&[
-                &"ff".into(),
-                &make_hash(&factory),
-                &hex::encode(
-                    keccak256(encode_packed(&[&make_hash(&token_0), &make_hash(&token_1)]).as_bytes())
-                ),
-                &"96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f".into()
-            ]).as_bytes()).into();
-        
-        pair
-    }
+    //     // In Solidity, keccak256 was not directly convertible into address so we use uint in between
+    //     // But here we can directly convert the keccak into ContractHash
+    //     let pair:ContractHash = keccak256(encode_packed(&[
+    //             &"ff".into(),
+    //             &make_hash(&factory),
+    //             &hex::encode(
+    //                 keccak256(encode_packed(&[&make_hash(&token_0), &make_hash(&token_1)]).as_bytes())
+    //             ),
+    //             &"96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f".into()
+    //         ]).as_bytes()).into();
+    //     pair
+    // }
     
-    fn get_reserves(&mut self, factory:ContractHash, token_a:ContractHash, token_b:ContractHash) -> (U256, U256) {
+    fn get_reserves(&mut self, token_a:ContractHash, token_b:ContractHash, pair:ContractHash) -> (U256, U256) {
                 
         let (token_0, _):(ContractHash, ContractHash) = self.sort_tokens(token_a, token_b);
-        let pair:ContractHash = self.pair_for(factory, token_a, token_b);
         let (reserve_0, reserve_1):(U256, U256) = runtime::call_contract(pair, "get_reserves", runtime_args! {});
         let (reserve_a, reserve_b):(U256, U256);
         if token_a == token_0 {
@@ -121,7 +119,7 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
     }
     
     // performs chained getAmountOut calculations on any number of pairs
-    fn get_amounts_out(&mut self, factory:ContractHash, amount_in:U256, path: Vec<ContractHash>) -> Vec<U256> {
+    fn get_amounts_out(&mut self, amount_in:U256, path: Vec<ContractHash>, pair:ContractHash) -> Vec<U256> {
         
         if path.len() < 2 {
             // runtime::revert(error_codes::INVALID_PATH);
@@ -130,14 +128,14 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
         let mut amounts:Vec<U256> = vec![0.into(); path.len()];
         amounts[0] = amount_in;
         for i in 0..(path.len()-1) {
-            let (reserve_in, reserve_out):(U256, U256) = self.get_reserves(factory, path[i], path[i+1]);
+            let (reserve_in, reserve_out):(U256, U256) = self.get_reserves(path[i], path[i+1], pair);
             amounts[i+1] = self.get_amount_out(amounts[i], reserve_in, reserve_out);
         }
         amounts
     }
     
     // performs chained getAmountIn calculations on any number of pairs
-    fn get_amounts_in(&mut self, factory:ContractHash, amount_out:U256, path: Vec<ContractHash>) -> Vec<U256> {
+    fn get_amounts_in(&mut self, amount_out:U256, path: Vec<ContractHash>, pair:ContractHash) -> Vec<U256> {
         
         if path.len() < 2 {
             runtime::revert(ApiError::from(ErrorCode::InvalidPath));
@@ -146,7 +144,7 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
         let size = amounts.len();
         amounts[size-1] = amount_out;
         for i in  (1..(path.len()-1)).rev() {
-            let (reserve_in, reserve_out):(U256, U256) = self.get_reserves(factory, path[i-1], path[i]);
+            let (reserve_in, reserve_out):(U256, U256) = self.get_reserves(path[i-1], path[i], pair);
             amounts[i-1] = self.get_amount_in(amounts[i], reserve_in, reserve_out);
         }
         amounts

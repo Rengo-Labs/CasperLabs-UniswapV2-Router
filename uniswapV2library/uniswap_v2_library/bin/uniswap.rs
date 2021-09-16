@@ -4,31 +4,20 @@
 
 extern crate alloc;
 use alloc::{collections::BTreeSet, format, vec, prelude::v1::Box};
-use casper_contract::{
-    contract_api::{runtime, storage},
-    unwrap_or_revert::UnwrapOrRevert,
-};
-use casper_types::{
-    runtime_args, CLType, CLTyped, CLValue, EntryPoint, EntryPointAccess,
-    Group, Key, Parameter, RuntimeArgs, URef, U256, EntryPointType,
-    ContractHash, EntryPoints
-};
+use casper_contract::{contract_api::{runtime, storage}, unwrap_or_revert::UnwrapOrRevert};
+use casper_types::{runtime_args, CLType, CLTyped, CLValue, EntryPoint, EntryPointAccess, Group, Key, Parameter, RuntimeArgs, URef, U256, EntryPointType, ContractHash, EntryPoints};
 use crate::vec::Vec;
-
 use contract_utils::{ContractContext, OnChainContractStorage};
 use uniswap_v2_library::{self, UniswapV2Library};
 
 #[derive(Default)]
 struct Uniswap(OnChainContractStorage);
-
 impl ContractContext<OnChainContractStorage> for Uniswap {
     fn storage(&self) -> &OnChainContractStorage {
         &self.0
     }
 }
-
 impl UniswapV2Library<OnChainContractStorage> for Uniswap {}
-
 impl Uniswap {
     fn constructor(&mut self, contract_hash:ContractHash) {
         UniswapV2Library::init(self, contract_hash);
@@ -37,40 +26,36 @@ impl Uniswap {
 
 #[no_mangle]
 fn constructor() {
-    let contract_hash: ContractHash = runtime::get_named_arg("contract_hash");
+    let _contract_hash: Key = runtime::get_named_arg("contract_hash");
+    let contract_hash:ContractHash = _contract_hash.into_hash().unwrap_or_default().into();
     Uniswap::default().constructor(contract_hash);
 }
 
 #[no_mangle]
 fn sort_tokens() {
 
-    let token_a:ContractHash = runtime::get_named_arg("token_a");
-    let token_b:ContractHash = runtime::get_named_arg("token_b");
+    let _token_a:Key = runtime::get_named_arg("token_a");
+    let _token_b:Key = runtime::get_named_arg("token_b");
+
+    let token_a:ContractHash = _token_a.into_hash().unwrap_or_default().into();
+    let token_b:ContractHash = _token_b.into_hash().unwrap_or_default().into();
     
     let (token_0, token_1) = Uniswap::default().sort_tokens(token_a, token_b);
     runtime::ret(CLValue::from_t((token_0, token_1)).unwrap_or_revert())
 }
 
 #[no_mangle]
-// calculates the CREATE2 address for a pair without making any external calls
-fn pair_for() {
-    
-    let factory:ContractHash = runtime::get_named_arg("factory");
-    let token_a:ContractHash = runtime::get_named_arg("token_a");
-    let token_b:ContractHash = runtime::get_named_arg("token_b");
-
-    let pair = Uniswap::default().pair_for(factory, token_a, token_b);
-    runtime::ret(CLValue::from_t(pair).unwrap_or_revert())
-}
-
-#[no_mangle]
 fn get_reserves() {
     
-    let factory:ContractHash = runtime::get_named_arg("factory");
-    let token_a:ContractHash = runtime::get_named_arg("token_a");
-    let token_b:ContractHash = runtime::get_named_arg("token_b");
+    let _token_a:Key = runtime::get_named_arg("token_a");
+    let _token_b:Key = runtime::get_named_arg("token_b");
+    let _pair:Key = runtime::get_named_arg("pair");
+
+    let token_a:ContractHash = _token_a.into_hash().unwrap_or_default().into();
+    let token_b:ContractHash = _token_b.into_hash().unwrap_or_default().into();
+    let pair:ContractHash = _pair.into_hash().unwrap_or_default().into();
     
-    let (reserve_a, reserve_b) = Uniswap::default().get_reserves(factory, token_a, token_b);
+    let (reserve_a, reserve_b) = Uniswap::default().get_reserves(token_a, token_b, pair);
     runtime::ret(CLValue::from_t((reserve_a, reserve_b)).unwrap_or_revert())
 }
 
@@ -82,7 +67,7 @@ fn quote() {
     let reserve_a: U256 = runtime::get_named_arg("reserve_a");
     let reserve_b: U256 = runtime::get_named_arg("reserve_b");
     
-    let amount_b = Uniswap::default().quote(amount_a, reserve_a, reserve_b);
+    let amount_b: U256 = Uniswap::default().quote(amount_a, reserve_a, reserve_b);
     runtime::ret(CLValue::from_t(amount_b).unwrap_or_revert())
 }
 
@@ -94,7 +79,7 @@ fn get_amount_out(){
     let reserve_in: U256 = runtime::get_named_arg("reserve_in");
     let reserve_out: U256 = runtime::get_named_arg("reserve_out");
     
-    let amount_out = Uniswap::default().get_amount_out(amount_in, reserve_in, reserve_out);
+    let amount_out: U256 = Uniswap::default().get_amount_out(amount_in, reserve_in, reserve_out);
     runtime::ret(CLValue::from_t(amount_out).unwrap_or_revert())
 }
 
@@ -106,7 +91,7 @@ fn get_amount_in() {
     let reserve_in: U256 = runtime::get_named_arg("reserve_in");
     let reserve_out: U256 = runtime::get_named_arg("reserve_out");
 
-    let amount_in = Uniswap::default().get_amount_in(amount_out, reserve_in, reserve_out);
+    let amount_in: U256 = Uniswap::default().get_amount_in(amount_out, reserve_in, reserve_out);
     runtime::ret(CLValue::from_t(amount_in).unwrap_or_revert())
 }
 
@@ -114,11 +99,17 @@ fn get_amount_in() {
 // performs chained getAmountOut calculations on any number of pairs
 fn get_amounts_out(){
 
-    let factory: ContractHash = runtime::get_named_arg("factory");
     let amount_in: U256 = runtime::get_named_arg("amount_in");
-    let path: Vec<ContractHash> = runtime::get_named_arg("path");
+    let _path: Vec<Key> = runtime::get_named_arg("path");
+    let _pair:Key = runtime::get_named_arg("pair");
 
-    let amounts:Vec<U256> = Uniswap::default().get_amounts_out(factory, amount_in, path);
+    let pair:ContractHash = _pair.into_hash().unwrap_or_default().into();
+    let mut path:Vec<ContractHash> = Vec::new();
+    for value in _path{
+        path.push(value.into_hash().unwrap_or_default().into());
+    }
+
+    let amounts:Vec<U256> = Uniswap::default().get_amounts_out(amount_in, path, pair);
     runtime::ret(CLValue::from_t(amounts).unwrap_or_revert())
 }
 
@@ -126,11 +117,17 @@ fn get_amounts_out(){
 // performs chained getAmountIn calculations on any number of pairs
 fn get_amounts_in(){
 
-    let factory: ContractHash = runtime::get_named_arg("factory");
     let amount_out: U256 = runtime::get_named_arg("amount_out");
-    let path: Vec<ContractHash> = runtime::get_named_arg("path");
+    let _path: Vec<Key> = runtime::get_named_arg("path");
+    let _pair:Key = runtime::get_named_arg("pair");
 
-    let amounts:Vec<U256> = Uniswap::default().get_amounts_in(factory, amount_out, path);
+    let pair:ContractHash = _pair.into_hash().unwrap_or_default().into();
+    let mut path:Vec<ContractHash> = Vec::new();
+    for value in _path{
+        path.push(value.into_hash().unwrap_or_default().into());
+    }
+
+    let amounts:Vec<U256> = Uniswap::default().get_amounts_in(amount_out, path, pair);
     runtime::ret(CLValue::from_t(amounts).unwrap_or_revert())
 }
 
@@ -143,18 +140,29 @@ fn get_entry_points() -> EntryPoints {
     entry_points.add_entry_point(EntryPoint::new(
         "constructor",
         vec![
-            Parameter::new("contract_hash", ContractHash::cl_type()),
+            Parameter::new("contract_hash", Key::cl_type()),
         ],
         <()>::cl_type(),
         EntryPointAccess::Groups(vec![Group::new("constructor")]),
         EntryPointType::Contract,
     ));
     entry_points.add_entry_point(EntryPoint::new(
+        "get_reserves",
+        vec![
+            Parameter::new("token_a", Key::cl_type()),
+            Parameter::new("token_b", Key::cl_type()),
+            Parameter::new("pair", Key::cl_type()),
+        ],
+        CLType::Tuple2([Box::new(CLType::U256), Box::new(CLType::U256)]),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
         "quote",
         vec![
-            Parameter::new("amount_a", Key::cl_type()),
-            Parameter::new("reserve_a", Key::cl_type()),
-            Parameter::new("reserve_b", Key::cl_type()),
+            Parameter::new("amount_a", U256::cl_type()),
+            Parameter::new("reserve_a", U256::cl_type()),
+            Parameter::new("reserve_b", U256::cl_type()),
         ],
         U256::cl_type(),
         EntryPointAccess::Public,
@@ -163,9 +171,9 @@ fn get_entry_points() -> EntryPoints {
     entry_points.add_entry_point(EntryPoint::new(
         "get_amount_out",
         vec![
-            Parameter::new("amount_in", Key::cl_type()),
-            Parameter::new("reserve_in", Key::cl_type()),
-            Parameter::new("reserve_out", Key::cl_type()),
+            Parameter::new("amount_in", U256::cl_type()),
+            Parameter::new("reserve_in", U256::cl_type()),
+            Parameter::new("reserve_out", U256::cl_type()),
         ],
         U256::cl_type(),
         EntryPointAccess::Public,
@@ -174,9 +182,9 @@ fn get_entry_points() -> EntryPoints {
     entry_points.add_entry_point(EntryPoint::new(
         "get_amount_in",
         vec![
-            Parameter::new("amount_out", Key::cl_type()),
-            Parameter::new("reserve_in", Key::cl_type()),
-            Parameter::new("reserve_out", Key::cl_type()),
+            Parameter::new("amount_out", U256::cl_type()),
+            Parameter::new("reserve_in", U256::cl_type()),
+            Parameter::new("reserve_out", U256::cl_type()),
         ],
         U256::cl_type(),
         EntryPointAccess::Public,
@@ -185,22 +193,22 @@ fn get_entry_points() -> EntryPoints {
     entry_points.add_entry_point(EntryPoint::new(
         "get_amounts_out",
         vec![
-            Parameter::new("factory", Key::cl_type()),
-            Parameter::new("amount_in", Key::cl_type()),
-            Parameter::new("path", Key::cl_type()),
+            Parameter::new("amount_in", U256::cl_type()),
+            Parameter::new("path", CLType::List(Box::new(Key::cl_type()))),
+            Parameter::new("pair", Key::cl_type()),
         ],
-        CLType::List(Box::new(CLType::U256)),
+        CLType::List(Box::new(U256::cl_type())),
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
     entry_points.add_entry_point(EntryPoint::new(
         "get_amounts_in",
         vec![
-            Parameter::new("factory", Key::cl_type()),
-            Parameter::new("amount_out", Key::cl_type()),
-            Parameter::new("path", Key::cl_type()),
+            Parameter::new("amount_out", U256::cl_type()),
+            Parameter::new("path", CLType::List(Box::new(Key::cl_type()))),
+            Parameter::new("pair", Key::cl_type()),
         ],
-        CLType::List(Box::new(CLType::U256)),
+        CLType::List(Box::new(U256::cl_type())),
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));

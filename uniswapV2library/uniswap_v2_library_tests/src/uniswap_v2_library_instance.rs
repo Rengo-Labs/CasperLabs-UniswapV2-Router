@@ -1,23 +1,32 @@
-use blake2::{digest::{Update, VariableOutput}, VarBlake2b};
+use blake2::{
+    digest::{Update, VariableOutput},
+    VarBlake2b,
+};
 use casper_types::{bytesrepr::ToBytes, runtime_args, Key, RuntimeArgs, U256, ContractHash};
 use test_env::{Sender, TestContract, TestEnv};
 
-pub struct UniSwapV2LibraryInstance(TestContract);
+pub struct UniswapInstance(TestContract);
 
-impl UniSwapV2LibraryInstance {
+impl UniswapInstance {
+
     pub fn new(
         env: &TestEnv,
         contract_name: &str,
-        sender: Sender,
-        contract_hash: ContractHash
-    ) -> UniSwapV2LibraryInstance {
-        UniSwapV2LibraryInstance(TestContract::new(
+        factory: Key,
+        wcspr: Key, 
+        library: Key,
+        sender: Sender
+    ) -> UniswapInstance {
+        UniswapInstance(TestContract::new(
             env,
             "uniswap.wasm",
             contract_name,
             sender,
             runtime_args! {
-                "contract_hash" => contract_hash
+                "factory" => factory,
+                "wcspr" => wcspr,
+                "library" => library
+                // contract_name is passed seperately, so we don't need to pass it here.
             },
         ))
     }
@@ -25,85 +34,103 @@ impl UniSwapV2LibraryInstance {
     pub fn constructor(
         &self,
         sender: Sender,
-        contract_hash: ContractHash
+        name: &str,
+        symbol: &str,
+        decimals: u8,
+        initial_supply: U256,
     ) {
         self.0.call_contract(
             sender,
             "constructor",
             runtime_args! {
-                "contract_hash" => contract_hash
+                "initial_supply" => initial_supply,
+                "name" => name,
+                "symbol" => symbol,
+                "decimals" => decimals
             },
         );
     }
 
-    pub fn balance_of<T: Into<Key>>(&self, account: T) -> U256 {
-        self.0
-            .query_dictionary("balances", key_to_str(&account.into()))
-            .unwrap_or_default()
+    pub fn uniswap_contract_address(&self) -> Key {
+        self.0.query_named_key(String::from("self_hash"))
     }
 
-    pub fn allowance<T: Into<Key>>(&self, owner: T, spender: T) -> U256 {
-        let owner: Key = owner.into();
-        let spender: Key = spender.into();
-        self.0
-            .query_dictionary("allowances", keys_to_str(&owner, &spender))
-            .unwrap_or_default()
-    }
-
-    pub fn transfer<T: Into<Key>>(&self, sender: Sender, recipient: T, amount: U256) {
+    pub fn quote(&self, sender:Sender, amount_a: U256, reserve_a: U256, reserve_b: U256) {
+        
         self.0.call_contract(
             sender,
-            "transfer",
+            "quote",
             runtime_args! {
-                "recipient" => recipient.into(),
-                "amount" => amount
-            },
+                "amount_a" => amount_a,
+                "reserve_a" => reserve_a,
+                "reserve_b" => reserve_b
+            }
         );
     }
 
-    pub fn transfer_from<T: Into<Key>>(
-        &self,
-        sender: Sender,
-        owner: T,
-        recipient: T,
-        amount: U256,
-    ) {
+    pub fn get_reserves(&self, sender:Sender, factory: ContractHash, token_a: ContractHash, token_b: ContractHash) {
+        
         self.0.call_contract(
             sender,
-            "transfer_from",
+            "get_reserves",
             runtime_args! {
-                "owner" => owner.into(),
-                "recipient" => recipient.into(),
-                "amount" => amount
-            },
+                "factory" => factory,
+                "token_a" => token_a,
+                "token_b" => token_b
+            }
         );
     }
 
-    pub fn approve<T: Into<Key>>(&self, sender: Sender, spender: T, amount: U256) {
+    pub fn get_amount_out(&self, sender:Sender, amount_in: U256, reserve_in: U256, reserve_out: U256) {
+        
         self.0.call_contract(
             sender,
-            "approve",
+            "get_amount_out",
             runtime_args! {
-                "spender" => spender.into(),
-                "amount" => amount
-            },
+                "amount_in" => amount_in,
+                "reserve_in" => reserve_in,
+                "reserve_out" => reserve_out
+            }
         );
     }
 
-    pub fn name(&self) -> String {
-        self.0.query_named_key(String::from("name"))
+    pub fn get_amount_in(&self, sender:Sender, amount_out: U256, reserve_in: U256, reserve_out: U256) {
+        
+        self.0.call_contract(
+            sender,
+            "get_amount_in",
+            runtime_args! {
+                "amount_out" => amount_out,
+                "reserve_in" => reserve_in,
+                "reserve_out" => reserve_out
+            }
+        );
     }
 
-    pub fn symbol(&self) -> String {
-        self.0.query_named_key(String::from("symbol"))
+    pub fn get_amounts_out(&self, sender:Sender, factory: ContractHash, amount_in: U256, path: Vec<ContractHash>) {
+        
+        self.0.call_contract(
+            sender,
+            "get_amounts_out",
+            runtime_args! {
+                "factory" => factory,
+                "amount_in" => amount_in,
+                "path" => path
+            }
+        );
     }
 
-    pub fn decimals(&self) -> u8 {
-        self.0.query_named_key(String::from("decimals"))
-    }
-
-    pub fn total_supply(&self) -> U256 {
-        self.0.query_named_key(String::from("total_supply"))
+    pub fn get_amounts_in(&self, sender:Sender, factory: ContractHash, amount_out: U256, path: Vec<ContractHash>) {
+        
+        self.0.call_contract(
+            sender,
+            "get_amounts_in",
+            runtime_args! {
+                "factory" => factory,
+                "amount_out" => amount_out,
+                "path" => path
+            }
+        );
     }
 }
 
@@ -115,7 +142,7 @@ pub fn key_to_str(key: &Key) -> String {
     }
 }
 
-pub fn keys_to_str(key_a: &Key, key_b: &Key) -> String {
+pub fn keys_to_str(key_a: &U256, key_b: &Key) -> String {
     let mut hasher = VarBlake2b::new(32).unwrap();
     hasher.update(key_a.to_bytes().unwrap());
     hasher.update(key_b.to_bytes().unwrap());

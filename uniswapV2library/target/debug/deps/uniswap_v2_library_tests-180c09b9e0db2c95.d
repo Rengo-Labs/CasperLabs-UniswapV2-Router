@@ -1,0 +1,7 @@
+/home/bassam/SCY/uniswapV2library/target/debug/deps/uniswap_v2_library_tests-180c09b9e0db2c95.rmeta: uniswap_v2_library_tests/src/lib.rs uniswap_v2_library_tests/src/uniswap_v2_library_tests.rs uniswap_v2_library_tests/src/uniswap_v2_library_instance.rs
+
+/home/bassam/SCY/uniswapV2library/target/debug/deps/uniswap_v2_library_tests-180c09b9e0db2c95.d: uniswap_v2_library_tests/src/lib.rs uniswap_v2_library_tests/src/uniswap_v2_library_tests.rs uniswap_v2_library_tests/src/uniswap_v2_library_instance.rs
+
+uniswap_v2_library_tests/src/lib.rs:
+uniswap_v2_library_tests/src/uniswap_v2_library_tests.rs:
+uniswap_v2_library_tests/src/uniswap_v2_library_instance.rs:
