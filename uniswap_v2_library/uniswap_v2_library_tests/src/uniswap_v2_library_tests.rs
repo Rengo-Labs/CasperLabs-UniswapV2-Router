@@ -117,11 +117,11 @@ fn deploy_uniswap_router() -> (TestEnv, UniswapInstance, AccountHash, TestContra
 #[test]
 fn test_uniswap_deploy()
 {
-    // let (env, token, owner, _) = deploy_uniswap_router();
-    // println!("Owner: {}", owner);
-    // let self_hash: Key = token.uniswap_contract_address();
-    // let zero_addr:Key = Key::from_formatted_str("hash-0000000000000000000000000000000000000000000000000000000000000000").unwrap();
-    // assert_ne!(self_hash, zero_addr);
+    let (env, token, owner, _) = deploy_uniswap_router();
+    println!("Owner: {}", owner);
+    let self_hash: Key = token.uniswap_contract_address();
+    let zero_addr:Key = Key::from_formatted_str("hash-0000000000000000000000000000000000000000000000000000000000000000").unwrap();
+    assert_ne!(self_hash, zero_addr);
 }
 
 #[test]
