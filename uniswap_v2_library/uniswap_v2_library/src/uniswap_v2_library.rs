@@ -1,17 +1,18 @@
 extern crate alloc;
+use core::ops::Add;
+
 use alloc::{vec, vec::Vec};
 
 use casper_contract::contract_api::runtime;
 use casper_types::{
-    bytesrepr::FromBytes, U256, api_error::ApiError,
+    bytesrepr::FromBytes, U256, U128, api_error::ApiError,
     contracts::ContractHash, CLTyped, RuntimeArgs, runtime_args
 };
 use contract_utils::{ContractContext, ContractStorage};
 
-use crate::data::{self, *};
+use crate::data::{self};
 use crate::config::error::ErrorCode;
 
-use renvm_sig::keccak256;
 
 pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
     
@@ -75,7 +76,7 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
     }
     
     // given some amount of an asset and pair reserves, returns an equivalent amount of the other asset
-    fn quote(&mut self, amount_a:U256, reserve_a:U256, reserve_b:U256) -> U256 {
+    fn quote(&mut self, amount_a:U256, reserve_a:U128, reserve_b:U128) -> U256 {
         
         if amount_a <= 0.into() {
             runtime::revert(ApiError::from(ErrorCode::InsufficientAmount));        
@@ -83,7 +84,7 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
         if reserve_a <= 0.into() || reserve_b <= 0.into() {
             runtime::revert(ApiError::from(ErrorCode::InsufficientLiquidity));
         }
-        let amount_b: U256 = (amount_a * reserve_b) / reserve_a;
+        let amount_b: U256 = (amount_a * U256::from(reserve_b.as_u128())) / U256::from(reserve_a.as_u128());
         amount_b
     }
     

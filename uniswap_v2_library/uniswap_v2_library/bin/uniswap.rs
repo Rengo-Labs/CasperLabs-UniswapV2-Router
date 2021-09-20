@@ -5,7 +5,7 @@
 extern crate alloc;
 use alloc::{collections::BTreeSet, format, vec, prelude::v1::Box};
 use casper_contract::{contract_api::{runtime, storage}, unwrap_or_revert::UnwrapOrRevert};
-use casper_types::{runtime_args, CLType, CLTyped, CLValue, EntryPoint, EntryPointAccess, Group, Key, Parameter, RuntimeArgs, URef, U256, EntryPointType, ContractHash, EntryPoints};
+use casper_types::{CLType, CLTyped, CLValue, ContractHash, EntryPoint, EntryPointAccess, EntryPointType, EntryPoints, Group, Key, Parameter, RuntimeArgs, U128, U256, URef, runtime_args};
 use crate::vec::Vec;
 use contract_utils::{ContractContext, OnChainContractStorage};
 use uniswap_v2_library::{self, UniswapV2Library};
@@ -64,8 +64,8 @@ fn get_reserves() {
 fn quote() {
     
     let amount_a: U256 = runtime::get_named_arg("amount_a");
-    let reserve_a: U256 = runtime::get_named_arg("reserve_a");
-    let reserve_b: U256 = runtime::get_named_arg("reserve_b");
+    let reserve_a: U128 = runtime::get_named_arg("reserve_a");
+    let reserve_b: U128 = runtime::get_named_arg("reserve_b");
     
     let amount_b: U256 = Uniswap::default().quote(amount_a, reserve_a, reserve_b);
     runtime::ret(CLValue::from_t(amount_b).unwrap_or_revert())
@@ -147,6 +147,16 @@ fn get_entry_points() -> EntryPoints {
         EntryPointType::Contract,
     ));
     entry_points.add_entry_point(EntryPoint::new(
+        "sort_tokens",
+        vec![
+            Parameter::new("token_a", Key::cl_type()),
+            Parameter::new("token_b", Key::cl_type()),
+        ],
+        CLType::Tuple2([Box::new(ContractHash::cl_type()), Box::new(ContractHash::cl_type())]),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
         "get_reserves",
         vec![
             Parameter::new("token_a", Key::cl_type()),
@@ -161,8 +171,8 @@ fn get_entry_points() -> EntryPoints {
         "quote",
         vec![
             Parameter::new("amount_a", U256::cl_type()),
-            Parameter::new("reserve_a", U256::cl_type()),
-            Parameter::new("reserve_b", U256::cl_type()),
+            Parameter::new("reserve_a", U128::cl_type()),
+            Parameter::new("reserve_b", U128::cl_type()),
         ],
         U256::cl_type(),
         EntryPointAccess::Public,
