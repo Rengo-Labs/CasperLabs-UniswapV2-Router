@@ -4,7 +4,7 @@ use alloc::{vec::Vec};
 use casper_contract::{ contract_api::{runtime}};
 use casper_types::{
     bytesrepr::{Bytes, FromBytes},
-    contracts::{ContractHash, ContractPackageHash},Key, CLTyped, RuntimeArgs, runtime_args, BlockTime, ApiError, U256};
+    contracts::{ContractHash, ContractPackageHash},Key, CLTyped, RuntimeArgs, runtime_args, BlockTime, ApiError, U256, U128};
 use contract_utils::{ContractContext, ContractStorage};
 
 use crate::data::{self};
@@ -15,13 +15,14 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
     
     // Will be called by constructor
     fn init(&mut self, factory: ContractHash, wcspr: ContractHash, library_hash: ContractHash, 
-        contract_hash: Key, package_hash: ContractPackageHash) {
+        contract_hash: Key, package_hash: ContractPackageHash, pair: ContractHash) {
 
         data::set_factory(factory);
         data::set_wcspr(wcspr);
         data::set_library_hash(library_hash);
         data::set_self_hash(contract_hash);
         data::set_package_hash(package_hash);
+        data::set_pair_hash(pair);
     }
 
 
@@ -32,7 +33,8 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         
         let factory: ContractHash = data::factory();
         let (amount_a, amount_b) : (U256, U256) = Self::_add_liquidity(token_a, token_b, amount_a_desired, amount_b_desired, amount_a_min, amount_b_min);
-
+        
+        
         // call pair_for from library contract
         //let uniswapv2_library_contract_hash: &str = uniswapv2_contracts_hash::LIBRARY_HASH;
         let uniswapv2_library_contract_hash = data::library_hash().to_formatted_string();
@@ -41,17 +43,18 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             "token_a" => token_a,
             "token_b" => token_b
         };
-        let pair:ContractHash = Self::call_contract(&uniswapv2_library_contract_hash, uniswapv2_contract_methods::LIBRARY_PAIR_FOR, args);
+        //let pair:ContractHash = Self::call_contract(&uniswapv2_library_contract_hash, uniswapv2_contract_methods::LIBRARY_PAIR_FOR, args);
+        let pair:ContractHash = data::pair_hash();              // temporary solution - using the stored pair
 
+        
         transfer_helper::safe_transfer_from(Key::from(token_a), Key::from(runtime::get_caller()), Key::from(pair), amount_a);
         transfer_helper::safe_transfer_from(Key::from(token_b), Key::from(runtime::get_caller()), Key::from(pair), amount_b);
-
-
+        
         // call mint function from IUniswapV2Pair contract
         let args: RuntimeArgs= runtime_args!{
             "to" => to,
         };
-
+        
         let liquidity:U256 = Self::call_contract(&pair.to_formatted_string(), uniswapv2_contract_methods::PAIR_MINT, args);
         (amount_a, amount_b, liquidity)
     }
@@ -73,15 +76,16 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             "token_a" => token,
             "token_b" => wcspr
         };
-        let pair: ContractHash = Self::call_contract(&uniswapv2_library_contract_hash, uniswapv2_contract_methods::LIBRARY_PAIR_FOR, args);
-    
-    
+        //let pair: ContractHash = Self::call_contract(&uniswapv2_library_contract_hash, uniswapv2_contract_methods::LIBRARY_PAIR_FOR, args);
+        let pair: ContractHash = data::pair_hash();
+        
         // call safe_transfer_from from TransferHelper
         transfer_helper::safe_transfer_from(Key::from(token), Key::from(runtime::get_caller()), Key::from(pair), amount_token);
         
+        
         // call deposit method from wcspr
         let args: RuntimeArgs = runtime_args!{
-            "to" => Key::from(wcspr),
+            "to" => Key::from(data::package_hash()),               // returns package hash of this contract
             "amount" => amount_cspr
         };
         let () = Self::call_contract(&wcspr.to_formatted_string(), uniswapv2_contract_methods::WCSPR_DEPOSIT, args);
@@ -91,30 +95,19 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             "recipient" => Key::from(pair),
             "amount" => amount_cspr
         };
-        let transfer_result: bool = Self::call_contract(&wcspr.to_formatted_string(), uniswapv2_contract_methods::WCSPR_TRANSFER, args);        // transfer will receive a boolean value
+        let () = Self::call_contract(&wcspr.to_formatted_string(), uniswapv2_contract_methods::WCSPR_TRANSFER, args);
 
-        if !transfer_result {
-            runtime::revert(ApiError::User(ErrorCodes::Abort as u16));
-        }
         
         // call mint function from pair contract
         let args: RuntimeArgs= runtime_args!{
             "to" => to,
         };
         
-        let liquidity:U256 = Self::call_contract(&pair.to_formatted_string(), uniswapv2_contract_methods::PAIR_MINT, args);
         
+        let liquidity:U256 = Self::call_contract(&pair.to_formatted_string(), uniswapv2_contract_methods::PAIR_MINT, args);
+    
         if amount_cspr_desired > amount_cspr                         // refund left-over cspr, if any
         {
-            /*
-            // call transfer from wcspr contract
-            let args: RuntimeArgs = runtime_args!{
-                "recipient" => Key::from(runtime::get_caller()),
-                "amount" => amount_cspr_desired - amount_cspr
-            };
-            let () = Self::call_contract(&wcspr.to_formatted_string(), uniswapv2_contract_methods::WCSPR_TRANSFER, args);
-            */
-            
             transfer_helper::safe_transfer_cspr(Key::from(runtime::get_caller()), amount_cspr_desired - amount_cspr);
         }
         
@@ -137,17 +130,18 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             "token_a" => token_a,
             "token_b" => token_b
         };
-        let pair:ContractHash = Self::call_contract(&uniswapv2_library_contract_hash, uniswapv2_contract_methods::LIBRARY_PAIR_FOR, args);
-        
+        //let pair:ContractHash = Self::call_contract(&uniswapv2_library_contract_hash, uniswapv2_contract_methods::LIBRARY_PAIR_FOR, args);
+        let pair: ContractHash = data::pair_hash();
         
         // call transferFrom from IUniSwapV2Pair
         let args: RuntimeArgs = runtime_args!{
-            "from" => runtime::get_caller(),
-            "to" => pair,
-            "value" => liquidity
+            "owner" => Key::from(runtime::get_caller()),
+            "recipient" => Key::from(pair),
+            "amount" => liquidity
         };
-        let _: bool = Self::call_contract(&pair.to_formatted_string(), uniswapv2_contract_methods::PAIR_TRANSFER_FROM, args);
-        
+        let _: () = Self::call_contract(&pair.to_formatted_string(), uniswapv2_contract_methods::PAIR_TRANSFER_FROM, args);
+
+     
         // call burn from IUniSwapV2Pair
         let args: RuntimeArgs = runtime_args!{
             "to" => to,
@@ -157,17 +151,17 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
 
         // call sortTokens from library contract
         let args: RuntimeArgs = runtime_args!{
-            "token_a" => token_a,
-            "token_b" => token_b
+            "token_a" => Key::from(token_a),
+            "token_b" => Key::from(token_b)
         };
 
         let (token0, _):(ContractHash, ContractHash) = Self::call_contract(&uniswapv2_library_contract_hash, uniswapv2_contract_methods::LIBRARY_SORT_TOKENS, args);
         let (amount_a, amount_b):(U256, U256) = if token_a == token0 {(amount0, amount1)} else {(amount1, amount0)};
 
         if amount_a >= amount_a_min && amount_b >= amount_b_min {
-            (amount_a, amount_b)
+            return (amount_a, amount_b)
         }else{
-            (0.into(),0.into())
+            return (0.into(),0.into())
         }
     }
 
@@ -180,20 +174,21 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         let wcspr: ContractHash = data::wcspr();
 
         let args: RuntimeArgs = runtime_args!{
-            "token_a" => token,
-            "token_b" => wcspr,
+            "token_a" => Key::from(token),
+            "token_b" => Key::from(wcspr),
             "liquidity" => liquidity,
             "amount_a_min" => amount_token_min,
             "amount_b_min" => amount_cspr_min,
             "to" => self_hash,
             "deadline" => deadline
         };
-
+        
         // let (amount_token, amount_cspr):(U256, U256) = Self::call_contract(&self_hash.to_formatted_string(), "remove_liquidity", args);
         let package_hash = data::package_hash();
         let (amount_token, amount_cspr):(U256, U256) = runtime::call_versioned_contract(package_hash, None, "remove_liquidity", args);
         
-        transfer_helper::safe_transfer(Key::from(runtime::get_caller()), to, amount_token);
+        
+        transfer_helper::safe_transfer(Key::from(token), to, amount_token);
 
         // call withdraw from WCSPR
         let args: RuntimeArgs = runtime_args!{
@@ -202,16 +197,15 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         };
         let () = Self::call_contract(&wcspr.to_formatted_string(), uniswapv2_contract_methods::WCSPR_WITHDRAW, args);
 
-        /*
+        
         // call transfer from WCSPR
         let args: RuntimeArgs = runtime_args!{
             "recipient" => to,
             "amount" => amount_cspr
         };
 
-        let () = Self::call_contract(&uniswapv2_transfer_helper_contract_hash, uniswapv2_contract_methods::WCSPR_TRANSFER, args);
-        */
         transfer_helper::safe_transfer_cspr(to, amount_cspr);
+
         (amount_token, amount_cspr)
     }
 
@@ -231,7 +225,8 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             "token_a" => token_a,
             "token_b" => token_b
         };
-        let pair: ContractHash = Self::call_contract(&uniswapv2_library_contract_hash, uniswapv2_contract_methods::LIBRARY_PAIR_FOR, args);
+        //let pair: ContractHash = Self::call_contract(&uniswapv2_library_contract_hash, uniswapv2_contract_methods::LIBRARY_PAIR_FOR, args);
+        let pair = data::pair_hash();
         let value: U256 = if approve_max {U256::MAX} else {liquidity};
 
         // call permit from uniswapv2pair
@@ -244,9 +239,10 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             "r" => r,
             "s" => s
         };
+        
         let () = Self::call_contract(&pair.to_formatted_string(), uniswapv2_contract_methods::PAIR_PERMIT, args);
 
-
+        /*
         // call self remove_liquidity
         let args: RuntimeArgs = runtime_args!{
             "token_a" => token_a,
@@ -262,7 +258,8 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         let package_hash = data::package_hash();
         let (amount_a, amount_b):(U256, U256) = runtime::call_versioned_contract(package_hash, None, "remove_liquidity", args);
         (amount_a, amount_b)
-
+        */
+        (1.into(), 2.into())
     }
 
 
@@ -721,41 +718,49 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
 
     fn _add_liquidity(token_a: ContractHash, token_b: ContractHash, amount_a_desired: U256, amount_b_desired: U256, amount_a_min: U256, amount_b_min: U256) -> (U256, U256)
     {
+    
         // create the pair if it doesn't exist yet
         // need to call IUniswapV2Factory contract for this
 
         let factory: ContractHash = data::factory();
+    /*
         let mut args: RuntimeArgs = runtime_args! {
-            "token_a" => token_a,
-            "token_b" => token_b
+            "token0" => Key::from(token_a),
+            "token1" => Key::from(token_b)
         };
         // get_pair should be implemented in factory contract which would return the value of pair key.
-        let pair_result: ContractHash = Self::call_contract(&factory.to_formatted_string(), uniswapv2_contract_methods::FACTORY_GET_PAIR, args);
-        let zero_addr: ContractHash = ContractHash::from_formatted_str("contract-0000000000000000000000000000000000000000000000000000000000000000").unwrap_or_default();
-        
-        if pair_result == zero_addr
+
+        let pair_result: Key = Self::call_contract(&factory.to_formatted_string(), uniswapv2_contract_methods::FACTORY_GET_PAIR, args);
+    */
+        let pair: ContractHash = data::pair_hash();
+        let zero_addr: Key = Key::from_formatted_str("hash-0000000000000000000000000000000000000000000000000000000000000000").unwrap();
+        if Key::from(pair) == zero_addr
         {
             // if pair doesnot exist, create one
-            args = runtime_args!{
-                "token_a" => token_a,
-                "token_b" => token_b
+            let args = runtime_args!{
+                "token_a" => Key::from(token_a),
+                "token_b" => Key::from(token_b)
             };
-            let _: ContractHash = Self::call_contract(&factory.to_formatted_string(), uniswapv2_contract_methods::FACTORY_CREATE_PAIR, args);
+            //let _: Key = Self::call_contract(&factory.to_formatted_string(), uniswapv2_contract_methods::FACTORY_CREATE_PAIR, args);
         }
-
+    
+        
         //let uniswapv2_library_contract_hash: &str = uniswapv2_contracts_hash::LIBRARY_HASH;
         let uniswapv2_library_contract_hash = data::library_hash().to_formatted_string();
         let args: RuntimeArgs= runtime_args!{
-            "factory" => factory,
-            "token_a" => token_a,
-            "token_b" => token_b
+            "factory" => Key::from(factory),
+            "token_a" => Key::from(token_a),
+            "token_b" => Key::from(token_b),
+            "pair" => Key::from(pair)                      // temporary passing pair
         };
         let (reserve_a, reserve_b):(U256, U256) = Self::call_contract(&uniswapv2_library_contract_hash, uniswapv2_contract_methods::LIBRARY_GET_RESERVES, args);
 
+        
         if reserve_a == 0.into() && reserve_b == 0.into()
         {
-            (amount_a_desired, amount_b_desired)
+            return (amount_a_desired, amount_b_desired);
         }
+        
         else
         {
             let args: RuntimeArgs = runtime_args!{
@@ -763,11 +768,13 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
                 "reserve_a" => reserve_a,
                 "reserve_b" => reserve_b
             };
+            
             let amount_b_optimal: U256 = Self::call_contract(&uniswapv2_library_contract_hash, uniswapv2_contract_methods::LIBRARY_QUOTE, args);
             if amount_b_optimal <= amount_b_desired && amount_b_optimal >= amount_b_min
             {
-                (amount_a_desired, amount_b_optimal)
+                return (amount_a_desired, amount_b_optimal);
             }
+            
             else
             {
                 let args: RuntimeArgs = runtime_args!{
@@ -777,21 +784,22 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
                 };
                 let amount_a_optimal: U256 = Self::call_contract(&uniswapv2_library_contract_hash, uniswapv2_contract_methods::LIBRARY_QUOTE, args);
                 
-                if amount_a_optimal <= amount_a_desired         // abort
+                if amount_a_optimal > amount_a_desired         // abort
                 {
                     runtime::revert(ApiError::User(ErrorCodes::Abort as u16));
                 }
 
                 if amount_a_optimal >= amount_a_min
                 {
-                    (amount_a_optimal, amount_b_desired)
+                    return (amount_a_optimal, amount_b_desired);
                 }
 
                 else                                            // should never reach here because of revert()
                 {
-                    (0.into(), 0.into())
+                    return (0.into(), 0.into());
                 }
             }
+            
         }
     }
 

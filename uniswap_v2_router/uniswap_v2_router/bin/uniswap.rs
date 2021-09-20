@@ -34,12 +34,13 @@ impl UniswapV2Router<OnChainContractStorage> for Uniswap {}
 impl Uniswap 
 {
     fn constructor(&mut self, factory:Key, wcspr: Key, library_hash: Key, 
-        contract_hash: ContractHash, package_hash: ContractPackageHash) 
+        contract_hash: ContractHash, package_hash: ContractPackageHash, pair: Key) 
     {
         let _factory: ContractHash = ContractHash::from(factory.into_hash().unwrap_or_default());
         let _wcspr: ContractHash = ContractHash::from(wcspr.into_hash().unwrap_or_default());
         let _library_hash: ContractHash = ContractHash::from(library_hash.into_hash().unwrap_or_default());
-        UniswapV2Router::init(self, _factory, _wcspr, _library_hash, Key::from(contract_hash), package_hash);
+        let _pair: ContractHash = ContractHash::from(pair.into_hash().unwrap_or_default());
+        UniswapV2Router::init(self, _factory, _wcspr, _library_hash, Key::from(contract_hash), package_hash, _pair);
     }
 }
 
@@ -47,13 +48,13 @@ impl Uniswap
 /// Constructor to initialize required key pairs.
 fn constructor() 
 {
-    let factory: Key= runtime::get_named_arg("factory");
-    let wcspr: Key= runtime::get_named_arg("wcspr");
+    let factory: Key = runtime::get_named_arg("factory");
+    let wcspr: Key = runtime::get_named_arg("wcspr");
     let library_hash: Key = runtime::get_named_arg("library_hash");
     let contract_hash: ContractHash = runtime::get_named_arg("contract_hash");
     let package_hash: ContractPackageHash = runtime::get_named_arg("package_hash");
-
-    Uniswap::default().constructor(factory, wcspr, library_hash, contract_hash, package_hash);
+    let pair_hash: Key = runtime::get_named_arg("pair_hash");
+    Uniswap::default().constructor(factory, wcspr, library_hash, contract_hash, package_hash, pair_hash);
 }
 
 #[no_mangle]
@@ -80,7 +81,7 @@ fn add_liquidity()
     let _token_b = ContractHash::from(token_b.into_hash().unwrap_or_default());
     
     let (amount_a, amount_b, liquidity): (U256, U256, U256) = Uniswap::default().add_liquidity(_token_a, _token_b, amount_a_desired, amount_b_desired, amount_a_min, amount_b_min, to);
-    runtime::ret(CLValue::from_t((amount_a, amount_b, liquidity)).unwrap_or_revert());
+//    runtime::ret(CLValue::from_t((amount_a, amount_b, liquidity)).unwrap_or_revert());
 }
 
 #[no_mangle]
@@ -104,7 +105,7 @@ fn add_liquidity_cspr()
 
     let _token = ContractHash::from(token.into_hash().unwrap_or_default());
     let (amount_token, amount_cspr, liquidity): (U256, U256, U256) = Uniswap::default().add_liquidity_cspr(_token, amount_token_desired, amount_cspr_desired, amount_token_min, amount_cspr_min, to);
-    runtime::ret(CLValue::from_t((amount_token, amount_cspr, liquidity)).unwrap_or_revert());
+    //runtime::ret(CLValue::from_t((amount_token, amount_cspr, liquidity)).unwrap_or_revert());
 }
 
 
@@ -154,7 +155,7 @@ fn remove_liquidity_cspr()
 
     let _token = ContractHash::from(token.into_hash().unwrap_or_default());
     let (amount_token, amount_cspr) :(U256, U256) = Uniswap::default().remove_liquidity_cspr(_token, liquidity, amount_token_min, amount_cspr_min, to, deadline);
-    runtime::ret(CLValue::from_t((amount_token, amount_cspr)).unwrap_or_revert());
+    //runtime::ret(CLValue::from_t((amount_token, amount_cspr)).unwrap_or_revert());
 }
 
 #[no_mangle]
@@ -182,7 +183,7 @@ fn remove_liquidity_with_permit()
     let (amount_a, amount_b) :(U256, U256) = Uniswap::default().remove_liquidity_with_permit(_token_a, _token_b, liquidity, amount_a_min, amount_b_min, 
         to, approve_max, v, r, s, deadline);
 
-    runtime::ret(CLValue::from_t((amount_a, amount_b)).unwrap_or_revert());
+    //runtime::ret(CLValue::from_t((amount_a, amount_b)).unwrap_or_revert());
 }
 
 #[no_mangle]
@@ -373,11 +374,12 @@ fn get_entry_points() -> EntryPoints {
     entry_points.add_entry_point(EntryPoint::new(
         "constructor",
         vec![
-            Parameter::new("factory", Key::cl_type()),
-            Parameter::new("wcspr", Key::cl_type()),
-            Parameter::new("library_hash", Key::cl_type()),
+            Parameter::new("factory", CLType::Key),
+            Parameter::new("wcspr", CLType::Key),
+            Parameter::new("library_hash", CLType::Key),
             Parameter::new("contract_hash", ContractHash::cl_type()),
-            Parameter::new("package_hash", ContractPackageHash::cl_type())
+            Parameter::new("package_hash", ContractPackageHash::cl_type()),
+            Parameter::new("pair_hash", CLType::Key)
         ],
         <()>::cl_type(),
         EntryPointAccess::Groups(vec![Group::new("constructor")]),
@@ -387,13 +389,13 @@ fn get_entry_points() -> EntryPoints {
     entry_points.add_entry_point(EntryPoint::new(
         String::from("add_liquidity"),
         vec![
-            Parameter::new("token_a", Key::cl_type()),
-            Parameter::new("token_b", Key::cl_type()),
+            Parameter::new("token_a", CLType::Key),
+            Parameter::new("token_b", CLType::Key),
             Parameter::new("amount_a_desired", CLType::U256),
             Parameter::new("amount_b_desired", CLType::U256),
             Parameter::new("amount_a_min", CLType::U256),
             Parameter::new("amount_b_min", CLType::U256),
-            Parameter::new("to", Key::cl_type()),
+            Parameter::new("to", CLType::Key),
             Parameter::new("deadline", CLType::U256),
             ],
             CLType::Tuple3([Box::new(CLType::U256), Box::new(CLType::U256), Box::new(CLType::U256)]),
@@ -596,6 +598,23 @@ fn call() {
     let factory: Key = runtime::get_named_arg("factory");
     let wcspr: Key = runtime::get_named_arg("wcspr");
     let library_hash: Key = runtime::get_named_arg("library");
+    
+    // ************* Pair ***************
+    let pair_hash: Key = runtime::get_named_arg("pair");
+    /*
+    let token_a: Key = runtime::get_named_arg("token_a");
+    let token_b: Key = runtime::get_named_arg("token_b");
+
+    let args: RuntimeArgs = runtime_args!{
+        "token0" => token_a,
+        "token1" => token_b,
+        "factory_hash" => factory,
+    };
+
+    let () = runtime::call_contract(ContractHash::from(pair_hash.into_hash().unwrap_or_default()), "initialize", args);
+    */
+    // ************* End-Pair ***************
+
 
     // Prepare constructor args
     let constructor_args = runtime_args! {
@@ -604,6 +623,7 @@ fn call() {
         "library_hash" =>  library_hash,
         "contract_hash" => contract_hash,
         "package_hash" => package_hash,
+        "pair_hash" => pair_hash
     };
 
     // Add the constructor group to the package hash with a single URef.

@@ -33,5 +33,6 @@ pub mod uniswapv2_contract_methods
     // IWETH Contract methods
     pub const WCSPR_DEPOSIT: &str = "deposit";
     pub const WCSPR_TRANSFER: &str = "transfer";
+    pub const WCSPR_TRANSFER_FROM: &str = "transfer_from";
     pub const WCSPR_WITHDRAW: &str = "withdraw";
 }
