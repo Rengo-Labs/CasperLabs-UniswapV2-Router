@@ -2,8 +2,9 @@ use blake2::{
     digest::{Update, VariableOutput},
     VarBlake2b,
 };
-use casper_types::{bytesrepr::ToBytes, runtime_args, Key, RuntimeArgs, U256, ContractHash};
+use casper_types::{bytesrepr::ToBytes, runtime_args, Key, RuntimeArgs, U256, ContractHash, ContractPackageHash};
 use test_env::{Sender, TestContract, TestEnv};
+use casper_engine_test_support::AccountHash;
 
 pub struct UniswapInstance(TestContract);
 
@@ -15,6 +16,9 @@ impl UniswapInstance {
         factory: Key,
         wcspr: Key, 
         library: Key,
+        pair: Key,
+//        token_a: Key,
+//        token_b: Key,
         sender: Sender
     ) -> UniswapInstance {
         UniswapInstance(TestContract::new(
@@ -25,7 +29,10 @@ impl UniswapInstance {
             runtime_args! {
                 "factory" => factory,
                 "wcspr" => wcspr,
-                "library" => library
+                "library" => library,
+                "pair" => pair,
+                //"token_a" => token_a,
+                //"token_b" => token_b
                 // contract_name is passed seperately, so we don't need to pass it here.
             },
         ))
@@ -166,6 +173,15 @@ impl UniswapInstance {
         self.0.query_named_key(String::from("self_hash"))
     }
 
+    pub fn uniswap_contract_package_hash(&self) -> Key {
+        let package: ContractPackageHash = self.0.query_named_key(String::from("package_hash"));
+        package.into()
+    }
+
+    pub fn uniswap_pair_address(&self) -> ContractHash {
+        self.0.query_named_key(String::from("pair_hash"))
+    }
+
     pub fn swap_exact_tokens_for_tokens<T: Into<Key>>(&self, amount_in: U256, amount_out_min: U256, path: Vec<ContractHash>, to: T) -> Vec<U256> {
         let _to:Key = to.into();
         self.0
@@ -207,6 +223,48 @@ impl UniswapInstance {
             .query_dictionary("swap_cspr_for_exact_tokens", _keys_to_str(&amount_out, &amount_in_max, &path, &_to))
             .unwrap_or_default()
     }
+
+    pub fn approve(&self, token: &TestContract, sender: Sender, spender: Key, amount: U256) {
+        token.call_contract(
+            sender,
+            "approve",
+            runtime_args! {
+                "spender" => spender,
+                "amount" => amount
+            },
+        );
+    }
+
+    
+    pub fn allowance(&self, token: &TestContract, owner: AccountHash, spender: Key) -> U256 {
+        let owner: Key = owner.into();
+        token.query_dictionary("allowances", keys_to_str(&owner, &spender))
+            .unwrap_or_default()
+    }
+
+    pub fn balance_of<T: Into<Key>>(&self, token: &TestContract, account: T) -> U256 {
+        token.query_dictionary("balances", key_to_str(&account.into())).unwrap_or_default()
+    }
+
+    /*
+    // Erc20 Methods
+    pub fn approve(&self, token: &TestContract, sender: Sender, spender: Key, amount: U256) {
+
+        // approve the contract to spend on your behalf
+        let args: RuntimeArgs = runtime_args!{
+            "spender" => spender,
+            "amount" => amount
+        };
+        let _:() = token.call_contract(sender, "approve", args);
+    }
+
+    pub fn allowance(&self, token: &TestContract, owner: Key, spender: Key) -> U256 {
+        //let owner: Key = owner.into();
+        //let spender: Key = spender.into();
+
+        token.query_dictionary("allowances", keys_to_str(&owner, &spender)).unwrap_or_default()
+    }
+    */
 }
 
 pub fn key_to_str(key: &Key) -> String {
@@ -217,6 +275,16 @@ pub fn key_to_str(key: &Key) -> String {
     }
 }
 
+pub fn keys_to_str(key_a: &Key, key_b: &Key) -> String {
+    let mut hasher = VarBlake2b::new(32).unwrap();
+    hasher.update(key_a.to_bytes().unwrap());
+    hasher.update(key_b.to_bytes().unwrap());
+    let mut ret = [0u8; 32];
+    hasher.finalize_variable(|hash| ret.clone_from_slice(hash));
+    hex::encode(ret)
+}
+
+/*
 pub fn keys_to_str(key_a: &U256, key_b: &Key) -> String {
     let mut hasher = VarBlake2b::new(32).unwrap();
     hasher.update(key_a.to_bytes().unwrap());
@@ -225,6 +293,7 @@ pub fn keys_to_str(key_a: &U256, key_b: &Key) -> String {
     hasher.finalize_variable(|hash| ret.clone_from_slice(hash));
     hex::encode(ret)
 }
+*/
 
 pub fn _keys_to_str(key_a: &U256, key_b: &U256, key_c: &Vec<ContractHash>, key_d: &Key) -> String {
     let mut hasher = VarBlake2b::new(32).unwrap();
