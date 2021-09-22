@@ -57,6 +57,8 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         
         let liquidity:U256 = Self::call_contract(&pair.to_formatted_string(), uniswapv2_contract_methods::PAIR_MINT, args);
         (amount_a, amount_b, liquidity)
+        
+        //(1.into(), 2.into(), 3.into())
     }
 
 
@@ -141,14 +143,14 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         };
         let _: () = Self::call_contract(&pair.to_formatted_string(), uniswapv2_contract_methods::PAIR_TRANSFER_FROM, args);
 
-     
+        
         // call burn from IUniSwapV2Pair
         let args: RuntimeArgs = runtime_args!{
             "to" => to,
         };
         let (amount0, amount1):(U256, U256) = Self::call_contract(&pair.to_formatted_string(), uniswapv2_contract_methods::PAIR_BURN, args);
 
-
+        
         // call sortTokens from library contract
         let args: RuntimeArgs = runtime_args!{
             "token_a" => Key::from(token_a),
@@ -240,9 +242,9 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             "s" => s
         };
         
-        let () = Self::call_contract(&pair.to_formatted_string(), uniswapv2_contract_methods::PAIR_PERMIT, args);
+        //let () = Self::call_contract(&pair.to_formatted_string(), uniswapv2_contract_methods::PAIR_PERMIT, args);
 
-        /*
+        
         // call self remove_liquidity
         let args: RuntimeArgs = runtime_args!{
             "token_a" => token_a,
@@ -258,8 +260,8 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         let package_hash = data::package_hash();
         let (amount_a, amount_b):(U256, U256) = runtime::call_versioned_contract(package_hash, None, "remove_liquidity", args);
         (amount_a, amount_b)
-        */
-        (1.into(), 2.into())
+        
+        //(1.into(), 2.into())
     }
 
 
@@ -753,7 +755,10 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             "token_b" => Key::from(token_b),
             "pair" => Key::from(pair)                      // temporary passing pair
         };
-        let (reserve_a, reserve_b):(U256, U256) = Self::call_contract(&uniswapv2_library_contract_hash, uniswapv2_contract_methods::LIBRARY_GET_RESERVES, args);
+        let (reserve_a, reserve_b):(U128, U128) = Self::call_contract(&uniswapv2_library_contract_hash, uniswapv2_contract_methods::LIBRARY_GET_RESERVES, args);
+
+        //let reserve_a: U256 = U256::from(reserve_a.as_u128());
+        //let reserve_b: U256 = U256::from(reserve_a.as_u128());
 
         
         if reserve_a == 0.into() && reserve_b == 0.into()
@@ -799,7 +804,6 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
                     return (0.into(), 0.into());
                 }
             }
-            
         }
     }
 

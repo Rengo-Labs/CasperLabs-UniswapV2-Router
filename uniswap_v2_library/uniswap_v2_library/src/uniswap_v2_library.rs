@@ -59,11 +59,11 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
     //     pair
     // }
     
-    fn get_reserves(&mut self, token_a:ContractHash, token_b:ContractHash, pair:ContractHash) -> (U256, U256) {
+    fn get_reserves(&mut self, token_a:ContractHash, token_b:ContractHash, pair:ContractHash) -> (U128, U128) {
                 
         let (token_0, _):(ContractHash, ContractHash) = self.sort_tokens(token_a, token_b);
-        let (reserve_0, reserve_1):(U256, U256) = runtime::call_contract(pair, "get_reserves", runtime_args! {});
-        let (reserve_a, reserve_b):(U256, U256);
+        let (reserve_0, reserve_1, _):(U128, U128, u64) = runtime::call_contract(pair, "get_reserves", runtime_args! {});
+        let (reserve_a, reserve_b):(U128, U128);
         if token_a == token_0 {
             reserve_a = reserve_0;
             reserve_b = reserve_1;
@@ -129,7 +129,11 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
         let mut amounts:Vec<U256> = vec![0.into(); path.len()];
         amounts[0] = amount_in;
         for i in 0..(path.len()-1) {
-            let (reserve_in, reserve_out):(U256, U256) = self.get_reserves(path[i], path[i+1], pair);
+            let (reserve_in, reserve_out):(U128, U128) = self.get_reserves(path[i], path[i+1], pair);
+            
+            let reserve_in:U256 = U256::from(reserve_in.as_u128());
+            let reserve_out:U256 = U256::from(reserve_out.as_u128());
+
             amounts[i+1] = self.get_amount_out(amounts[i], reserve_in, reserve_out);
         }
         amounts
@@ -145,7 +149,11 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
         let size = amounts.len();
         amounts[size-1] = amount_out;
         for i in  (1..(path.len()-1)).rev() {
-            let (reserve_in, reserve_out):(U256, U256) = self.get_reserves(path[i-1], path[i], pair);
+            let (reserve_in, reserve_out):(U128, U128) = self.get_reserves(path[i-1], path[i], pair);
+
+            let reserve_in:U256 = U256::from(reserve_in.as_u128());
+            let reserve_out:U256 = U256::from(reserve_out.as_u128());
+
             amounts[i-1] = self.get_amount_in(amounts[i], reserve_in, reserve_out);
         }
         amounts

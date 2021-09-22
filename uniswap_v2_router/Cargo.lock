@@ -1349,6 +1349,7 @@ dependencies = [
  "casper-types",
  "contract-utils",
  "hex",
+ "rand 0.8.4",
  "test-env",
 ]
 

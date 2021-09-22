@@ -173,14 +173,13 @@ fn test_uniswap_deploy()
 
 
 #[test]
-fn add_liquidity()                                          // Working
+fn add_liquidity()                                              // Working
 {
     let (env, uniswap, owner, token1, token2, token3) = deploy_uniswap_router();
 
     let token_a = Key::Hash(token1.contract_hash());
     let token_b = Key::Hash(token2.contract_hash());
     let to = Key::Hash(token3.contract_hash());
-
     
     let mut rng = rand::thread_rng();
     let amount_a_desired: U256 = rng.gen_range(300..600).into();
@@ -329,7 +328,7 @@ fn remove_liquidity_cspr()
 }
 
 
-#[test]
+//#[test]
 pub fn remove_liquidity_with_permit()
 {
     let (env, uniswap, owner, token1, token2, token3) = deploy_uniswap_router();

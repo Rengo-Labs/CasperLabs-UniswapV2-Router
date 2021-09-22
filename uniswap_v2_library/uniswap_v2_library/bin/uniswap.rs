@@ -26,8 +26,7 @@ impl Uniswap {
 
 #[no_mangle]
 fn constructor() {
-    let _contract_hash: Key = runtime::get_named_arg("contract_hash");
-    let contract_hash:ContractHash = _contract_hash.into_hash().unwrap_or_default().into();
+    let contract_hash: ContractHash = runtime::get_named_arg("contract_hash");
     Uniswap::default().constructor(contract_hash);
 }
 
@@ -140,7 +139,7 @@ fn get_entry_points() -> EntryPoints {
     entry_points.add_entry_point(EntryPoint::new(
         "constructor",
         vec![
-            Parameter::new("contract_hash", Key::cl_type()),
+            Parameter::new("contract_hash", ContractHash::cl_type()),
         ],
         <()>::cl_type(),
         EntryPointAccess::Groups(vec![Group::new("constructor")]),
@@ -159,11 +158,12 @@ fn get_entry_points() -> EntryPoints {
     entry_points.add_entry_point(EntryPoint::new(
         "get_reserves",
         vec![
+            Parameter::new("factory", Key::cl_type()),
             Parameter::new("token_a", Key::cl_type()),
             Parameter::new("token_b", Key::cl_type()),
             Parameter::new("pair", Key::cl_type()),
         ],
-        CLType::Tuple2([Box::new(CLType::U256), Box::new(CLType::U256)]),
+        CLType::Tuple2([Box::new(CLType::U128), Box::new(CLType::U128)]),
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
