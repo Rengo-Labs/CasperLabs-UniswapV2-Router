@@ -126,8 +126,10 @@ impl UniswapInstance {
         ); 
     }
 
+    //pub fn remove_liquidity_with_permit(&self, sender: Sender, token_a: Key, token_b: Key, liquidity: U256, amount_a_min: U256, amount_b_min: U256,
+    //to: Key, deadline: U256, approve_max: bool, v: u8, r: u32, s: u32)
     pub fn remove_liquidity_with_permit(&self, sender: Sender, token_a: Key, token_b: Key, liquidity: U256, amount_a_min: U256, amount_b_min: U256,
-    to: Key, deadline: U256, approve_max: bool, v: u8, r: u32, s: u32)
+        to: Key, deadline: U256, approve_max: bool, public_key: String, signature: String)
     {
         self.0.call_contract(
             sender,
@@ -141,15 +143,14 @@ impl UniswapInstance {
                 "to" => to,
                 "deadline" => deadline,
                 "approve_max" => approve_max,
-                "v" => v,
-                "r" => r,
-                "s" => s
+                "public_key" => public_key,
+                "signature" => signature
             }
         );
     }
 
     pub fn remove_liquidity_cspr_with_permit(&self, sender: Sender, token: Key, liquidity: U256, amount_token_min: U256, amount_cspr_min:U256, to: Key,
-        deadline: U256, approve_max: bool, v: u8, r: u32, s: u32)
+        deadline: U256, approve_max: bool, public_key: String, signature: String)
     {
         self.0.call_contract(
             sender,
@@ -162,9 +163,8 @@ impl UniswapInstance {
                 "to" => to,
                 "deadline" => deadline,
                 "approve_max" => approve_max,
-                "v" => v,
-                "r" => r,
-                "s" => s
+                "public_key" => public_key,
+                "signature" => signature
             }
         );
     }

@@ -295,7 +295,7 @@ fn remove_liquidity()                                           // Working
 }
 
 
-#[test]
+//#[test]
 fn remove_liquidity_cspr()
 {
     let (env, uniswap, owner, token1, token2, _) = deploy_uniswap_router();
@@ -328,7 +328,7 @@ fn remove_liquidity_cspr()
 }
 
 
-//#[test]
+#[test]
 pub fn remove_liquidity_with_permit()
 {
     let (env, uniswap, owner, token1, token2, token3) = deploy_uniswap_router();
@@ -341,23 +341,22 @@ pub fn remove_liquidity_with_permit()
     let amount_b_min: U256 = rng.gen_range(0..200).into();
     let to = Key::Hash(token3.contract_hash());
     let approve_max = false;
-    let v: u8 = rng.gen_range(0..200);
-    let r: u32 = rng.gen_range(0..200);
-    let s: u32 = rng.gen_range(0..200);
+    
+    let public_key: String = String::from("83, 84, 183, 250, 65, 134, 195, 156, 104, 83, 230, 145, 140, 133, 191, 49, 156, 11, 37, 49, 248, 24, 76, 106, 145, 131, 8, 52, 210, 239, 78, 199");
+    let signature: String = String::from("138, 89, 227, 39, 254, 208, 30, 138, 68, 7, 133, 208, 155, 71, 190, 31, 40, 213, 128, 174, 9, 233, 61, 28, 42, 52, 185, 247, 52, 51, 108, 234, 136, 173, 187, 21, 110, 92, 187, 75, 68, 232, 102, 251, 231, 174, 73, 253, 123, 56, 137, 128, 20, 236, 76, 106, 72, 238, 152, 117, 219, 15, 123, 12");
     let deadline: u128 = match SystemTime::now().duration_since(UNIX_EPOCH) {
         Ok(n) => n.as_millis() + (1000 * (30 * 60)),      // current epoch time in milisecond + 30 minutes
         Err(_) => 0
     };
 
-    uniswap.remove_liquidity_with_permit(Sender(owner), token_a, token_b, liquidity, amount_a_min, amount_b_min, to, deadline.into(), approve_max, v, r, s);
+    uniswap.remove_liquidity_with_permit(Sender(owner), token_a, token_b, liquidity, amount_a_min, amount_b_min, to, deadline.into(), approve_max, public_key, signature);
 }
 
-/*
+
 #[test]
 fn remove_liquidity_cspr_with_permit()
 {
-    let (env, uniswap, owner) = deploy_uniswap_router();
-    let (token1, token2, token3) = deploy_dummy_tokens(&env);
+    let (env, uniswap, owner, token1, token2, token3) = deploy_uniswap_router();
     let mut rng = rand::thread_rng();
 
     let token = Key::Hash(token1.contract_hash());
@@ -366,15 +365,16 @@ fn remove_liquidity_cspr_with_permit()
     let amount_cspr_min: U256 = rng.gen_range(0..500).into();
     let to = Key::Hash(token2.contract_hash());
     let approve_max = false;
-    let v: u8 = rng.gen_range(0..200);
-    let r: u32 = rng.gen_range(0..200);
-    let s: u32 = rng.gen_range(0..200);
+
+    let public_key: String = String::from("83, 84, 183, 250, 65, 134, 195, 156, 104, 83, 230, 145, 140, 133, 191, 49, 156, 11, 37, 49, 248, 24, 76, 106, 145, 131, 8, 52, 210, 239, 78, 199");
+    let signature: String = String::from("138, 89, 227, 39, 254, 208, 30, 138, 68, 7, 133, 208, 155, 71, 190, 31, 40, 213, 128, 174, 9, 233, 61, 28, 42, 52, 185, 247, 52, 51, 108, 234, 136, 173, 187, 21, 110, 92, 187, 75, 68, 232, 102, 251, 231, 174, 73, 253, 123, 56, 137, 128, 20, 236, 76, 106, 72, 238, 152, 117, 219, 15, 123, 12");
     let deadline: u128 = match SystemTime::now().duration_since(UNIX_EPOCH) {
         Ok(n) => n.as_millis() + (1000 * (30 * 60)),      // current epoch time in milisecond + 30 minutes
         Err(_) => 0
     };
+    uniswap.remove_liquidity_cspr_with_permit(Sender(owner), token, liquidity, amount_token_min, amount_cspr_min, to, deadline.into(), approve_max, public_key, signature)
 }
-*/
+
 
 /*
 #[test]

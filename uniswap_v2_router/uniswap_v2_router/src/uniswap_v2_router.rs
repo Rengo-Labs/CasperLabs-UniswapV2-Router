@@ -1,5 +1,5 @@
 extern crate alloc;
-use alloc::{vec::Vec};
+use alloc::{vec::Vec, string::String};
 
 use casper_contract::{ contract_api::{runtime}};
 use casper_types::{
@@ -213,7 +213,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
 
 
     fn remove_liquidity_with_permit(&mut self, token_a: ContractHash, token_b: ContractHash, liquidity: U256, amount_a_min: U256, amount_b_min: U256, 
-        to: Key, approve_max: bool, v: u8, r: u32, s: u32, deadline: U256) -> (U256, U256)
+        to: Key, approve_max: bool, public_key: String, signature: String , deadline: U256) -> (U256, U256)
     {
         
         let factory: ContractHash = data::factory();
@@ -231,42 +231,38 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         let pair = data::pair_hash();
         let value: U256 = if approve_max {U256::MAX} else {liquidity};
 
+        
         // call permit from uniswapv2pair
         let args: RuntimeArgs = runtime_args!{
-            "owner" => runtime::get_caller(),
+            "public" => public_key,
+            "signature" => signature,
+            "owner" => Key::from(runtime::get_caller()),
             "spender" => self_hash,
             "value" => value,
-            "deadline" => deadline,
-            "v" => v,
-            "r" => r,
-            "s" => s
+            "deadline" => deadline.as_u64()
         };
         
-        //let () = Self::call_contract(&pair.to_formatted_string(), uniswapv2_contract_methods::PAIR_PERMIT, args);
-
+        let () = Self::call_contract(&pair.to_formatted_string(), uniswapv2_contract_methods::PAIR_PERMIT, args);
         
         // call self remove_liquidity
         let args: RuntimeArgs = runtime_args!{
-            "token_a" => token_a,
-            "token_b" => token_b,
+            "token_a" => Key::from(token_a),
+            "token_b" => Key::from(token_b),
             "liquidity" => liquidity,
             "amount_a_min" => amount_a_min,
             "amount_b_min" => amount_b_min,
             "to" => to,
             "deadline" => deadline
         };
-
-        //let (amount_a, amount_b):(U256, U256) = Self::call_contract(&self_hash.to_formatted_string(), "remove_liquidity", args);
+        
         let package_hash = data::package_hash();
         let (amount_a, amount_b):(U256, U256) = runtime::call_versioned_contract(package_hash, None, "remove_liquidity", args);
         (amount_a, amount_b)
-        
-        //(1.into(), 2.into())
     }
 
 
     fn remove_liquidity_cspr_with_permit(&mut self, token: ContractHash, liquidity: U256, amount_token_min: U256, amount_cspr_min: U256, 
-        to: Key, approve_max: bool, v: u8, r: u32, s: u32, deadline: U256) -> (U256, U256)
+        to: Key, approve_max: bool, public_key: String, signature: String , deadline: U256) -> (U256, U256)
     {
         let factory: ContractHash = data::factory();
         let wcspr: ContractHash = data::wcspr();
@@ -279,31 +275,32 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             "token_a" => token,
             "token_b" => wcspr
         };
-        let pair: ContractHash = Self::call_contract(&uniswapv2_library_contract_hash, uniswapv2_contract_methods::LIBRARY_PAIR_FOR, args);
+        //let pair: ContractHash = Self::call_contract(&uniswapv2_library_contract_hash, uniswapv2_contract_methods::LIBRARY_PAIR_FOR, args);
+        let pair = data::pair_hash();
         let value: U256 = if approve_max {U256::MAX} else {liquidity};
 
         // call permit from uniswapv2pair
         let args: RuntimeArgs = runtime_args!{
-            "owner" => runtime::get_caller(),
+            "public" => public_key,
+            "signature" => signature,
+            "owner" => Key::from(runtime::get_caller()),
             "spender" => self_hash,
             "value" => value,
-            "deadline" => deadline,
-            "v" => v,
-            "r" => r,
-            "s" => s
+            "deadline" => deadline.as_u64()
         };
         let () = Self::call_contract(&pair.to_formatted_string(), uniswapv2_contract_methods::PAIR_PERMIT, args);
         
-
+        
         // call remove_liquidity_cspr
         let args: RuntimeArgs = runtime_args!{
-            "token" => token,
+            "token" => Key::from(token),
             "liquidity" => liquidity,
             "amount_token_min" => amount_token_min,
             "amount_cspr_min" => amount_cspr_min,
             "to" => to,
             "deadline" => deadline
         };
+        
         
         //let (amount_token, amount_cspr):(U256, U256) = Self::call_contract(&self_hash.to_formatted_string(), "remove_liquidity_cspr", args);
         let package_hash = data::package_hash();
