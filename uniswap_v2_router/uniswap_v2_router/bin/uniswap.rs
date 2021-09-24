@@ -81,7 +81,7 @@ fn add_liquidity()
     let _token_b = ContractHash::from(token_b.into_hash().unwrap_or_default());
     
     let (amount_a, amount_b, liquidity): (U256, U256, U256) = Uniswap::default().add_liquidity(_token_a, _token_b, amount_a_desired, amount_b_desired, amount_a_min, amount_b_min, to);
-//    runtime::ret(CLValue::from_t((amount_a, amount_b, liquidity)).unwrap_or_revert());
+    runtime::ret(CLValue::from_t((amount_a, amount_b, liquidity)).unwrap_or_revert());
 }
 
 #[no_mangle]
@@ -105,7 +105,7 @@ fn add_liquidity_cspr()
 
     let _token = ContractHash::from(token.into_hash().unwrap_or_default());
     let (amount_token, amount_cspr, liquidity): (U256, U256, U256) = Uniswap::default().add_liquidity_cspr(_token, amount_token_desired, amount_cspr_desired, amount_token_min, amount_cspr_min, to);
-    //runtime::ret(CLValue::from_t((amount_token, amount_cspr, liquidity)).unwrap_or_revert());
+    runtime::ret(CLValue::from_t((amount_token, amount_cspr, liquidity)).unwrap_or_revert());
 }
 
 
@@ -188,7 +188,7 @@ fn remove_liquidity_with_permit()
     let (amount_a, amount_b) :(U256, U256) = Uniswap::default().remove_liquidity_with_permit(_token_a, _token_b, liquidity, amount_a_min, amount_b_min, 
         to, approve_max, public_key, signature, deadline);
 
-    //runtime::ret(CLValue::from_t((amount_a, amount_b)).unwrap_or_revert());
+    runtime::ret(CLValue::from_t((amount_a, amount_b)).unwrap_or_revert());
 }
 
 #[no_mangle]
@@ -218,7 +218,7 @@ fn remove_liquidity_cspr_with_permit()
     let (amount_token, amount_cspr) :(U256, U256) = Uniswap::default().remove_liquidity_cspr_with_permit(_token, liquidity, amount_token_min, amount_cspr_min, 
         to, approve_max, public_key, signature, deadline);
 
-    //runtime::ret(CLValue::from_t((amount_token, amount_cspr)).unwrap_or_revert());
+    runtime::ret(CLValue::from_t((amount_token, amount_cspr)).unwrap_or_revert());
 }
 
 #[no_mangle]

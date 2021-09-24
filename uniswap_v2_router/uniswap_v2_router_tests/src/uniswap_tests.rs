@@ -1,6 +1,6 @@
 use casper_contract::{ contract_api::{runtime}};
 use casper_engine_test_support::AccountHash;
-use casper_types::{U256, Key, runtime_args, RuntimeArgs, contracts::{ContractHash}};
+use casper_types::{U256, Key, runtime_args, RuntimeArgs, contracts::{ContractHash}, ContractPackageHash};
 use test_env::{Sender, TestEnv, TestContract};
 
 use crate::uniswap_instance::UniswapInstance;
@@ -58,7 +58,7 @@ fn deploy_dummy_tokens(env: &TestEnv, owner: Option<AccountHash>) -> (TestContra
     (token1_contract, token2_contract, token3_contract)
 }
 
-fn deploy_uniswap_router() -> (TestEnv, UniswapInstance, AccountHash, TestContract, TestContract, TestContract) 
+fn deploy_uniswap_router() -> (TestEnv, UniswapInstance, AccountHash, Key, TestContract, TestContract, TestContract, TestContract) 
 {
     let env = TestEnv::new();
     let owner = env.next_user();
@@ -117,7 +117,7 @@ fn deploy_uniswap_router() -> (TestEnv, UniswapInstance, AccountHash, TestContra
             "factory_hash" => Key::Hash(factory_contract.contract_hash()),
         }
     );
-
+    
     let (token1, token2, token3) = deploy_dummy_tokens(&env, Some(owner));             // deploy dummy tokens for pair initialize
 
     
@@ -129,6 +129,36 @@ fn deploy_uniswap_router() -> (TestEnv, UniswapInstance, AccountHash, TestContra
     pair_contract.call_contract(Sender(owner), "initialize", args);
     
 
+    let router_contract = TestContract::new(
+        &env,
+        "uniswap-v2-router.wasm",
+        NAME,
+        Sender(owner),
+        runtime_args! {
+
+            /*
+                "factory" => factory,
+                "wcspr" => wcspr,
+                "library" => library,
+                "pair" => pair,
+            */
+            "factory" => Key::Hash(factory_contract.contract_hash()),
+            "wcspr" => Key::Hash(wcspr.contract_hash()),
+            "library" => Key::Hash(library_contract.contract_hash()),
+            "pair" => Key::Hash(pair_contract.contract_hash()),
+        },
+    );
+    let router_package_hash: ContractPackageHash = router_contract.query_named_key(String::from("package_hash"));
+    let router_package_hash:Key = router_package_hash.into();
+
+    let token = UniswapInstance::new(
+        &env,
+        Key::Hash(router_contract.contract_hash()),
+        Sender(owner)
+    );
+    
+
+    /*
     let token = UniswapInstance::new(
         &env,
         NAME,
@@ -150,12 +180,224 @@ fn deploy_uniswap_router() -> (TestEnv, UniswapInstance, AccountHash, TestContra
         "spender" => token.uniswap_contract_package_hash(),
         "amount" => U256::from(1000)
     };
-    pair_contract.call_contract(Sender(owner), "approve", args);
-    
-    (env, token, owner, token1, token2, token3)
+    //pair_contract.call_contract(Sender(owner), "approve", args);
+    */
+
+
+    (env, token, owner, router_package_hash, pair_contract, token1, token2, token3)
 }
 
 
+#[test]
+fn test_uniswap_deploy()
+{
+    let (env, token, owner, _, _, _, _, _) = deploy_uniswap_router();
+    let self_hash: Key = token.uniswap_contract_address();
+    let package_hash: Key = token.uniswap_contract_package_hash();
+    let uniswap_router_address: Key = token.uniswap_router_address();
+
+    let zero_addr:Key = Key::from_formatted_str("hash-0000000000000000000000000000000000000000000000000000000000000000").unwrap();
+    assert_ne!(self_hash, zero_addr);
+    assert_ne!(package_hash, zero_addr);
+    assert_ne!(uniswap_router_address, zero_addr);
+}
+
+
+#[test]
+fn add_liquidity()                                              // Working
+{
+    let (env, uniswap, owner, router_package_hash, _, token1, token2, token3) = deploy_uniswap_router();
+
+    let token_a = Key::Hash(token1.contract_hash());
+    let token_b = Key::Hash(token2.contract_hash());
+    let to = Key::Hash(token3.contract_hash());
+    
+    let mut rng = rand::thread_rng();
+    let amount_a_desired: U256 = rng.gen_range(300..600).into();
+    let amount_b_desired: U256 = rng.gen_range(300..600).into();
+    let amount_a_min: U256 = rng.gen_range(1..250).into();
+    let amount_b_min: U256 = rng.gen_range(1..250).into();
+    
+    let deadline: u128 = match SystemTime::now().duration_since(UNIX_EPOCH) {
+        Ok(n) => n.as_millis() + (1000 * (30 * 60)),      // current epoch time in milisecond + 30 minutes
+        Err(_) => 0
+    };
+
+    // approve the router to spend tokens
+    uniswap.approve(&token1, Sender(owner), router_package_hash, amount_a_desired);
+    uniswap.approve(&token2, Sender(owner), router_package_hash, amount_b_desired);
+
+    uniswap.add_liquidity(Sender(owner), token_a, token_b, amount_a_desired, amount_b_desired, amount_a_min, amount_b_min, to, deadline.into());
+}
+
+#[test]
+fn add_liquidity_cspr()                                     // Working
+{
+    let (env, uniswap, owner, router_package_hash, _, token1, token2, _) = deploy_uniswap_router();
+
+    let to = Key::Hash(token2.contract_hash());
+
+    let mut rng = rand::thread_rng();
+    let token = Key::Hash(token1.contract_hash());
+    let amount_token_desired: U256 = rng.gen_range(300..600).into();
+    let amount_cspr_desired: U256 = rng.gen_range(300..600).into();
+    let amount_token_min: U256 = rng.gen_range(1..250).into();
+    let amount_cspr_min: U256 = rng.gen_range(1..250).into();
+
+    let deadline: u128 = match SystemTime::now().duration_since(UNIX_EPOCH) {
+        Ok(n) => n.as_millis() + (1000 * (30 * 60)),      // current epoch time in milisecond + 30 minutes
+        Err(_) => 0
+    };
+
+    uniswap.approve(&token1, Sender(owner), router_package_hash, amount_token_desired);
+    uniswap.add_liquidity_cspr(Sender(owner), token, amount_token_desired, amount_cspr_desired, amount_token_min, amount_cspr_min, to, deadline.into());
+}
+
+
+#[test]
+fn remove_liquidity()                                           // Working
+{
+    let (env, uniswap, owner, router_package_hash, pair_contract, token1, token2, token3) = deploy_uniswap_router();
+    let mut rng = rand::thread_rng();
+    
+
+    // First Add liquidity
+    let token_a = Key::Hash(token1.contract_hash());
+    let token_b = Key::Hash(token2.contract_hash());
+    let to = Key::Hash(token3.contract_hash());
+
+    let amount_a_desired: U256 = rng.gen_range(300..600).into();
+    let amount_b_desired: U256 = rng.gen_range(300..600).into();
+    let amount_a_min: U256 = rng.gen_range(1..250).into();
+    let amount_b_min: U256 = rng.gen_range(1..250).into();
+    
+    let deadline: u128 = match SystemTime::now().duration_since(UNIX_EPOCH) {
+        Ok(n) => n.as_millis() + (1000 * (30 * 60)),      // current epoch time in milisecond + 30 minutes
+        Err(_) => 0
+    };
+
+    // approve the router to spend tokens
+    uniswap.approve(&token1, Sender(owner), router_package_hash, amount_a_desired);
+    uniswap.approve(&token2, Sender(owner), router_package_hash, amount_b_desired);
+
+    uniswap.add_liquidity(Sender(owner), token_a, token_b, amount_a_desired, amount_b_desired, amount_a_min, amount_b_min, to, deadline.into());
+
+
+    // Now remove liquidity
+    let token_a = Key::Hash(token1.contract_hash());
+    let token_b = Key::Hash(token2.contract_hash());
+    let liquidity:U256 = rng.gen_range(300..500).into();
+    let amount_a_min:U256 = rng.gen_range(1..250).into();
+    let amount_b_min:U256 = rng.gen_range(1..250).into();
+    let to = Key::Hash(token3.contract_hash());
+
+    // approve router on pair
+    let args: RuntimeArgs = runtime_args!{
+        "spender" => router_package_hash,
+        "amount" => liquidity
+    };
+    pair_contract.call_contract(Sender(owner), "approve", args);
+    
+    uniswap.remove_liquidity(Sender(owner), token_a, token_b, liquidity, amount_a_min, amount_b_min, to, deadline.into());
+}
+
+#[test]
+fn remove_liquidity_cspr()
+{
+    let (env, uniswap, owner, router_package_hash, pair_contract, token1, token2, _) = deploy_uniswap_router();
+    let mut rng = rand::thread_rng();
+
+    let token = Key::Hash(token1.contract_hash());
+    let amount_token_desired: U256 = rng.gen_range(300..600).into();
+    let amount_cspr_desired: U256 = rng.gen_range(300..600).into();
+    let amount_token_min: U256 = rng.gen_range(1..250).into();
+    let amount_cspr_min: U256 = rng.gen_range(1..250).into();
+    let to = Key::Hash(token2.contract_hash());
+
+    let deadline: u128 = match SystemTime::now().duration_since(UNIX_EPOCH) {
+        Ok(n) => n.as_millis() + (1000 * (30 * 60)),      // current epoch time in milisecond + 30 minutes
+        Err(_) => 0
+    };
+
+    uniswap.approve(&token1, Sender(owner), router_package_hash, amount_token_desired);
+    uniswap.add_liquidity_cspr(Sender(owner), token, amount_token_desired, amount_cspr_desired, amount_token_min, amount_cspr_min, to, deadline.into());
+
+
+    let token: Key = Key::Hash(token1.contract_hash());
+    let liquidity:U256 = rng.gen_range(0..500).into();
+    let amount_token_min: U256 = rng.gen_range(0..200).into();
+    let amount_cspr_min: U256 = rng.gen_range(0..200).into();
+    let to = Key::Hash(token2.contract_hash());
+
+    // approve router on pair
+    let args: RuntimeArgs = runtime_args!{
+        "spender" => router_package_hash,
+        "amount" => liquidity
+    };
+    pair_contract.call_contract(Sender(owner), "approve", args);
+
+    uniswap.remove_liquidity_cspr(Sender(owner), token, liquidity, amount_token_min, amount_cspr_min, to, deadline.into())
+}
+
+#[test]
+pub fn remove_liquidity_with_permit()
+{
+    let (env, uniswap, owner, router_package_hash, pair_contract, token1, token2, token3) = deploy_uniswap_router();
+    let mut rng = rand::thread_rng();
+
+    let token_a = Key::Hash(token1.contract_hash());
+    let token_b = Key::Hash(token2.contract_hash());
+    let liquidity: U256 = rng.gen_range(0..500).into();
+    let amount_a_min: U256 = rng.gen_range(0..200).into();
+    let amount_b_min: U256 = rng.gen_range(0..200).into();
+    let to = Key::Hash(token3.contract_hash());
+    let approve_max = false;
+    
+    let public_key: String = String::from("83, 84, 183, 250, 65, 134, 195, 156, 104, 83, 230, 145, 140, 133, 191, 49, 156, 11, 37, 49, 248, 24, 76, 106, 145, 131, 8, 52, 210, 239, 78, 199");
+    let signature: String = String::from("251, 105, 201, 113, 240, 199, 142, 40, 150, 146, 29, 251, 232, 197, 116, 97, 82, 228, 3, 19, 178, 251, 66, 11, 73, 214, 92, 53, 220, 53, 11, 212, 254, 41, 166, 100, 101, 61, 151, 230, 35, 153, 172, 53, 67, 234, 47, 159, 246, 218, 74, 93, 178, 228, 229, 219, 2, 158, 120, 84, 8, 247, 72, 6");
+    let deadline: u128 = match SystemTime::now().duration_since(UNIX_EPOCH) {
+        Ok(n) => n.as_millis() + (1000 * (30 * 60)),      // current epoch time in milisecond + 30 minutes
+        Err(_) => 0
+    };
+
+    /*
+    let blocktime: U256 = deadline.into();
+    println!("Owner: {}", Key::from(owner));
+    println!("Spender: {}", uniswap.uniswap_contract_package_hash());
+    println!("Value: {}", liquidity);
+    println!("Nonce: {}", 0);
+    println!("Blocktime: {}", blocktime.as_u64());
+
+    let data:String = format!("{}{}{}{}{}", Key::from(owner), uniswap.uniswap_contract_package_hash(), liquidity, 0, blocktime.as_u64());
+    println!("Data: {}", data);
+    */
+    uniswap.remove_liquidity_with_permit(Sender(owner), token_a, token_b, liquidity, amount_a_min, amount_b_min, to, deadline.into(), approve_max, public_key, signature);
+}
+
+#[test]
+fn remove_liquidity_cspr_with_permit()
+{
+    let (env, uniswap, owner, _, _, token1, token2, _) = deploy_uniswap_router();
+    let mut rng = rand::thread_rng();
+
+    let token = Key::Hash(token1.contract_hash());
+    let liquidity: U256 = rng.gen_range(0..500).into();
+    let amount_token_min: U256 = rng.gen_range(0..500).into();
+    let amount_cspr_min: U256 = rng.gen_range(0..500).into();
+    let to = Key::Hash(token2.contract_hash());
+    let approve_max = false;
+
+    let public_key: String = String::from("83, 84, 183, 250, 65, 134, 195, 156, 104, 83, 230, 145, 140, 133, 191, 49, 156, 11, 37, 49, 248, 24, 76, 106, 145, 131, 8, 52, 210, 239, 78, 199");
+    let signature: String = String::from("138, 89, 227, 39, 254, 208, 30, 138, 68, 7, 133, 208, 155, 71, 190, 31, 40, 213, 128, 174, 9, 233, 61, 28, 42, 52, 185, 247, 52, 51, 108, 234, 136, 173, 187, 21, 110, 92, 187, 75, 68, 232, 102, 251, 231, 174, 73, 253, 123, 56, 137, 128, 20, 236, 76, 106, 72, 238, 152, 117, 219, 15, 123, 12");
+    let deadline: u128 = match SystemTime::now().duration_since(UNIX_EPOCH) {
+        Ok(n) => n.as_millis() + (1000 * (30 * 60)),      // current epoch time in milisecond + 30 minutes
+        Err(_) => 0
+    };
+    uniswap.remove_liquidity_cspr_with_permit(Sender(owner), token, liquidity, amount_token_min, amount_cspr_min, to, deadline.into(), approve_max, public_key, signature)
+}
+
+
+/*
 #[test]
 fn test_uniswap_deploy()
 {
@@ -328,7 +570,7 @@ fn remove_liquidity_cspr()
 }
 
 
-#[test]
+//#[test]
 pub fn remove_liquidity_with_permit()
 {
     let (env, uniswap, owner, token1, token2, token3) = deploy_uniswap_router();
@@ -343,17 +585,27 @@ pub fn remove_liquidity_with_permit()
     let approve_max = false;
     
     let public_key: String = String::from("83, 84, 183, 250, 65, 134, 195, 156, 104, 83, 230, 145, 140, 133, 191, 49, 156, 11, 37, 49, 248, 24, 76, 106, 145, 131, 8, 52, 210, 239, 78, 199");
-    let signature: String = String::from("138, 89, 227, 39, 254, 208, 30, 138, 68, 7, 133, 208, 155, 71, 190, 31, 40, 213, 128, 174, 9, 233, 61, 28, 42, 52, 185, 247, 52, 51, 108, 234, 136, 173, 187, 21, 110, 92, 187, 75, 68, 232, 102, 251, 231, 174, 73, 253, 123, 56, 137, 128, 20, 236, 76, 106, 72, 238, 152, 117, 219, 15, 123, 12");
+    let signature: String = String::from("251, 105, 201, 113, 240, 199, 142, 40, 150, 146, 29, 251, 232, 197, 116, 97, 82, 228, 3, 19, 178, 251, 66, 11, 73, 214, 92, 53, 220, 53, 11, 212, 254, 41, 166, 100, 101, 61, 151, 230, 35, 153, 172, 53, 67, 234, 47, 159, 246, 218, 74, 93, 178, 228, 229, 219, 2, 158, 120, 84, 8, 247, 72, 6");
     let deadline: u128 = match SystemTime::now().duration_since(UNIX_EPOCH) {
         Ok(n) => n.as_millis() + (1000 * (30 * 60)),      // current epoch time in milisecond + 30 minutes
         Err(_) => 0
     };
 
+    let blocktime: U256 = deadline.into();
+    println!("Owner: {}", Key::from(owner));
+    println!("Spender: {}", uniswap.uniswap_contract_package_hash());
+    println!("Value: {}", liquidity);
+    println!("Nonce: {}", 0);
+    println!("Blocktime: {}", blocktime.as_u64());
+
+    let data:String = format!("{}{}{}{}{}", Key::from(owner), uniswap.uniswap_contract_package_hash(), liquidity, 0, blocktime.as_u64());
+    println!("Data: {}", data);
+    
     uniswap.remove_liquidity_with_permit(Sender(owner), token_a, token_b, liquidity, amount_a_min, amount_b_min, to, deadline.into(), approve_max, public_key, signature);
 }
 
 
-#[test]
+//#[test]
 fn remove_liquidity_cspr_with_permit()
 {
     let (env, uniswap, owner, token1, token2, token3) = deploy_uniswap_router();
@@ -374,7 +626,7 @@ fn remove_liquidity_cspr_with_permit()
     };
     uniswap.remove_liquidity_cspr_with_permit(Sender(owner), token, liquidity, amount_token_min, amount_cspr_min, to, deadline.into(), approve_max, public_key, signature)
 }
-
+*/
 
 /*
 #[test]

@@ -10,6 +10,7 @@ pub struct UniswapInstance(TestContract);
 
 impl UniswapInstance {
 
+    /*
     pub fn new(
         env: &TestEnv,
         contract_name: &str,
@@ -33,6 +34,24 @@ impl UniswapInstance {
                 "pair" => pair,
                 //"token_a" => token_a,
                 //"token_b" => token_b
+                // contract_name is passed seperately, so we don't need to pass it here.
+            },
+        ))
+    }
+    */
+
+    pub fn new(
+        env: &TestEnv,
+        router_address: Key,
+        sender: Sender
+    ) -> UniswapInstance {
+        UniswapInstance(TestContract::new(
+            env,
+            "test_contract.wasm",
+            "RouterTest",
+            sender,
+            runtime_args! {
+                "router_address" => router_address
                 // contract_name is passed seperately, so we don't need to pass it here.
             },
         ))
@@ -170,14 +189,20 @@ impl UniswapInstance {
     }
 
     pub fn uniswap_contract_address(&self) -> Key {
-        self.0.query_named_key(String::from("self_hash"))
+        let self_hash: ContractHash = self.0.query_named_key("self_hash".to_string());
+        Key::from(self_hash)
     }
 
     pub fn uniswap_contract_package_hash(&self) -> Key {
-        let package: ContractPackageHash = self.0.query_named_key(String::from("package_hash"));
+        let package: ContractPackageHash =  self.0.query_named_key("package_hash".to_string());
         package.into()
     }
 
+    pub fn uniswap_router_address(&self) -> Key {
+        let router_hash:ContractHash = self.0.query_named_key("router_hash".to_string());
+        Key::from(router_hash)
+    }
+ 
     pub fn uniswap_pair_address(&self) -> ContractHash {
         self.0.query_named_key(String::from("pair_hash"))
     }
