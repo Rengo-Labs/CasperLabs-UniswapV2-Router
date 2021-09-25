@@ -5,8 +5,8 @@ use alloc::{vec, vec::Vec};
 
 use casper_contract::contract_api::runtime;
 use casper_types::{
-    bytesrepr::FromBytes, U256, U128, api_error::ApiError,
-    contracts::ContractHash, CLTyped, RuntimeArgs, runtime_args
+    bytesrepr::FromBytes, U256, U128, api_error::ApiError, Key,
+    contracts::{ContractHash, ContractPackageHash}, CLTyped, RuntimeArgs, runtime_args
 };
 use contract_utils::{ContractContext, ContractStorage};
 
@@ -17,8 +17,9 @@ use crate::config::error::ErrorCode;
 pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
     
     // Will be called by constructor
-    fn init(&mut self, contract_hash:ContractHash) {
+    fn init(&mut self, contract_hash:ContractHash, package_hash: ContractPackageHash) {
         data::set_self_hash(contract_hash);
+        data::set_package_hash(package_hash);
     }
 
     fn sort_tokens(&mut self, token_a:ContractHash, token_b:ContractHash) -> (ContractHash, ContractHash) {
@@ -59,9 +60,34 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
     //     pair
     // }
     
-    fn get_reserves(&mut self, token_a:ContractHash, token_b:ContractHash, pair:ContractHash) -> (U128, U128) {
+    fn pair_for(&mut self, factory:Key, token_a:Key, token_b:Key) -> Key {
+        
+        let args: RuntimeArgs = runtime_args! {
+            "token0" => token_a,
+            "token1" => token_b
+        };
+
+        let pair: Key = runtime::call_contract(ContractHash::from(factory.into_hash().unwrap_or_default()), "get_pair", args);
+        pair
+    }
+
+    fn get_reserves(&mut self, factory:ContractHash, token_a:ContractHash, token_b:ContractHash) -> (U128, U128) {
                 
         let (token_0, _):(ContractHash, ContractHash) = self.sort_tokens(token_a, token_b);
+
+        // call pair_for to get pair
+        // call remove_liquidity_cspr
+        let args: RuntimeArgs = runtime_args!{
+            "factory" => Key::from(factory),
+            "token_a" => Key::from(token_a),
+            "token_b" => Key::from(token_b)
+        };
+        
+        //let (amount_token, amount_cspr):(U256, U256) = Self::call_contract(&self_hash.to_formatted_string(), "remove_liquidity_cspr", args);
+        let package_hash: ContractPackageHash = data::package_hash();
+        let pair:Key = runtime::call_versioned_contract(package_hash, None, "pair_for", args);
+        let pair:ContractHash = ContractHash::from(pair.into_hash().unwrap_or_default());
+
         let (reserve_0, reserve_1, _):(U128, U128, u64) = runtime::call_contract(pair, "get_reserves", runtime_args! {});
         let (reserve_a, reserve_b):(U128, U128);
         if token_a == token_0 {
@@ -120,7 +146,7 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
     }
     
     // performs chained getAmountOut calculations on any number of pairs
-    fn get_amounts_out(&mut self, amount_in:U256, path: Vec<ContractHash>, pair:ContractHash) -> Vec<U256> {
+    fn get_amounts_out(&mut self, factory:ContractHash, amount_in:U256, path: Vec<ContractHash>) -> Vec<U256> {
         
         if path.len() < 2 {
             // runtime::revert(error_codes::INVALID_PATH);
@@ -129,7 +155,8 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
         let mut amounts:Vec<U256> = vec![0.into(); path.len()];
         amounts[0] = amount_in;
         for i in 0..(path.len()-1) {
-            let (reserve_in, reserve_out):(U128, U128) = self.get_reserves(path[i], path[i+1], pair);
+            // need to to call_contract here, and rest of the similar places - example for doing that in get_reserves() method above
+            let (reserve_in, reserve_out):(U128, U128) = self.get_reserves(factory, path[i], path[i+1]);
             
             let reserve_in:U256 = U256::from(reserve_in.as_u128());
             let reserve_out:U256 = U256::from(reserve_out.as_u128());

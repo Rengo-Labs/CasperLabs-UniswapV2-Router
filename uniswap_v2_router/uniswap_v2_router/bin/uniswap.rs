@@ -237,13 +237,8 @@ fn swap_exact_tokens_for_tokens()
     let amount_out_min: U256 = runtime::get_named_arg("amount_out_min");
     let path: Vec<Key> = runtime::get_named_arg("path");
     let to: Key = runtime::get_named_arg("to");
-    
-    let mut _path: Vec<ContractHash> = vec!();
-    for p in path {
-       _path.push(ContractHash::from(p.into_hash().unwrap_or_default()))
-    }
 
-    let amounts : Vec<U256> = Uniswap::default().swap_exact_tokens_for_tokens(amount_in, amount_out_min, _path, to);
+    let amounts : Vec<U256> = Uniswap::default().swap_exact_tokens_for_tokens(amount_in, amount_out_min, path, to);
     runtime::ret(CLValue::from_t(amounts).unwrap_or_revert());
 }
 
@@ -264,12 +259,7 @@ fn swap_tokens_for_exact_tokens()
     let path: Vec<Key> = runtime::get_named_arg("path");
     let to: Key = runtime::get_named_arg("to");
 
-    let mut _path: Vec<ContractHash> = vec!();
-    for p in path {
-        _path.push(ContractHash::from(p.into_hash().unwrap_or_default()))
-    }
-
-    let amounts : Vec<U256> = Uniswap::default().swap_tokens_for_exact_tokens(amount_out, amount_in_max, _path, to);
+    let amounts : Vec<U256> = Uniswap::default().swap_tokens_for_exact_tokens(amount_out, amount_in_max, path, to);
     runtime::ret(CLValue::from_t(amounts).unwrap_or_revert());
 }
 
@@ -290,12 +280,7 @@ fn swap_exact_cspr_for_tokens()
     let path: Vec<Key>  = runtime::get_named_arg("path");
     let to: Key = runtime::get_named_arg("to");
 
-    let mut _path: Vec<ContractHash> = vec!();
-    for p in path {
-        _path.push(ContractHash::from(p.into_hash().unwrap_or_default()))
-    }
-
-    let amounts : Vec<U256> = Uniswap::default().swap_exact_cspr_for_tokens(amount_out_min, amount_in, _path, to);
+    let amounts : Vec<U256> = Uniswap::default().swap_exact_cspr_for_tokens(amount_out_min, amount_in, path, to);
     runtime::ret(CLValue::from_t(amounts).unwrap_or_revert());
 }
 
@@ -316,12 +301,7 @@ fn swap_tokens_for_exact_cspr()
     let path: Vec<Key>  = runtime::get_named_arg("path");
     let to: Key = runtime::get_named_arg("to");
 
-    let mut _path: Vec<ContractHash> = vec!();
-    for p in path {
-        _path.push(ContractHash::from(p.into_hash().unwrap_or_default()))
-    }
-
-    let amounts : Vec<U256> = Uniswap::default().swap_tokens_for_exact_cspr(amount_out, amount_in_max, _path, to);
+    let amounts : Vec<U256> = Uniswap::default().swap_tokens_for_exact_cspr(amount_out, amount_in_max, path, to);
     runtime::ret(CLValue::from_t(amounts).unwrap_or_revert());
 }
 
@@ -341,13 +321,8 @@ fn swap_exact_tokens_for_cspr()
     let amount_out_min: U256 = runtime::get_named_arg("amount_out_min");
     let path: Vec<Key>  = runtime::get_named_arg("path");
     let to: Key = runtime::get_named_arg("to");
-
-    let mut _path: Vec<ContractHash> = vec!();
-    for p in path {
-        _path.push(ContractHash::from(p.into_hash().unwrap_or_default()))
-    }
     
-    let amounts : Vec<U256> = Uniswap::default().swap_exact_tokens_for_cspr(amount_in, amount_out_min, _path, to);
+    let amounts : Vec<U256> = Uniswap::default().swap_exact_tokens_for_cspr(amount_in, amount_out_min, path, to);
     runtime::ret(CLValue::from_t(amounts).unwrap_or_revert());
 }
 
@@ -368,12 +343,7 @@ fn swap_cspr_for_exact_tokens()
     let path: Vec<Key>  = runtime::get_named_arg("path");
     let to: Key = runtime::get_named_arg("to");
 
-    let mut _path: Vec<ContractHash> = vec!();
-    for p in path {
-        _path.push(ContractHash::from(p.into_hash().unwrap_or_default()))
-    }
-
-    let amounts : Vec<U256> = Uniswap::default().swap_cspr_for_exact_tokens(amount_out, amount_in_max, _path, to);
+    let amounts : Vec<U256> = Uniswap::default().swap_cspr_for_exact_tokens(amount_out, amount_in_max, path, to);
     runtime::ret(CLValue::from_t(amounts).unwrap_or_revert());
 }
 
@@ -409,8 +379,6 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("deadline", CLType::U256),
             ],
             CLType::Tuple3([Box::new(CLType::U256), Box::new(CLType::U256), Box::new(CLType::U256)]),
-            //U256::cl_type(),
-            //<()>::cl_type(),
             EntryPointAccess::Public,
             EntryPointType::Contract,
     ));
@@ -612,22 +580,7 @@ fn call() {
     let factory: Key = runtime::get_named_arg("factory");
     let wcspr: Key = runtime::get_named_arg("wcspr");
     let library_hash: Key = runtime::get_named_arg("library");
-    
-    // ************* Pair ***************
     let pair_hash: Key = runtime::get_named_arg("pair");
-    /*
-    let token_a: Key = runtime::get_named_arg("token_a");
-    let token_b: Key = runtime::get_named_arg("token_b");
-
-    let args: RuntimeArgs = runtime_args!{
-        "token0" => token_a,
-        "token1" => token_b,
-        "factory_hash" => factory,
-    };
-
-    let () = runtime::call_contract(ContractHash::from(pair_hash.into_hash().unwrap_or_default()), "initialize", args);
-    */
-    // ************* End-Pair ***************
 
 
     // Prepare constructor args

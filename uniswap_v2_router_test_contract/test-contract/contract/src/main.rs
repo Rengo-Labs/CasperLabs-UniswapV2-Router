@@ -58,6 +58,7 @@ fn add_liquidity()
     };
     
     let (amount_a, amount_b, liquidity): (U256, U256, U256) = runtime::call_contract(router_address, "add_liquidity", args);
+    mappings::set_key(&mappings::add_liquidity_key(), (amount_a, amount_b, liquidity));
 }
 
 #[no_mangle]
@@ -84,6 +85,7 @@ fn add_liquidity_cspr()
     };
 
     let (amount_token, amount_cspr, liquidity): (U256, U256, U256) = runtime::call_contract(router_address, "add_liquidity_cspr", args);
+    mappings::set_key(&mappings::add_liquidity_cspr_key(),(amount_token, amount_cspr, liquidity));
 }
 
 #[no_mangle]
@@ -110,6 +112,7 @@ fn remove_liquidity()
     };
 
     let (amount_a, amount_b) :(U256, U256) = runtime::call_contract(router_address, "remove_liquidity", args);
+    mappings::set_key(&mappings::remove_liquidity_key(), (amount_a, amount_b));
 }
 
 #[no_mangle]
@@ -134,6 +137,7 @@ fn remove_liquidity_cspr()
     };
 
     let (amount_token, amount_cspr) :(U256, U256) = runtime::call_contract(router_address, "remove_liquidity_cspr", args);
+    mappings::set_key(&mappings::remove_liquidity_cspr_key(), (amount_token, amount_cspr));
 }
 
 
@@ -167,6 +171,7 @@ fn remove_liquidity_with_permit()
     };
 
     let (amount_a, amount_b) :(U256, U256) = runtime::call_contract(router_address, "remove_liquidity_with_permit", args);
+    mappings::set_key(&mappings::remove_liquidity_with_permit_key(), (amount_a, amount_b));
 }
 
 #[no_mangle]
@@ -197,8 +202,30 @@ fn remove_liquidity_cspr_with_permit()
     };
 
     let (amount_a, amount_b) :(U256, U256) = runtime::call_contract(router_address, "remove_liquidity_cspr_with_permit", args);
+    mappings::set_key(&mappings::remove_liquidity_cspr_with_permit_key(), (amount_a, amount_b));
 }
 
+#[no_mangle]
+fn swap_exact_tokens_for_tokens()
+{
+    let router_address: ContractHash = mappings::get_key(&mappings::router_key());
+
+    let amount_in: U256 = runtime::get_named_arg("amount_in");
+    let amount_out_min: U256 = runtime::get_named_arg("amount_out_min");
+    let path: Vec<Key> = runtime::get_named_arg("path");
+    let to: Key = runtime::get_named_arg("to");
+    let deadline: U256 = runtime::get_named_arg("deadline");
+
+    let args: RuntimeArgs = runtime_args! {
+        "amount_in" => amount_in,
+        "amount_out_min" => amount_out_min,
+        "path" => path,
+        "to" => to,
+        "deadline" => deadline
+    };
+
+    let amounts : Vec<U256> = runtime::call_contract(router_address, "swap_exact_tokens_for_tokens", args);
+}
 
 fn get_entry_points() -> EntryPoints {
     let mut entry_points = EntryPoints::new();
@@ -324,7 +351,7 @@ fn get_entry_points() -> EntryPoints {
             EntryPointType::Contract,
     ));
 
-    /*
+    
     entry_points.add_entry_point(EntryPoint::new(
         String::from("swap_exact_tokens_for_tokens"),
 
@@ -340,6 +367,7 @@ fn get_entry_points() -> EntryPoints {
             EntryPointType::Contract,
     ));
 
+    /*
     entry_points.add_entry_point(EntryPoint::new(
         String::from("swap_tokens_for_exact_tokens"),
 

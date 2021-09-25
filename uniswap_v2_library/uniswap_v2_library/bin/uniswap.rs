@@ -5,7 +5,7 @@
 extern crate alloc;
 use alloc::{collections::BTreeSet, format, vec, prelude::v1::Box};
 use casper_contract::{contract_api::{runtime, storage}, unwrap_or_revert::UnwrapOrRevert};
-use casper_types::{CLType, CLTyped, CLValue, ContractHash, EntryPoint, EntryPointAccess, EntryPointType, EntryPoints, Group, Key, Parameter, RuntimeArgs, U128, U256, URef, runtime_args};
+use casper_types::{CLType, CLTyped, CLValue, ContractHash, ContractPackageHash, EntryPoint, EntryPointAccess, EntryPointType, EntryPoints, Group, Key, Parameter, RuntimeArgs, U128, U256, URef, runtime_args};
 use crate::vec::Vec;
 use contract_utils::{ContractContext, OnChainContractStorage};
 use uniswap_v2_library::{self, UniswapV2Library};
@@ -19,15 +19,16 @@ impl ContractContext<OnChainContractStorage> for Uniswap {
 }
 impl UniswapV2Library<OnChainContractStorage> for Uniswap {}
 impl Uniswap {
-    fn constructor(&mut self, contract_hash:ContractHash) {
-        UniswapV2Library::init(self, contract_hash);
+    fn constructor(&mut self, contract_hash:ContractHash, package_hash:ContractPackageHash) {
+        UniswapV2Library::init(self, contract_hash, package_hash);
     }
 }
 
 #[no_mangle]
 fn constructor() {
     let contract_hash: ContractHash = runtime::get_named_arg("contract_hash");
-    Uniswap::default().constructor(contract_hash);
+    let package_hash: ContractPackageHash = runtime::get_named_arg("package_hash");
+    Uniswap::default().constructor(contract_hash, package_hash);
 }
 
 #[no_mangle]
@@ -46,15 +47,15 @@ fn sort_tokens() {
 #[no_mangle]
 fn get_reserves() {
     
+    let _factory:Key = runtime::get_named_arg("factory");
     let _token_a:Key = runtime::get_named_arg("token_a");
     let _token_b:Key = runtime::get_named_arg("token_b");
-    let _pair:Key = runtime::get_named_arg("pair");
 
     let token_a:ContractHash = _token_a.into_hash().unwrap_or_default().into();
     let token_b:ContractHash = _token_b.into_hash().unwrap_or_default().into();
-    let pair:ContractHash = _pair.into_hash().unwrap_or_default().into();
-    
-    let (reserve_a, reserve_b) = Uniswap::default().get_reserves(token_a, token_b, pair);
+    let factory:ContractHash = _factory.into_hash().unwrap_or_default().into();
+
+    let (reserve_a, reserve_b) = Uniswap::default().get_reserves(factory, token_a, token_b);
     runtime::ret(CLValue::from_t((reserve_a, reserve_b)).unwrap_or_revert())
 }
 
@@ -98,17 +99,17 @@ fn get_amount_in() {
 // performs chained getAmountOut calculations on any number of pairs
 fn get_amounts_out(){
 
+    let _factory:Key = runtime::get_named_arg("factory");
     let amount_in: U256 = runtime::get_named_arg("amount_in");
     let _path: Vec<Key> = runtime::get_named_arg("path");
-    let _pair:Key = runtime::get_named_arg("pair");
 
-    let pair:ContractHash = _pair.into_hash().unwrap_or_default().into();
+    let factory:ContractHash = _factory.into_hash().unwrap_or_default().into();
     let mut path:Vec<ContractHash> = Vec::new();
     for value in _path{
         path.push(value.into_hash().unwrap_or_default().into());
     }
 
-    let amounts:Vec<U256> = Uniswap::default().get_amounts_out(amount_in, path, pair);
+    let amounts:Vec<U256> = Uniswap::default().get_amounts_out(factory, amount_in, path);
     runtime::ret(CLValue::from_t(amounts).unwrap_or_revert())
 }
 
@@ -130,7 +131,16 @@ fn get_amounts_in(){
     runtime::ret(CLValue::from_t(amounts).unwrap_or_revert())
 }
 
+#[no_mangle]
+fn pair_for() {
 
+    let factory:Key = runtime::get_named_arg("factory");
+    let token_a:Key = runtime::get_named_arg("token_a");
+    let token_b:Key = runtime::get_named_arg("token_b");
+
+    let ret = Uniswap::default().pair_for(factory, token_a, token_b);
+    runtime::ret(CLValue::from_t(ret).unwrap_or_revert())
+}
 
 fn get_entry_points() -> EntryPoints {
 
@@ -140,6 +150,7 @@ fn get_entry_points() -> EntryPoints {
         "constructor",
         vec![
             Parameter::new("contract_hash", ContractHash::cl_type()),
+            Parameter::new("package_hash", ContractPackageHash::cl_type()),
         ],
         <()>::cl_type(),
         EntryPointAccess::Groups(vec![Group::new("constructor")]),
@@ -161,7 +172,6 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("factory", Key::cl_type()),
             Parameter::new("token_a", Key::cl_type()),
             Parameter::new("token_b", Key::cl_type()),
-            Parameter::new("pair", Key::cl_type()),
         ],
         CLType::Tuple2([Box::new(CLType::U128), Box::new(CLType::U128)]),
         EntryPointAccess::Public,
@@ -203,9 +213,9 @@ fn get_entry_points() -> EntryPoints {
     entry_points.add_entry_point(EntryPoint::new(
         "get_amounts_out",
         vec![
+            Parameter::new("factory", Key::cl_type()),
             Parameter::new("amount_in", U256::cl_type()),
             Parameter::new("path", CLType::List(Box::new(Key::cl_type()))),
-            Parameter::new("pair", Key::cl_type()),
         ],
         CLType::List(Box::new(U256::cl_type())),
         EntryPointAccess::Public,
@@ -222,7 +232,17 @@ fn get_entry_points() -> EntryPoints {
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
-
+    entry_points.add_entry_point(EntryPoint::new(
+        "pair_for",
+        vec![
+            Parameter::new("factory", Key::cl_type()),
+            Parameter::new("token_a", Key::cl_type()),
+            Parameter::new("token_b", Key::cl_type()),
+        ],
+        CLType::Key,
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
     entry_points
 }
 
@@ -235,7 +255,8 @@ fn call() {
 
     // Prepare constructor args
     let constructor_args = runtime_args! {
-        "contract_hash" => contract_hash          // USING THIS FOR INTERNAL FUNCTION CALLS...
+        "contract_hash" => contract_hash,          // USING THIS FOR INTERNAL FUNCTION CALLS...
+        "package_hash" => package_hash
     };
 
     // Add the constructor group to the package hash with a single URef.

@@ -13,6 +13,9 @@ contract-utils = { path = "../utils/contract-utils" }
 hex = "0.4.3"
 blake2 = "0.9.1"
 rand = "0.8.4"
+more-asserts = "0.2.1"
+renvm-sig = "0.1.1"
+cryptoxide = "0.3.3"
 
 [features]
 default = ["casper-contract/std", "casper-types/std", "casper-contract/test-support"]

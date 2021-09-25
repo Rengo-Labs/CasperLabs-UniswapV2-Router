@@ -6,39 +6,14 @@ use casper_types::{bytesrepr::ToBytes, runtime_args, Key, RuntimeArgs, U256, Con
 use test_env::{Sender, TestContract, TestEnv};
 use casper_engine_test_support::AccountHash;
 
+use cryptoxide::ed25519;
+use renvm_sig::hash_message;
+use renvm_sig::keccak256;
+use hex::encode;
+
 pub struct UniswapInstance(TestContract);
 
 impl UniswapInstance {
-
-    /*
-    pub fn new(
-        env: &TestEnv,
-        contract_name: &str,
-        factory: Key,
-        wcspr: Key, 
-        library: Key,
-        pair: Key,
-//        token_a: Key,
-//        token_b: Key,
-        sender: Sender
-    ) -> UniswapInstance {
-        UniswapInstance(TestContract::new(
-            env,
-            "uniswap-v2-router.wasm",
-            contract_name,
-            sender,
-            runtime_args! {
-                "factory" => factory,
-                "wcspr" => wcspr,
-                "library" => library,
-                "pair" => pair,
-                //"token_a" => token_a,
-                //"token_b" => token_b
-                // contract_name is passed seperately, so we don't need to pass it here.
-            },
-        ))
-    }
-    */
 
     pub fn new(
         env: &TestEnv,
@@ -145,8 +120,6 @@ impl UniswapInstance {
         ); 
     }
 
-    //pub fn remove_liquidity_with_permit(&self, sender: Sender, token_a: Key, token_b: Key, liquidity: U256, amount_a_min: U256, amount_b_min: U256,
-    //to: Key, deadline: U256, approve_max: bool, v: u8, r: u32, s: u32)
     pub fn remove_liquidity_with_permit(&self, sender: Sender, token_a: Key, token_b: Key, liquidity: U256, amount_a_min: U256, amount_b_min: U256,
         to: Key, deadline: U256, approve_max: bool, public_key: String, signature: String)
     {
@@ -188,30 +161,19 @@ impl UniswapInstance {
         );
     }
 
-    pub fn uniswap_contract_address(&self) -> Key {
-        let self_hash: ContractHash = self.0.query_named_key("self_hash".to_string());
-        Key::from(self_hash)
-    }
+    pub fn swap_exact_tokens_for_tokens(&self, sender: Sender, amount_in: U256, amount_out_min: U256, path: Vec<Key>, to: Key, deadline: U256) {
 
-    pub fn uniswap_contract_package_hash(&self) -> Key {
-        let package: ContractPackageHash =  self.0.query_named_key("package_hash".to_string());
-        package.into()
-    }
-
-    pub fn uniswap_router_address(&self) -> Key {
-        let router_hash:ContractHash = self.0.query_named_key("router_hash".to_string());
-        Key::from(router_hash)
-    }
- 
-    pub fn uniswap_pair_address(&self) -> ContractHash {
-        self.0.query_named_key(String::from("pair_hash"))
-    }
-
-    pub fn swap_exact_tokens_for_tokens<T: Into<Key>>(&self, amount_in: U256, amount_out_min: U256, path: Vec<ContractHash>, to: T) -> Vec<U256> {
-        let _to:Key = to.into();
-        self.0
-            .query_dictionary("swap_exact_tokens_for_tokens", _keys_to_str(&amount_in, &amount_out_min, &path, &_to))
-            .unwrap_or_default()
+        self.0.call_contract(
+            sender,
+            "swap_exact_tokens_for_tokens", 
+            runtime_args! {
+                "amount_in" => amount_in,
+                "amount_out_min" => amount_out_min,
+                "path" => path,
+                "to" => to,
+                "deadline" => deadline
+            }
+        );
     }
 
     pub fn swap_tokens_for_exact_tokens<T: Into<Key>>(&self, amount_out: U256, amount_in_max: U256, path: Vec<ContractHash>, to: T) -> Vec<U256>  {
@@ -271,25 +233,88 @@ impl UniswapInstance {
         token.query_dictionary("balances", key_to_str(&account.into())).unwrap_or_default()
     }
 
-    /*
-    // Erc20 Methods
-    pub fn approve(&self, token: &TestContract, sender: Sender, spender: Key, amount: U256) {
 
-        // approve the contract to spend on your behalf
-        let args: RuntimeArgs = runtime_args!{
-            "spender" => spender,
-            "amount" => amount
-        };
-        let _:() = token.call_contract(sender, "approve", args);
+    pub fn uniswap_contract_address(&self) -> Key {
+        let self_hash: ContractHash = self.0.query_named_key("self_hash".to_string());
+        Key::from(self_hash)
     }
 
-    pub fn allowance(&self, token: &TestContract, owner: Key, spender: Key) -> U256 {
-        //let owner: Key = owner.into();
-        //let spender: Key = spender.into();
-
-        token.query_dictionary("allowances", keys_to_str(&owner, &spender)).unwrap_or_default()
+    pub fn uniswap_contract_package_hash(&self) -> Key {
+        let package: ContractPackageHash =  self.0.query_named_key("package_hash".to_string());
+        package.into()
     }
-    */
+
+    pub fn uniswap_router_address(&self) -> Key {
+        let router_hash:ContractHash = self.0.query_named_key("router_hash".to_string());
+        Key::from(router_hash)
+    }
+ 
+    pub fn uniswap_pair_address(&self) -> ContractHash {
+        self.0.query_named_key(String::from("pair_hash"))
+    }
+
+    pub fn calculate_signature(&self, data: &String) -> (String, String) {
+
+        let permit_type: &str = "Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)";
+        let domainseparator = "e3699417b742311a6708baed3e1979141e28823ba6ea47e1342a84dd038585a1";
+
+        let permit_type_hash = encode(keccak256(permit_type.as_bytes()));// to take a byte hash of Permit Type
+        let hash=keccak256(data.as_bytes());
+        let hashstring =hex::encode(hash);
+        //let data2:String = format!("{}{}",domainseparator,hashstring);
+        let data2:String = format!("{}",hashstring);
+        let geteip191standard_hash=hash_message(data2);
+
+        let secret= "MC4CAQAwBQYDK2VwBCIEIPPGVic1+UO0UJJJRTHaBkpH/05oaDQacEinXQnKoaIu".as_bytes();
+        let public=ed25519::to_public(secret);
+        let signature = ed25519::signature_extended(&geteip191standard_hash, &secret);
+        
+        let signature = signature.to_vec();
+        let public = public.to_vec();
+
+        let signature_str = format!("{:?}", &signature);
+        let public_str = format!("{:?}", &public);
+        
+        let mut signature_str = signature_str.replace("[", "");             
+        signature_str = signature_str.replace("]", "");
+
+        let mut public_str = public_str.replace("[", "");             
+        public_str = public_str.replace("]", "");
+
+
+        (signature_str, public_str)
+    }
+
+    // Result methods
+    pub fn add_liquidity_result(&self) -> (U256, U256, U256) {
+        let (amount_a, amount_b, liquidity):(U256, U256, U256) = self.0.query_named_key("add_liquidity_result".to_string());
+        (amount_a, amount_b, liquidity)   
+    }
+
+    pub fn add_liquidity_cspr_result(&self) -> (U256, U256, U256) {
+        let (amount_token, amount_cspr, liquidity):(U256, U256, U256) = self.0.query_named_key("add_liquidity_cspr_result".to_string());
+        (amount_token, amount_cspr, liquidity)
+    }
+
+    pub fn remove_liquidity_result(&self) -> (U256, U256) {
+        let (amount_a, amount_b):(U256, U256) = self.0.query_named_key("remove_liquidity_result".to_string());
+        (amount_a, amount_b)
+    }
+
+    pub fn remove_liquidity_cspr_result(&self) -> (U256, U256) {
+        let (amount_token, amount_cspr):(U256, U256) = self.0.query_named_key("remove_liquidity_cspr_result".to_string());
+        (amount_token, amount_cspr)
+    }
+
+    pub fn remove_liquidity_with_permit_result(&self) -> (U256, U256) {
+        let (amount_a, amount_b):(U256, U256) = self.0.query_named_key("remove_liquidity_with_permit_result".to_string());
+        (amount_a, amount_b)
+    }
+
+    pub fn remove_liquidity_cspr_with_permit_result(&self) -> (U256, U256) {
+        let (amount_a, amount_b) :(U256, U256) = self.0.query_named_key("remove_liquidity_cspr_with_permit_result".to_string());
+        (amount_a, amount_b)
+    }
 }
 
 pub fn key_to_str(key: &Key) -> String {

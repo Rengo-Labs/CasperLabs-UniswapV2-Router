@@ -57,3 +57,23 @@ pub fn router_key() -> String {
 pub fn add_liquidity_key() -> String {
     format!("add_liquidity_result")
 }
+
+pub fn add_liquidity_cspr_key() -> String {
+    format!("add_liquidity_cspr_result")
+}
+
+pub fn remove_liquidity_key() -> String {
+    format!("remove_liquidity_result")
+}
+
+pub fn remove_liquidity_cspr_key() -> String {
+    format!("remove_liquidity_cspr_result")
+}
+
+pub fn remove_liquidity_with_permit_key() -> String {
+    format!("remove_liquidity_with_permit_result")
+}
+
+pub fn remove_liquidity_cspr_with_permit_key() -> String {
+    format!("remove_liquidity_cspr_with_permit_result")
+}
