@@ -77,3 +77,27 @@ pub fn remove_liquidity_with_permit_key() -> String {
 pub fn remove_liquidity_cspr_with_permit_key() -> String {
     format!("remove_liquidity_cspr_with_permit_result")
 }
+
+pub fn swap_exact_tokens_for_tokens() -> String {
+    format!("swap_exact_tokens_for_tokens")
+}
+
+pub fn swap_tokens_for_exact_tokens() -> String {
+    format!("swap_tokens_for_exact_tokens")
+}
+
+pub fn swap_exact_cspr_for_tokens() -> String {
+    format!("swap_exact_cspr_for_tokens")
+}
+
+pub fn swap_tokens_for_exact_cspr() -> String {
+    format!("swap_tokens_for_exact_cspr")
+}
+
+pub fn swap_exact_tokens_for_cspr() -> String {
+    format!("swap_exact_tokens_for_cspr")
+}
+
+pub fn swap_cspr_for_exact_tokens() -> String {
+    format!("swap_cspr_for_exact_tokens")
+}

@@ -309,7 +309,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         // call getAmountOut from Library contract
         let uniswapv2_library_contract_hash = data::library_hash().to_formatted_string();
         let args: RuntimeArgs = runtime_args!{
-            "factory" => factory,
+            "factory" => Key::from(factory),
             "amount_in" => amount_in,
             "path" => path.clone(),
         };
@@ -322,21 +322,20 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
 
         // get pair
         let args: RuntimeArgs = runtime_args!{
-            "factory" => factory,
+            "factory" => Key::from(factory),
             "token_a" => path[0],
             "token_b" => path[1],
         };
         let pair: ContractHash = Self::call_contract(&uniswapv2_library_contract_hash, uniswapv2_contract_methods::LIBRARY_PAIR_FOR, args);
         
+        // transfer_helper::safe_transfer_from(Key::from(path[0]), Key::from(runtime::get_caller()), Key::from(pair), amounts[0]);
 
-        transfer_helper::safe_transfer_from(Key::from(path[0]), Key::from(runtime::get_caller()), Key::from(pair), amounts[0]);
-
-        // call _swap helper
-        Self::_swap(&amounts, &path, to);
-        amounts
+        // // call _swap helper
+        // Self::_swap(&amounts, &path, to);
+        // amounts
         
-        //let amounts: Vec<U256> = vec![1.into(), 2.into()];
-        //amounts
+        let amounts: Vec<U256> = vec![1.into(), 2.into()];
+        amounts
     }
 
     fn swap_tokens_for_exact_tokens(&mut self, amount_out: U256, amount_in_max: U256, path: Vec<Key>, to: Key) -> Vec<U256>
@@ -348,7 +347,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         //let uniswapv2_library_contract_hash: &str = uniswapv2_contracts_hash::LIBRARY_HASH;
         let uniswapv2_library_contract_hash = data::library_hash().to_formatted_string();
         let args: RuntimeArgs = runtime_args!{
-            "factory" => factory,
+            "factory" => Key::from(factory),
             "amount_out" => amount_out,
             "path" => path.clone(),
         };
@@ -387,7 +386,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         //let uniswapv2_library_contract_hash: &str = uniswapv2_contracts_hash::LIBRARY_HASH;
         let uniswapv2_library_contract_hash = data::library_hash().to_formatted_string();
         let args: RuntimeArgs = runtime_args!{
-            "factory" => factory,
+            "factory" => Key::from(factory),
             "amount_in" => amount_in,
             "path" => path.clone(),
         };
@@ -410,7 +409,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         
         // Get pair
         let args: RuntimeArgs = runtime_args!{
-            "factory" => factory,
+            "factory" => Key::from(factory),
             "token_a" => path[0],
             "token_b" => path[1],
         };
@@ -445,7 +444,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         //let uniswapv2_library_contract_hash: &str = uniswapv2_contracts_hash::LIBRARY_HASH;
         let uniswapv2_library_contract_hash = data::library_hash().to_formatted_string();
         let args: RuntimeArgs = runtime_args!{
-            "factory" => factory,
+            "factory" => Key::from(factory),
             "amount_out" => amount_out,
             "path" => path.clone(),
         };
@@ -461,7 +460,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
 
         // first need to get the pair
         let args: RuntimeArgs = runtime_args!{
-            "factory" => factory,
+            "factory" => Key::from(factory),
             "token_a" => path[0],
             "token_b" => path[1],
         };
@@ -505,7 +504,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         //let uniswapv2_library_contract_hash: &str = uniswapv2_contracts_hash::LIBRARY_HASH;
         let uniswapv2_library_contract_hash = data::library_hash().to_formatted_string();
         let args: RuntimeArgs = runtime_args!{
-            "factory" => factory,
+            "factory" => Key::from(factory),
             "amount_in" => amount_in,
             "path" => path.clone(),
         };
@@ -520,7 +519,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
     
         // first need to get the pair
         let args: RuntimeArgs = runtime_args!{
-            "factory" => factory,
+            "factory" => Key::from(factory),
             "token_a" => path[0],
             "token_b" => path[1],
         };
@@ -573,7 +572,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         //let uniswapv2_library_contract_hash: &str = uniswapv2_contracts_hash::LIBRARY_HASH;
         let uniswapv2_library_contract_hash = data::library_hash().to_formatted_string();
         let args: RuntimeArgs = runtime_args!{
-            "factory" => factory,
+            "factory" => Key::from(factory),
             "amount_in" => amount_out,
             "path" => path.clone(),
         };
@@ -597,7 +596,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
 
         // Get pair
         let args: RuntimeArgs = runtime_args!{
-            "factory" => factory,
+            "factory" => Key::from(factory),
             "token_a" => path[0],
             "token_b" => path[1],
         };

@@ -1,5 +1,4 @@
 extern crate alloc;
-use core::ops::Add;
 
 use alloc::{vec, vec::Vec};
 
@@ -42,24 +41,6 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
         (token_0, token_1)
     }
     
-    // calculates the CREATE2 address for a pair without making any external calls
-    // fn pair_for(&mut self, factory:ContractHash, token_a:ContractHash, token_b:ContractHash) -> ContractHash {
-                
-    //     let (token_0, token_1):(ContractHash, ContractHash) = self.sort_tokens(token_a, token_b);
-        
-    //     // In Solidity, keccak256 was not directly convertible into address so we use uint in between
-    //     // But here we can directly convert the keccak into ContractHash
-    //     let pair:ContractHash = keccak256(encode_packed(&[
-    //             &"ff".into(),
-    //             &make_hash(&factory),
-    //             &hex::encode(
-    //                 keccak256(encode_packed(&[&make_hash(&token_0), &make_hash(&token_1)]).as_bytes())
-    //             ),
-    //             &"96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f".into()
-    //         ]).as_bytes()).into();
-    //     pair
-    // }
-    
     fn pair_for(&mut self, factory:Key, token_a:Key, token_b:Key) -> Key {
         
         let args: RuntimeArgs = runtime_args! {
@@ -83,7 +64,6 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
             "token_b" => Key::from(token_b)
         };
         
-        //let (amount_token, amount_cspr):(U256, U256) = Self::call_contract(&self_hash.to_formatted_string(), "remove_liquidity_cspr", args);
         let package_hash: ContractPackageHash = data::package_hash();
         let pair:Key = runtime::call_versioned_contract(package_hash, None, "pair_for", args);
         let pair:ContractHash = ContractHash::from(pair.into_hash().unwrap_or_default());
@@ -149,7 +129,6 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
     fn get_amounts_out(&mut self, factory:ContractHash, amount_in:U256, path: Vec<ContractHash>) -> Vec<U256> {
         
         if path.len() < 2 {
-            // runtime::revert(error_codes::INVALID_PATH);
             runtime::revert(ApiError::from(ErrorCode::InsufficientLiquidity));
         }
         let mut amounts:Vec<U256> = vec![0.into(); path.len()];

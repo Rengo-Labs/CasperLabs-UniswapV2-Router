@@ -176,41 +176,76 @@ impl UniswapInstance {
         );
     }
 
-    pub fn swap_tokens_for_exact_tokens<T: Into<Key>>(&self, amount_out: U256, amount_in_max: U256, path: Vec<ContractHash>, to: T) -> Vec<U256>  {
-        let _to:Key = to.into();
-        self.0
-            .query_dictionary("swap_tokens_for_exact_tokens", _keys_to_str(&amount_out, &amount_in_max, &path, &_to))
-            .unwrap_or_default()
+    pub fn swap_tokens_for_exact_tokens(&self, sender:Sender, amount_out: U256, amount_in_max: U256, path: Vec<Key>, to: Key, deadline: U256) {
+        self.0.call_contract(
+            sender,
+            "swap_tokens_for_exact_tokens", 
+            runtime_args! {
+                "amount_out" => amount_out,
+                "amount_in_max" => amount_in_max,
+                "path" => path,
+                "to" => to,
+                "deadline" => deadline
+            }
+        ); 
     }
 
-    pub fn swap_exact_cspr_for_tokens<T: Into<Key>>(&self, amount_out_min: U256, amount_in: U256, path: Vec<ContractHash>, to: T) -> Vec<U256>  {
-        let _to:Key = to.into();
-        self.0
-            .query_dictionary("swap_exact_cspr_for_tokens", _keys_to_str(&amount_out_min, &amount_in, &path, &_to))
-            .unwrap_or_default()
+    pub fn swap_exact_cspr_for_tokens(&self, sender:Sender, amount_out_min: U256, amount_in: U256, path: Vec<Key>, to: Key, deadline: U256) {
+        self.0.call_contract(
+            sender,
+            "swap_exact_cspr_for_tokens", 
+            runtime_args! {
+                "amount_out_min" => amount_out_min,
+                "amount_in" => amount_in,
+                "path" => path,
+                "to" => to,
+                "deadline" => deadline
+            }
+        );
     }
 
-    pub fn swap_tokens_for_exact_cspr<T: Into<Key>>(&self, amount_out: U256, amount_in_max: U256, path: Vec<ContractHash>, to: T) -> Vec<U256> {
-        let _to:Key = to.into();
-        self.0
-            .query_dictionary("swap_tokens_for_exact_cspr", _keys_to_str(&amount_out, &amount_in_max, &path, &_to))
-            .unwrap_or_default()
+    pub fn swap_tokens_for_exact_cspr(&self, sender:Sender, amount_out: U256, amount_in_max: U256, path: Vec<Key>, to: Key, deadline: U256) {
+        self.0.call_contract(
+            sender,
+            "swap_tokens_for_exact_cspr", 
+            runtime_args! {
+                "amount_out" => amount_out,
+                "amount_in_max" => amount_in_max,
+                "path" => path,
+                "to" => to,
+                "deadline" => deadline
+            }
+        );
     }
 
-    pub fn swap_exact_tokens_for_cspr<T: Into<Key>>(&self, amount_in: U256, amount_out_min: U256, path: Vec<ContractHash>, to: T) -> Vec<U256> {
-        let _to:Key = to.into();
-        self.0
-            .query_dictionary("swap_exact_tokens_for_cspr", _keys_to_str(&amount_in, &amount_out_min, &path, &_to))
-            .unwrap_or_default()
+    pub fn swap_exact_tokens_for_cspr(&self, sender:Sender, amount_in: U256, amount_out_min: U256, path: Vec<Key>, to: Key, deadline: U256) {
+        self.0.call_contract(
+            sender,
+            "swap_exact_tokens_for_cspr", 
+            runtime_args! {
+                "amount_in" => amount_in,
+                "amount_out_min" => amount_out_min,
+                "path" => path,
+                "to" => to,
+                "deadline" => deadline
+            }
+        );
     }
 
-    pub fn swap_cspr_for_exact_tokens<T: Into<Key>>(&self, amount_out: U256, amount_in_max: U256, path: Vec<ContractHash>, to: T) -> Vec<U256>  {
-        let _to:Key = to.into();
-        self.0
-            .query_dictionary("swap_cspr_for_exact_tokens", _keys_to_str(&amount_out, &amount_in_max, &path, &_to))
-            .unwrap_or_default()
+    pub fn swap_cspr_for_exact_tokens(&self, sender:Sender, amount_out: U256, amount_in_max: U256, path: Vec<Key>, to: Key, deadline: U256) {
+        self.0.call_contract(
+            sender,
+            "swap_cspr_for_exact_tokens", 
+            runtime_args! {
+                "amount_out" => amount_out,
+                "amount_in_max" => amount_in_max,
+                "path" => path,
+                "to" => to,
+                "deadline" => deadline
+            }
+        );
     }
-
+    
     pub fn approve(&self, token: &TestContract, sender: Sender, spender: Key, amount: U256) {
         token.call_contract(
             sender,
