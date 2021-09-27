@@ -121,6 +121,7 @@ fn get_amounts_in(){
     let amount_out: U256 = runtime::get_named_arg("amount_out");
     let _path: Vec<Key> = runtime::get_named_arg("path");
 
+    let factory:ContractHash = _factory.into_hash().unwrap_or_default().into();
     let mut path:Vec<ContractHash> = Vec::new();
     for value in _path{
         path.push(value.into_hash().unwrap_or_default().into());
