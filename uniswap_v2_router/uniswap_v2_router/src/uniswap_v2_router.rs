@@ -360,7 +360,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
 
         // Get pair
         let args: RuntimeArgs = runtime_args!{
-            "factory" => factory,
+            "factory" => Key::from(factory),
             "token_a" => path[0],
             "token_b" => path[1],
         };
