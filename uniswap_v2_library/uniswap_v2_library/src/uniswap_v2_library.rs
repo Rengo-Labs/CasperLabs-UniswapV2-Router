@@ -24,7 +24,7 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
     fn sort_tokens(&mut self, token_a:ContractHash, token_b:ContractHash) -> (ContractHash, ContractHash) {
         
         if token_a == token_b {
-            runtime::revert(ApiError::from(ErrorCode::IdenticalAddresses));
+            runtime::revert(ApiError::User(ErrorCode::IdenticalAddresses as u16));
         }
         let (token_0, token_1):(ContractHash, ContractHash); 
         if token_a < token_b {
@@ -36,7 +36,7 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
             token_1 = token_a;
         }
         if token_0.to_formatted_string() == "contract-hash-0000000000000000000000000000000000000000000000000000000000000000" {
-            runtime::revert(ApiError::from(ErrorCode::ZeroAddress));
+            runtime::revert(ApiError::User(ErrorCode::ZeroAddress as u16));
         }
         (token_0, token_1)
     }
@@ -56,19 +56,10 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
                 
         let (token_0, _):(ContractHash, ContractHash) = self.sort_tokens(token_a, token_b);
 
-        // call pair_for to get pair
-        // call remove_liquidity_cspr
-        let args: RuntimeArgs = runtime_args!{
-            "factory" => Key::from(factory),
-            "token_a" => Key::from(token_a),
-            "token_b" => Key::from(token_b)
-        };
-        
-        let package_hash: ContractPackageHash = data::package_hash();
-        let pair:Key = runtime::call_versioned_contract(package_hash, None, "pair_for", args);
+        let pair:Key = self.pair_for(Key::from(factory), Key::from(token_a), Key::from(token_b));
         let pair:ContractHash = ContractHash::from(pair.into_hash().unwrap_or_default());
 
-        let (reserve_0, reserve_1, _):(U128, U128, u64) = runtime::call_contract(pair, "get_reserves", runtime_args! {});
+        let (reserve_0, reserve_1, _):(U128, U128, u64) = runtime::call_contract(pair, "get_reserves", runtime_args! {});       
         let (reserve_a, reserve_b):(U128, U128);
         if token_a == token_0 {
             reserve_a = reserve_0;
@@ -85,10 +76,10 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
     fn quote(&mut self, amount_a:U256, reserve_a:U128, reserve_b:U128) -> U256 {
         
         if amount_a <= 0.into() {
-            runtime::revert(ApiError::from(ErrorCode::InsufficientAmount));        
+            runtime::revert(ApiError::User(ErrorCode::InsufficientAmount as u16));        
         }
         if reserve_a <= 0.into() || reserve_b <= 0.into() {
-            runtime::revert(ApiError::from(ErrorCode::InsufficientLiquidity));
+            runtime::revert(ApiError::User(ErrorCode::InsufficientLiquidity as u16));
         }
         let amount_b: U256 = (amount_a * U256::from(reserve_b.as_u128())) / U256::from(reserve_a.as_u128());
         amount_b
@@ -98,15 +89,16 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
     fn get_amount_out(&mut self, amount_in:U256, reserve_in:U256, reserve_out:U256) -> U256 {
         
         if amount_in <= 0.into() {
-            runtime::revert(ApiError::from(ErrorCode::InsufficientInputAmount)); 
+            runtime::revert(ApiError::User(ErrorCode::InsufficientInputAmount as u16)); 
         }
         if reserve_in <= 0.into() || reserve_out <= 0.into() {
-            runtime::revert(ApiError::from(ErrorCode::InsufficientLiquidity));
+            runtime::revert(ApiError::User(ErrorCode::InsufficientLiquidity as u16));
         }
         let amount_in_with_fee: U256 = amount_in * 997;
         let numerator:U256 = amount_in_with_fee * reserve_out;
         let denominator:U256 = (reserve_in * 1000) + amount_in_with_fee;
         let amount_out:U256 = numerator / denominator;
+
         amount_out
     }
     
@@ -114,10 +106,10 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
     fn get_amount_in(&mut self, amount_out:U256, reserve_in:U256, reserve_out:U256) -> U256 {
         
         if amount_out <= 0.into() {
-            runtime::revert(ApiError::from(ErrorCode::InsufficientOutputAmount));
+            runtime::revert(ApiError::User(ErrorCode::InsufficientOutputAmount as u16));
         }
         if reserve_in <= 0.into() || reserve_out <= 0.into() {
-            runtime::revert(ApiError::from(ErrorCode::InsufficientLiquidity));
+            runtime::revert(ApiError::User(ErrorCode::InsufficientLiquidity as u16));
         }
         let numerator:U256 = reserve_in * amount_out * 1000;
         let denominator:U256 = (reserve_out - amount_out) * 997;
@@ -129,12 +121,12 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
     fn get_amounts_out(&mut self, factory:ContractHash, amount_in:U256, path: Vec<ContractHash>) -> Vec<U256> {
         
         if path.len() < 2 {
-            runtime::revert(ApiError::from(ErrorCode::InsufficientLiquidity));
+            runtime::revert(ApiError::User(ErrorCode::InsufficientLiquidity as u16));
         }
+        
         let mut amounts:Vec<U256> = vec![0.into(); path.len()];
         amounts[0] = amount_in;
         for i in 0..(path.len()-1) {
-            // need to to call_contract here, and rest of the similar places - example for doing that in get_reserves() method above
             let (reserve_in, reserve_out):(U128, U128) = self.get_reserves(factory, path[i], path[i+1]);
             
             let reserve_in:U256 = U256::from(reserve_in.as_u128());
@@ -149,7 +141,7 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
     fn get_amounts_in(&mut self, factory:ContractHash, amount_out:U256, path: Vec<ContractHash>) -> Vec<U256> {
         
         if path.len() < 2 {
-            runtime::revert(ApiError::from(ErrorCode::InvalidPath));
+            runtime::revert(ApiError::User(ErrorCode::InvalidPath as u16));
         }
         let mut amounts:Vec<U256> = vec![0.into(); path.len()];
         let size = amounts.len();
