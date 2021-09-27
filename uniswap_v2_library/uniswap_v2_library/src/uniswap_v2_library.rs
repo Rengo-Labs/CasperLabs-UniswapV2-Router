@@ -146,7 +146,7 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
     }
     
     // performs chained getAmountIn calculations on any number of pairs
-    fn get_amounts_in(&mut self, amount_out:U256, path: Vec<ContractHash>, pair:ContractHash) -> Vec<U256> {
+    fn get_amounts_in(&mut self, factory:ContractHash, amount_out:U256, path: Vec<ContractHash>) -> Vec<U256> {
         
         if path.len() < 2 {
             runtime::revert(ApiError::from(ErrorCode::InvalidPath));
@@ -155,7 +155,7 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
         let size = amounts.len();
         amounts[size-1] = amount_out;
         for i in  (1..(path.len()-1)).rev() {
-            let (reserve_in, reserve_out):(U128, U128) = self.get_reserves(path[i-1], path[i], pair);
+            let (reserve_in, reserve_out):(U128, U128) = self.get_reserves(factory, path[i-1], path[i]);
 
             let reserve_in:U256 = U256::from(reserve_in.as_u128());
             let reserve_out:U256 = U256::from(reserve_out.as_u128());

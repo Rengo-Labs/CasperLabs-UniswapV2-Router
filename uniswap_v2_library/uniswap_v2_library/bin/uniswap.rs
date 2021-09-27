@@ -117,17 +117,16 @@ fn get_amounts_out(){
 // performs chained getAmountIn calculations on any number of pairs
 fn get_amounts_in(){
 
+    let _factory:Key = runtime::get_named_arg("factory");
     let amount_out: U256 = runtime::get_named_arg("amount_out");
     let _path: Vec<Key> = runtime::get_named_arg("path");
-    let _pair:Key = runtime::get_named_arg("pair");
 
-    let pair:ContractHash = _pair.into_hash().unwrap_or_default().into();
     let mut path:Vec<ContractHash> = Vec::new();
     for value in _path{
         path.push(value.into_hash().unwrap_or_default().into());
     }
 
-    let amounts:Vec<U256> = Uniswap::default().get_amounts_in(amount_out, path, pair);
+    let amounts:Vec<U256> = Uniswap::default().get_amounts_in(factory, amount_out, path);
     runtime::ret(CLValue::from_t(amounts).unwrap_or_revert())
 }
 
@@ -224,9 +223,9 @@ fn get_entry_points() -> EntryPoints {
     entry_points.add_entry_point(EntryPoint::new(
         "get_amounts_in",
         vec![
+            Parameter::new("factory", Key::cl_type()),
             Parameter::new("amount_out", U256::cl_type()),
             Parameter::new("path", CLType::List(Box::new(Key::cl_type()))),
-            Parameter::new("pair", Key::cl_type()),
         ],
         CLType::List(Box::new(U256::cl_type())),
         EntryPointAccess::Public,
