@@ -151,8 +151,8 @@ fn deploy_uniswap_router() -> (
         "amount" => _amount
     };
 
-    factory_contract.call_contract(Sender(owner), "create_pair", args); // call factory's create_pair to set the pair using token1 and token2
-    factory_contract.call_contract(Sender(owner), "create_pair", args0);
+    // factory_contract.call_contract(Sender(owner), "create_pair", args);
+    // factory_contract.call_contract(Sender(owner), "create_pair", args0);
     factory_contract.call_contract(Sender(owner), "create_pair", args1);
     pair_contract.call_contract(Sender(owner), "erc20_mint", args2);
     pair_contract.call_contract(Sender(owner), "erc20_mint", args3);
@@ -444,7 +444,7 @@ fn remove_liquidity_cspr() {
 }
 
 //#[test]
-pub fn remove_liquidity_with_permit() {
+fn remove_liquidity_with_permit() {
     let (env, uniswap, owner, router_package_hash, pair_contract, token1, token2, token3, _) =
         deploy_uniswap_router();
     let mut rng = rand::thread_rng();
@@ -687,6 +687,9 @@ fn swap_tokens_for_exact_cspr() {
         Err(_) => 0,
     };
 
+    // give allowance to input token
+    uniswap.approve(&wcspr, Sender(owner), router_package_hash, amount_in_max);
+
     uniswap.swap_tokens_for_exact_cspr(
         Sender(owner),
         amount_out,
@@ -715,6 +718,9 @@ fn swap_exact_tokens_for_cspr() {
         Err(_) => 0,
     };
 
+    // give allowance to input token
+    uniswap.approve(&wcspr, Sender(owner), router_package_hash, amount_in);
+
     uniswap.swap_exact_tokens_for_cspr(
         Sender(owner),
         amount_in,
@@ -742,6 +748,9 @@ fn swap_cspr_for_exact_tokens() {
         Ok(n) => n.as_millis() + (1000 * (30 * 60)), // current epoch time in milisecond + 30 minutes
         Err(_) => 0,
     };
+
+    // give allowance to input token
+    uniswap.approve(&wcspr, Sender(owner), router_package_hash, amount_in_max);
 
     uniswap.swap_cspr_for_exact_tokens(
         Sender(owner),
