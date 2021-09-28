@@ -1,13 +1,11 @@
 #[repr(u16)]
-pub enum ErrorCodes
-{
+pub enum ErrorCodes {
     Abort = 35,
-    TimedOut
+    TimedOut,
 }
 
-pub mod uniswapv2_contract_methods
-{
-    
+pub mod uniswapv2_contract_methods {
+
     // FACTORY Contract Methods
     pub const FACTORY_GET_PAIR: &str = "get_pair";
     pub const FACTORY_CREATE_PAIR: &str = "create_pair";

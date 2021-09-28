@@ -288,6 +288,10 @@ impl UniswapInstance {
         self.0.query_named_key(String::from("pair_hash"))
     }
 
+    pub fn getter(&self) -> String {
+        self.0.query_named_key(String::from("LIB"))
+    }
+
     pub fn calculate_signature(&self, data: &String) -> (String, String) {
 
         let permit_type: &str = "Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)";
