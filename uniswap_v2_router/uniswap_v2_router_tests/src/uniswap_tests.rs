@@ -83,6 +83,7 @@ fn deploy_uniswap_router() -> (
     TestContract,
     TestContract,
     TestContract,
+    TestContract,
 ) {
     let env = TestEnv::new();
     let owner = env.next_user();
@@ -99,8 +100,21 @@ fn deploy_uniswap_router() -> (
         },
     );
 
+    let decimals: u8 = 18;
+    let init_total_supply: U256 = 5000.into();
     // deploy wcspr contract
-    let wcspr = TestContract::new(&env, "wcspr.wasm", "wcspr", Sender(owner), runtime_args! {});
+    let wcspr = TestContract::new(
+        &env,
+        "wcspr.wasm",
+        "wcspr",
+        Sender(owner),
+        runtime_args! {
+            "initial_supply" => init_total_supply,
+            "name" => "erc20",
+            "symbol" => "ERC",
+            "decimals" => decimals
+        },
+    );
 
     // deploy library contract
     let library_contract = TestContract::new(
@@ -118,6 +132,10 @@ fn deploy_uniswap_router() -> (
         "pair",
         Sender(owner),
         runtime_args! {
+            "initial_supply" => init_total_supply,
+            "name" => "erc20",
+            "symbol" => "ERC",
+            "decimals" => decimals,
             "callee_contract_hash" => Key::from(owner),
             "factory_hash" => Key::Hash(factory_contract.contract_hash()),
         },
@@ -130,32 +148,29 @@ fn deploy_uniswap_router() -> (
         "token_b" => Key::Hash(token2.contract_hash()),
         "pair_hash" => Key::Hash(pair_contract.contract_hash())
     };
-    let args0: RuntimeArgs = runtime_args! {
-        "token_a" => Key::Hash(wcspr.contract_hash()),
-        "token_b" => Key::Hash(token2.contract_hash()),
-        "pair_hash" => Key::Hash(pair_contract.contract_hash())
-    };
-    let args1: RuntimeArgs = runtime_args! {
-        "token_a" => Key::Hash(token1.contract_hash()),
-        "token_b" => Key::Hash(wcspr.contract_hash()),
-        "pair_hash" => Key::Hash(pair_contract.contract_hash())
-    };
 
-    let _amount: U256 = 1000.into();
-    let args2: RuntimeArgs = runtime_args! {
+    let _amount: U256 = 2000.into();
+    let token1_args: RuntimeArgs = runtime_args! {
         "to" => Key::Hash(token1.contract_hash()),
         "amount" => _amount
     };
-    let args3: RuntimeArgs = runtime_args! {
+    let token2_args: RuntimeArgs = runtime_args! {
         "to" => Key::Hash(token2.contract_hash()),
         "amount" => _amount
     };
+    let wcspr_args: RuntimeArgs = runtime_args! {
+        "to" => Key::Hash(wcspr.contract_hash()),
+        "amount" => _amount
+    };
 
-    // factory_contract.call_contract(Sender(owner), "create_pair", args);
-    // factory_contract.call_contract(Sender(owner), "create_pair", args0);
-    factory_contract.call_contract(Sender(owner), "create_pair", args1);
-    pair_contract.call_contract(Sender(owner), "erc20_mint", args2);
-    pair_contract.call_contract(Sender(owner), "erc20_mint", args3);
+    factory_contract.call_contract(Sender(owner), "create_pair", args);
+    pair_contract.call_contract(Sender(owner), "erc20_mint", token1_args.clone());
+    pair_contract.call_contract(Sender(owner), "erc20_mint", token2_args.clone());
+    pair_contract.call_contract(Sender(owner), "erc20_mint", wcspr_args.clone());
+    // pair_contract.call_contract(Sender(owner), "sync", runtime_args! {});
+    // pair_contract.call_contract(Sender(owner), "erc20_mint", token1_args);
+    // pair_contract.call_contract(Sender(owner), "erc20_mint", token2_args);
+    // pair_contract.call_contract(Sender(owner), "erc20_mint", wcspr_args.clone());
 
     // Need to do mint and sync calls on token
     let amount: U256 = 50.into();
@@ -209,6 +224,13 @@ fn deploy_uniswap_router() -> (
         Sender(owner),
     );
 
+    // let _cash: U256 = 500.into();
+    // let _wcspr_args: RuntimeArgs = runtime_args! {
+    //     "to" => Key::Hash(wcspr.contract_hash()),
+    //     "amount" => _cash
+    // };
+    // wcspr.call_contract(Sender(owner), "deposit", _wcspr_args);
+
     (
         env,
         token,
@@ -219,12 +241,29 @@ fn deploy_uniswap_router() -> (
         token2,
         token3,
         wcspr,
+        factory_contract,
     )
+}
+
+fn create_wcspr_pair(
+    owner: AccountHash,
+    token_a: &TestContract,
+    token_b: &TestContract,
+    pair: &TestContract,
+    factory: &TestContract,
+) {
+    let args: RuntimeArgs = runtime_args! {
+        "token_a" => Key::Hash(token_a.contract_hash()),
+        "token_b" => Key::Hash(token_b.contract_hash()),
+        "pair_hash" => Key::Hash(pair.contract_hash())
+    };
+
+    factory.call_contract(Sender(owner), "create_pair", args);
 }
 
 #[test]
 fn test_uniswap_deploy() {
-    let (env, token, owner, _, _, _, _, _, _) = deploy_uniswap_router();
+    let (env, token, owner, _, _, _, _, _, _, _) = deploy_uniswap_router();
     let self_hash: Key = token.uniswap_contract_address();
     let package_hash: Key = token.uniswap_contract_package_hash();
     let uniswap_router_address: Key = token.uniswap_router_address();
@@ -238,10 +277,9 @@ fn test_uniswap_deploy() {
     assert_ne!(uniswap_router_address, zero_addr);
 }
 
-//#[test]
-fn add_liquidity() // Working
-{
-    let (env, uniswap, owner, router_package_hash, _, token1, token2, token3, _) =
+#[test]
+fn add_liquidity() {
+    let (env, uniswap, owner, router_package_hash, _, token1, token2, token3, _, _) =
         deploy_uniswap_router();
 
     let token_a = Key::Hash(token1.contract_hash());
@@ -290,10 +328,9 @@ fn add_liquidity() // Working
     more_asserts::assert_ge!(amount_b, amount_b_min);
 }
 
-//#[test]
-fn add_liquidity_cspr() // Working
-{
-    let (env, uniswap, owner, router_package_hash, _, token1, token2, _, _) =
+#[test]
+fn add_liquidity_cspr() {
+    let (env, uniswap, owner, router_package_hash, _, token1, token2, _, _, _) =
         deploy_uniswap_router();
 
     let to = Key::Hash(token2.contract_hash());
@@ -332,10 +369,9 @@ fn add_liquidity_cspr() // Working
     more_asserts::assert_ge!(amount_cspr, amount_cspr_min);
 }
 
-//#[test]
-fn remove_liquidity() // Working
-{
-    let (env, uniswap, owner, router_package_hash, pair_contract, token1, token2, token3, _) =
+#[test]
+fn remove_liquidity() {
+    let (env, uniswap, owner, router_package_hash, pair_contract, token1, token2, token3, _, _) =
         deploy_uniswap_router();
     let mut rng = rand::thread_rng();
 
@@ -377,9 +413,9 @@ fn remove_liquidity() // Working
     more_asserts::assert_ge!(amount_b, amount_b_min);
 }
 
-//#[test]
+#[test]
 fn remove_liquidity_cspr() {
-    let (env, uniswap, owner, router_package_hash, pair_contract, token1, token2, _, _) =
+    let (env, uniswap, owner, router_package_hash, pair_contract, token1, token2, _, _, _) =
         deploy_uniswap_router();
     let mut rng = rand::thread_rng();
 
@@ -443,9 +479,9 @@ fn remove_liquidity_cspr() {
     more_asserts::assert_ge!(amount_cspr, amount_cspr_min);
 }
 
-//#[test]
+#[test]
 fn remove_liquidity_with_permit() {
-    let (env, uniswap, owner, router_package_hash, pair_contract, token1, token2, token3, _) =
+    let (env, uniswap, owner, router_package_hash, pair_contract, token1, token2, token3, _, _) =
         deploy_uniswap_router();
     let mut rng = rand::thread_rng();
 
@@ -497,9 +533,9 @@ fn remove_liquidity_with_permit() {
     more_asserts::assert_ge!(amount_b, amount_b_min);
 }
 
-//#[test]
+#[test]
 fn remove_liquidity_cspr_with_permit() {
-    let (env, uniswap, owner, router_package_hash, _, token1, token2, _, _) =
+    let (env, uniswap, owner, router_package_hash, _, token1, token2, _, _, _) =
         deploy_uniswap_router();
     let mut rng = rand::thread_rng();
 
@@ -578,7 +614,7 @@ fn remove_liquidity_cspr_with_permit() {
 
 #[test]
 fn swap_exact_tokens_for_tokens() {
-    let (env, uniswap, owner, router_package_hash, _, token1, token2, token3, _) =
+    let (env, uniswap, owner, router_package_hash, _, token1, token2, token3, _, _) =
         deploy_uniswap_router();
 
     let mut rng = rand::thread_rng();
@@ -609,7 +645,7 @@ fn swap_exact_tokens_for_tokens() {
 
 #[test]
 fn swap_tokens_for_exact_tokens() {
-    let (env, uniswap, owner, router_package_hash, _, token1, token2, token3, _) =
+    let (env, uniswap, owner, router_package_hash, _, token1, token2, token3, _, _) =
         deploy_uniswap_router();
 
     let mut rng = rand::thread_rng();
@@ -640,12 +676,15 @@ fn swap_tokens_for_exact_tokens() {
 
 #[test]
 fn swap_exact_cspr_for_tokens() {
-    let (env, uniswap, owner, router_package_hash, _, _, token2, token3, wcspr) =
+    let (env, uniswap, owner, router_package_hash, pair, _, token2, token3, wcspr, factory) =
         deploy_uniswap_router();
+
+    create_wcspr_pair(owner.clone(), &wcspr, &token2, &pair, &factory);
 
     let mut rng = rand::thread_rng();
     let amount_in: U256 = rng.gen_range(300..600).into();
-    let amount_out_min: U256 = rng.gen_range(0..250).into();
+    // let amount_out_min: U256 = rng.gen_range(0..250).into();
+    let amount_out_min: U256 = 10.into();
     let path: Vec<Key> = vec![
         Key::Hash(wcspr.contract_hash()),
         Key::Hash(token2.contract_hash()),
@@ -671,8 +710,10 @@ fn swap_exact_cspr_for_tokens() {
 
 #[test]
 fn swap_tokens_for_exact_cspr() {
-    let (env, uniswap, owner, router_package_hash, _, token1, _, token3, wcspr) =
+    let (env, uniswap, owner, router_package_hash, pair, token1, _, token3, wcspr, factory) =
         deploy_uniswap_router();
+
+    create_wcspr_pair(owner.clone(), &token1, &wcspr, &pair, &factory);
 
     let mut rng = rand::thread_rng();
     let amount_in_max: U256 = rng.gen_range(300..600).into();
@@ -702,8 +743,10 @@ fn swap_tokens_for_exact_cspr() {
 
 #[test]
 fn swap_exact_tokens_for_cspr() {
-    let (env, uniswap, owner, router_package_hash, _, token1, _, token3, wcspr) =
+    let (env, uniswap, owner, router_package_hash, pair, token1, _, token3, wcspr, factory) =
         deploy_uniswap_router();
+
+    create_wcspr_pair(owner.clone(), &token1, &wcspr, &pair, &factory);
 
     let mut rng = rand::thread_rng();
     let amount_in: U256 = rng.gen_range(300..600).into();
@@ -719,7 +762,7 @@ fn swap_exact_tokens_for_cspr() {
     };
 
     // give allowance to input token
-    uniswap.approve(&wcspr, Sender(owner), router_package_hash, amount_in);
+    uniswap.approve(&token1, Sender(owner), router_package_hash, amount_in);
 
     uniswap.swap_exact_tokens_for_cspr(
         Sender(owner),
@@ -733,12 +776,15 @@ fn swap_exact_tokens_for_cspr() {
 
 #[test]
 fn swap_cspr_for_exact_tokens() {
-    let (env, uniswap, owner, router_package_hash, _, _, token2, token3, wcspr) =
+    let (env, uniswap, owner, router_package_hash, pair, _, token2, token3, wcspr, factory) =
         deploy_uniswap_router();
+
+    create_wcspr_pair(owner.clone(), &wcspr, &token2, &pair, &factory);
 
     let mut rng = rand::thread_rng();
     let amount_in_max: U256 = rng.gen_range(300..600).into();
     let amount_out: U256 = rng.gen_range(0..250).into();
+
     let path: Vec<Key> = vec![
         Key::Hash(wcspr.contract_hash()),
         Key::Hash(token2.contract_hash()),
