@@ -151,8 +151,6 @@ fn deploy_uniswap_router() -> (
         "amount" => _amount
     };
 
-    // factory_contract.call_contract(Sender(owner), "create_pair", args);
-    // factory_contract.call_contract(Sender(owner), "create_pair", args0);
     factory_contract.call_contract(Sender(owner), "create_pair", args1);
     pair_contract.call_contract(Sender(owner), "erc20_mint", args2);
     pair_contract.call_contract(Sender(owner), "erc20_mint", args3);
@@ -173,19 +171,6 @@ fn deploy_uniswap_router() -> (
     token2.call_contract(Sender(owner), "transfer", args);
 
     pair_contract.call_contract(Sender(owner), "sync", runtime_args! {});
-
-    /*
-    // mint tokens in pair
-    let args: RuntimeArgs = runtime_args!{
-        "to" => Key::Hash(token1.contract_hash())
-    };
-    pair_contract.call_contract(Sender(owner), "mint", args);
-
-    let args: RuntimeArgs = runtime_args!{
-        "to" => Key::Hash(token2.contract_hash())
-    };
-    pair_contract.call_contract(Sender(owner), "mint", args);
-    */
 
     let router_contract = TestContract::new(
         &env,
@@ -238,8 +223,8 @@ fn test_uniswap_deploy() {
     assert_ne!(uniswap_router_address, zero_addr);
 }
 
-//#[test]
-fn add_liquidity() // Working
+#[test]
+fn add_liquidity()
 {
     let (env, uniswap, owner, router_package_hash, _, token1, token2, token3, _) =
         deploy_uniswap_router();
@@ -290,8 +275,8 @@ fn add_liquidity() // Working
     more_asserts::assert_ge!(amount_b, amount_b_min);
 }
 
-//#[test]
-fn add_liquidity_cspr() // Working
+#[test]
+fn add_liquidity_cspr()
 {
     let (env, uniswap, owner, router_package_hash, _, token1, token2, _, _) =
         deploy_uniswap_router();
@@ -332,8 +317,8 @@ fn add_liquidity_cspr() // Working
     more_asserts::assert_ge!(amount_cspr, amount_cspr_min);
 }
 
-//#[test]
-fn remove_liquidity() // Working
+#[test]
+fn remove_liquidity()
 {
     let (env, uniswap, owner, router_package_hash, pair_contract, token1, token2, token3, _) =
         deploy_uniswap_router();
@@ -377,10 +362,9 @@ fn remove_liquidity() // Working
     more_asserts::assert_ge!(amount_b, amount_b_min);
 }
 
-//#[test]
+#[test]
 fn remove_liquidity_cspr() {
-    let (env, uniswap, owner, router_package_hash, pair_contract, token1, token2, _, _) =
-        deploy_uniswap_router();
+    let (env, uniswap, owner, router_package_hash, pair_contract, token1, token2, _, _) = deploy_uniswap_router();
     let mut rng = rand::thread_rng();
 
     // Here we do need to first create the pair, because pair for token1 and wcspr isn't created anywhere.
@@ -443,7 +427,7 @@ fn remove_liquidity_cspr() {
     more_asserts::assert_ge!(amount_cspr, amount_cspr_min);
 }
 
-//#[test]
+#[test]
 fn remove_liquidity_with_permit() {
     let (env, uniswap, owner, router_package_hash, pair_contract, token1, token2, token3, _) =
         deploy_uniswap_router();
@@ -497,7 +481,7 @@ fn remove_liquidity_with_permit() {
     more_asserts::assert_ge!(amount_b, amount_b_min);
 }
 
-//#[test]
+#[test]
 fn remove_liquidity_cspr_with_permit() {
     let (env, uniswap, owner, router_package_hash, _, token1, token2, _, _) =
         deploy_uniswap_router();

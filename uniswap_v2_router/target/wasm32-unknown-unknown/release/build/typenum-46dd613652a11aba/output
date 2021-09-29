@@ -1,2 +1,2 @@
-cargo:rustc-env=TYPENUM_BUILD_CONSTS=/home/bassam/SCY/New/Casperlabs-UniswapRouter/uniswap_v2_router/target/wasm32-unknown-unknown/release/build/typenum-46dd613652a11aba/out/consts.rs
-cargo:rustc-env=TYPENUM_BUILD_OP=/home/bassam/SCY/New/Casperlabs-UniswapRouter/uniswap_v2_router/target/wasm32-unknown-unknown/release/build/typenum-46dd613652a11aba/out/op.rs
+cargo:rustc-env=TYPENUM_BUILD_CONSTS=/home/hussain/Desktop/Scytalelabs/Tasks/UniswapV2Router01_1.3_Update/uniswap_v2_router/target/wasm32-unknown-unknown/release/build/typenum-46dd613652a11aba/out/consts.rs
+cargo:rustc-env=TYPENUM_BUILD_OP=/home/hussain/Desktop/Scytalelabs/Tasks/UniswapV2Router01_1.3_Update/uniswap_v2_router/target/wasm32-unknown-unknown/release/build/typenum-46dd613652a11aba/out/op.rs

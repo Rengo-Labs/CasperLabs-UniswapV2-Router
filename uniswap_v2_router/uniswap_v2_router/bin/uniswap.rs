@@ -55,7 +55,6 @@ impl Uniswap {
 }
 
 /// Constructor to initialize required key pairs
-
 #[no_mangle]
 fn constructor() {
     let factory: Key = runtime::get_named_arg("factory");
@@ -211,12 +210,6 @@ fn remove_liquidity_with_permit() {
     let approve_max: bool = runtime::get_named_arg("approve_max");
     let public_key: String = runtime::get_named_arg("public_key");
     let signature: String = runtime::get_named_arg("signature");
-
-    /*
-    let v: u8 = runtime::get_named_arg("v");
-    let r: u32 = runtime::get_named_arg("r");
-    let s: u32 = runtime::get_named_arg("s");
-    */
     let deadline: U256 = runtime::get_named_arg("deadline");
 
     let _token_a = ContractHash::from(token_a.into_hash().unwrap_or_default());
@@ -234,7 +227,6 @@ fn remove_liquidity_with_permit() {
         signature,
         deadline,
     );
-
     runtime::ret(CLValue::from_t((amount_a, amount_b)).unwrap_or_revert());
 }
 
@@ -253,11 +245,6 @@ fn remove_liquidity_cspr_with_permit() {
     let approve_max: bool = runtime::get_named_arg("approve_max");
     let public_key: String = runtime::get_named_arg("public_key");
     let signature: String = runtime::get_named_arg("signature");
-    /*
-    let v: u8 = runtime::get_named_arg("v");
-    let r: u32 = runtime::get_named_arg("r");
-    let s: u32 = runtime::get_named_arg("s");
-    */
     let deadline: U256 = runtime::get_named_arg("deadline");
 
     let _token = ContractHash::from(token.into_hash().unwrap_or_default());
@@ -273,7 +260,6 @@ fn remove_liquidity_cspr_with_permit() {
             signature,
             deadline,
         );
-
     runtime::ret(CLValue::from_t((amount_token, amount_cspr)).unwrap_or_revert());
 }
 
@@ -442,7 +428,7 @@ fn get_entry_points() -> EntryPoints {
         vec![
             Parameter::new("token", Key::cl_type()),
             Parameter::new("amount_token_desired", CLType::U256),
-            Parameter::new("amount_cspr_desired", CLType::U256), // we don't have msg.value in casperlabs, therefore get amount_cspr_desired from parameter
+            Parameter::new("amount_cspr_desired", CLType::U256),
             Parameter::new("amount_token_min", CLType::U256),
             Parameter::new("amount_cspr_min", CLType::U256),
             Parameter::new("to", Key::cl_type()),
@@ -500,9 +486,7 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("deadline", CLType::U256),
             Parameter::new("approve_max", CLType::Bool),
             Parameter::new("public_key", CLType::String),
-            Parameter::new("signature", CLType::String), //Parameter::new("v", CLType::U8),
-                                                         //Parameter::new("r", CLType::U32),                          // bytes32
-                                                         //Parameter::new("s", CLType::U32)                           // bytes32
+            Parameter::new("signature", CLType::String)
         ],
         CLType::Tuple2([Box::new(CLType::U256), Box::new(CLType::U256)]),
         EntryPointAccess::Public,
@@ -520,9 +504,7 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("deadline", CLType::U256),
             Parameter::new("approve_max", CLType::Bool),
             Parameter::new("public_key", CLType::String),
-            Parameter::new("signature", CLType::String), //Parameter::new("v", CLType::U8),
-                                                         //Parameter::new("r", CLType::U32),                                 // bytes32
-                                                         //Parameter::new("s", CLType::U32)                                  // bytes32
+            Parameter::new("signature", CLType::String)
         ],
         CLType::Tuple2([Box::new(CLType::U256), Box::new(CLType::U256)]),
         EntryPointAccess::Public,

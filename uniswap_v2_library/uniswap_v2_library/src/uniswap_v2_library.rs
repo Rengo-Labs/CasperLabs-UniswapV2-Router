@@ -142,10 +142,10 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
             let (reserve_in, reserve_out): (U128, U128) =
                 self.get_reserves(factory, path[i], path[i + 1]);
 
-            //     let reserve_in: U256 = U256::from(reserve_in.as_u128());
-            //     let reserve_out: U256 = U256::from(reserve_out.as_u128());
+                let reserve_in: U256 = U256::from(reserve_in.as_u128());
+                let reserve_out: U256 = U256::from(reserve_out.as_u128());
 
-            //     amounts[i + 1] = self.get_amount_out(amounts[i], reserve_in, reserve_out);
+                amounts[i + 1] = self.get_amount_out(amounts[i], reserve_in, reserve_out);
         }
         amounts
     }
@@ -163,7 +163,7 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
         let mut amounts: Vec<U256> = vec![0.into(); path.len()];
         let size = amounts.len();
         amounts[size - 1] = amount_out;
-        for i in (1..(path.len() - 1)).rev() {
+        for i in (1..path.len()).rev() {
             let (reserve_in, reserve_out): (U128, U128) =
                 self.get_reserves(factory, path[i - 1], path[i]);
 
