@@ -936,7 +936,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
                 "token_b" => Key::from(token_b),
                 "pair_hash" => Key::from(data::pair_hash())
             };
-            let _: Key = Self::call_contract(
+            let _: () = Self::call_contract(
                 &factory.to_formatted_string(),
                 uniswapv2_contract_methods::FACTORY_CREATE_PAIR,
                 args,
