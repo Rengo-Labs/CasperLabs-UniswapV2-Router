@@ -2,7 +2,7 @@
 
 use casper_contract::unwrap_or_revert::UnwrapOrRevert;
 use casper_types::{contracts::{ContractHash, ContractPackageHash}, Key};
-use contract_utils::{get_key, set_key, Dict};
+use contract_utils::{get_key, set_key};
 
 pub const WCSPR: &str = "wcspr";
 pub const FACTORY: &str = "factory";

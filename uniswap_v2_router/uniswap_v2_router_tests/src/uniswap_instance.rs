@@ -9,7 +9,6 @@ use casper_types::{
 use test_env::{Sender, TestContract, TestEnv};
 
 use cryptoxide::ed25519;
-use hex::encode;
 use renvm_sig::hash_message;
 use renvm_sig::keccak256;
 
@@ -394,16 +393,16 @@ impl UniswapInstance {
     //     self.0.query_named_key(String::from("val"))
     // }
 
-    pub fn calculate_signature(&self, data: &String) -> (String, String) {
-        let permit_type: &str =
-            "Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)";
-        let domainseparator = "e3699417b742311a6708baed3e1979141e28823ba6ea47e1342a84dd038585a1";
+    pub fn calculate_signature(&self, data: &String, domainseparator: &String) -> (String, String) {
+       // let permit_type: &str =
+       //     "Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)";
+        //let domainseparator = "e3699417b742311a6708baed3e1979141e28823ba6ea47e1342a84dd038585a1";
 
-        let permit_type_hash = encode(keccak256(permit_type.as_bytes())); // to take a byte hash of Permit Type
+        //let permit_type_hash = encode(keccak256(permit_type.as_bytes())); // to take a byte hash of Permit Type
         let hash = keccak256(data.as_bytes());
         let hashstring = hex::encode(hash);
-        //let data2:String = format!("{}{}",domainseparator,hashstring);
-        let data2: String = format!("{}", hashstring);
+        let data2:String = format!("{}{}",domainseparator,hashstring);
+        //let data2: String = format!("{}", hashstring);
         let geteip191standard_hash = hash_message(data2);
 
         let secret = "MC4CAQAwBQYDK2VwBCIEIPPGVic1+UO0UJJJRTHaBkpH/05oaDQacEinXQnKoaIu".as_bytes();
