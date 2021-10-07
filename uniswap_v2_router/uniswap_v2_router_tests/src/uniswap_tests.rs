@@ -176,10 +176,8 @@ fn deploy_uniswap_router() -> (
         "pair_hash" => Key::Hash(pair_contract.contract_hash())
     };
 
-
     // call create_pair on factory
     factory_contract.call_contract(Sender(owner), "create_pair", args);
-
 
     // mint tokens
     let amount: U256 = 2000.into();
@@ -192,9 +190,9 @@ fn deploy_uniswap_router() -> (
     let token_args: RuntimeArgs = runtime_args! {
         "to" => Key::Hash(token2.contract_hash()),
         "amount" => amount
-    };    
+    };
     pair_contract.call_contract(Sender(owner), "erc20_mint", token_args);
-    
+
     let wcspr_args: RuntimeArgs = runtime_args! {
         "to" => Key::Hash(wcspr.contract_hash()),
         "amount" => amount
@@ -212,7 +210,6 @@ fn deploy_uniswap_router() -> (
 
     pair_contract.call_contract(Sender(owner), "sync", runtime_args! {});
 
-
     // mint tokens to self
     let token_args: RuntimeArgs = runtime_args! {
         "to" => Key::Hash(token1.contract_hash()),
@@ -225,6 +222,12 @@ fn deploy_uniswap_router() -> (
         "amount" => amount
     };
     token2.call_contract(Sender(owner), "mint", token_args.clone());
+
+    let token_args: RuntimeArgs = runtime_args! {
+        "to" => Key::Hash(wcspr.contract_hash()),
+        "amount" => amount
+    };
+    wcspr.call_contract(Sender(owner), "deposit", token_args.clone());
 
     // Deploy Router Contract
     let router_contract = TestContract::new(
@@ -251,7 +254,7 @@ fn deploy_uniswap_router() -> (
     token1.call_contract(Sender(owner), "mint", token_args.clone());
     token2.call_contract(Sender(owner), "mint", token_args.clone());
     wcspr.call_contract(Sender(owner), "deposit", token_args.clone());
-    
+
     // deploy Test contract
     let token = UniswapInstance::new(
         &env,
@@ -481,13 +484,13 @@ fn remove_liquidity_cspr() {
 
     // Remove liquidity
     let token: Key = Key::Hash(token1.contract_hash());
-    
+
     let liquidity: U256 = rng.gen_range(0..250).into();
     let amount_token_min: U256 = rng.gen_range(0..10).into();
     let amount_cspr_min: U256 = rng.gen_range(0..10).into();
 
     let to = Key::Hash(token2.contract_hash());
-    
+
     // approve router on pair
     let args: RuntimeArgs = runtime_args! {
         "spender" => router_package_hash,
@@ -535,7 +538,9 @@ fn remove_liquidity_with_permit() {
     let blocktime: U256 = deadline.into();
     let permit_type_hash: String = pair_contract.query_named_key("permit_type_hash".to_string());
     let domain_separator: String = pair_contract.query_named_key("domain_separator".to_string());
-    let nonces: U256 = pair_contract.query_dictionary("nonces", router_package_hash.to_formatted_string()).unwrap_or_default();
+    let nonces: U256 = pair_contract
+        .query_dictionary("nonces", router_package_hash.to_formatted_string())
+        .unwrap_or_default();
 
     let data: String = format!(
         "{}{}{}{}{}{}",
@@ -546,7 +551,8 @@ fn remove_liquidity_with_permit() {
         nonces,
         blocktime
     );
-    let (signature, public_key): (String, String) = uniswap.calculate_signature(&data, &domain_separator);
+    let (signature, public_key): (String, String) =
+        uniswap.calculate_signature(&data, &domain_separator);
 
     uniswap.remove_liquidity_with_permit(
         Sender(owner),
@@ -621,7 +627,9 @@ fn remove_liquidity_cspr_with_permit() {
     let blocktime: U256 = deadline.into();
     let permit_type_hash: String = pair_contract.query_named_key("permit_type_hash".to_string());
     let domain_separator: String = pair_contract.query_named_key("domain_separator".to_string());
-    let nonces: U256 = pair_contract.query_dictionary("nonces", router_package_hash.to_formatted_string()).unwrap_or_default();
+    let nonces: U256 = pair_contract
+        .query_dictionary("nonces", router_package_hash.to_formatted_string())
+        .unwrap_or_default();
 
     let data: String = format!(
         "{}{}{}{}{}{}",
@@ -632,7 +640,8 @@ fn remove_liquidity_cspr_with_permit() {
         nonces,
         blocktime
     );
-    let (signature, public_key): (String, String) = uniswap.calculate_signature(&data, &domain_separator);
+    let (signature, public_key): (String, String) =
+        uniswap.calculate_signature(&data, &domain_separator);
 
     uniswap.remove_liquidity_cspr_with_permit(
         Sender(owner),
@@ -653,9 +662,9 @@ fn remove_liquidity_cspr_with_permit() {
     more_asserts::assert_ge!(amount_cspr, amount_cspr_min);
 }
 
-//#[test]
+#[test]
 fn swap_exact_tokens_for_tokens() {
-    let (env, uniswap, owner, router_package_hash, _, token1, token2, token3, _, _) =
+    let (_, uniswap, owner, router_package_hash, _, token1, token2, token3, _, _) =
         deploy_uniswap_router();
 
     let mut rng = rand::thread_rng();
@@ -671,7 +680,7 @@ fn swap_exact_tokens_for_tokens() {
         Err(_) => 0,
     };
 
-    // give allowance to input token
+    // give approval to input token
     uniswap.approve(&token1, Sender(owner), router_package_hash, amount_in);
 
     uniswap.swap_exact_tokens_for_tokens(
@@ -684,9 +693,9 @@ fn swap_exact_tokens_for_tokens() {
     );
 }
 
-//#[test]
+#[test]
 fn swap_tokens_for_exact_tokens() {
-    let (env, uniswap, owner, router_package_hash, _, token1, token2, token3, _, _) =
+    let (_, uniswap, owner, router_package_hash, _, token1, token2, token3, _, _) =
         deploy_uniswap_router();
 
     let mut rng = rand::thread_rng();
@@ -702,7 +711,7 @@ fn swap_tokens_for_exact_tokens() {
         Err(_) => 0,
     };
 
-    // give allowance to input token
+    // give approval to input token
     uniswap.approve(&token1, Sender(owner), router_package_hash, amount_in_max);
 
     uniswap.swap_tokens_for_exact_tokens(
@@ -715,10 +724,9 @@ fn swap_tokens_for_exact_tokens() {
     );
 }
 
-//#[test]
+#[test]
 fn swap_exact_cspr_for_tokens() {
-    let (env, uniswap, owner, router_package_hash, pair, _, token2, token3, wcspr, factory) =
-        deploy_uniswap_router();
+    let (_, uniswap, owner, _, pair, _, token2, token3, wcspr, factory) = deploy_uniswap_router();
 
     create_wcspr_pair(owner.clone(), &wcspr, &token2, &pair, &factory);
 
@@ -736,9 +744,6 @@ fn swap_exact_cspr_for_tokens() {
         Err(_) => 0,
     };
 
-    // give allowance to input token
-    uniswap.approve(&wcspr, Sender(owner), router_package_hash, amount_in);
-
     uniswap.swap_exact_cspr_for_tokens(
         Sender(owner),
         amount_out_min,
@@ -749,9 +754,9 @@ fn swap_exact_cspr_for_tokens() {
     );
 }
 
-//#[test]
+#[test]
 fn swap_tokens_for_exact_cspr() {
-    let (env, uniswap, owner, router_package_hash, pair, token1, _, token3, wcspr, factory) =
+    let (_, uniswap, owner, router_package_hash, pair, token1, _, token3, wcspr, factory) =
         deploy_uniswap_router();
 
     create_wcspr_pair(owner.clone(), &token1, &wcspr, &pair, &factory);
@@ -769,8 +774,10 @@ fn swap_tokens_for_exact_cspr() {
         Err(_) => 0,
     };
 
-    // give allowance to input token
-    uniswap.approve(&wcspr, Sender(owner), router_package_hash, amount_in_max);
+    // give approval to input token
+    let _am: U256 = 10000.into();
+    uniswap.approve(&wcspr, Sender(owner), router_package_hash, _am);
+    uniswap.approve(&token1, Sender(owner), router_package_hash, _am);
 
     uniswap.swap_tokens_for_exact_cspr(
         Sender(owner),
@@ -782,9 +789,9 @@ fn swap_tokens_for_exact_cspr() {
     );
 }
 
-//#[test]
+#[test]
 fn swap_exact_tokens_for_cspr() {
-    let (env, uniswap, owner, router_package_hash, pair, token1, _, token3, wcspr, factory) =
+    let (_, uniswap, owner, router_package_hash, pair, token1, _, token3, wcspr, factory) =
         deploy_uniswap_router();
 
     create_wcspr_pair(owner.clone(), &token1, &wcspr, &pair, &factory);
@@ -802,7 +809,7 @@ fn swap_exact_tokens_for_cspr() {
         Err(_) => 0,
     };
 
-    // give allowance to input token
+    // give approval to input token
     uniswap.approve(&token1, Sender(owner), router_package_hash, amount_in);
 
     uniswap.swap_exact_tokens_for_cspr(
@@ -815,9 +822,9 @@ fn swap_exact_tokens_for_cspr() {
     );
 }
 
-//#[test]
+#[test]
 fn swap_cspr_for_exact_tokens() {
-    let (env, uniswap, owner, router_package_hash, pair, _, token2, token3, wcspr, factory) =
+    let (_, uniswap, owner, router_package_hash, pair, _, token2, token3, wcspr, factory) =
         deploy_uniswap_router();
 
     create_wcspr_pair(owner.clone(), &wcspr, &token2, &pair, &factory);
@@ -836,7 +843,7 @@ fn swap_cspr_for_exact_tokens() {
         Err(_) => 0,
     };
 
-    // give allowance to input token
+    // give approval to input token
     uniswap.approve(&wcspr, Sender(owner), router_package_hash, amount_in_max);
 
     uniswap.swap_cspr_for_exact_tokens(

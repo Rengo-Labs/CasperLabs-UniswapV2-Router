@@ -486,7 +486,7 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("deadline", CLType::U256),
             Parameter::new("approve_max", CLType::Bool),
             Parameter::new("public_key", CLType::String),
-            Parameter::new("signature", CLType::String)
+            Parameter::new("signature", CLType::String),
         ],
         CLType::Tuple2([Box::new(CLType::U256), Box::new(CLType::U256)]),
         EntryPointAccess::Public,
@@ -504,7 +504,7 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("deadline", CLType::U256),
             Parameter::new("approve_max", CLType::Bool),
             Parameter::new("public_key", CLType::String),
-            Parameter::new("signature", CLType::String)
+            Parameter::new("signature", CLType::String),
         ],
         CLType::Tuple2([Box::new(CLType::U256), Box::new(CLType::U256)]),
         EntryPointAccess::Public,

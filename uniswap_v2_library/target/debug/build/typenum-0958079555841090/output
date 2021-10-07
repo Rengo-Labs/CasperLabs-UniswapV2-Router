@@ -1,2 +1,2 @@
-cargo:rustc-env=TYPENUM_BUILD_CONSTS=/home/bassam/SCY/New/Casperlabs-UniswapRouter/uniswap_v2_library/target/debug/build/typenum-0958079555841090/out/consts.rs
-cargo:rustc-env=TYPENUM_BUILD_OP=/home/bassam/SCY/New/Casperlabs-UniswapRouter/uniswap_v2_library/target/debug/build/typenum-0958079555841090/out/op.rs
+cargo:rustc-env=TYPENUM_BUILD_CONSTS=/home/bassam/SCY/Casperlabs-UniswapRouter/uniswap_v2_library/target/debug/build/typenum-0958079555841090/out/consts.rs
+cargo:rustc-env=TYPENUM_BUILD_OP=/home/bassam/SCY/Casperlabs-UniswapRouter/uniswap_v2_library/target/debug/build/typenum-0958079555841090/out/op.rs

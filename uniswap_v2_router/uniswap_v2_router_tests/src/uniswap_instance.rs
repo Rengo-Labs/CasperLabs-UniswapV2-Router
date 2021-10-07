@@ -1,11 +1,4 @@
-use blake2::{
-    digest::{Update, VariableOutput},
-    VarBlake2b,
-};
-use casper_engine_test_support::AccountHash;
-use casper_types::{
-    bytesrepr::ToBytes, runtime_args, ContractHash, ContractPackageHash, Key, RuntimeArgs, U256,
-};
+use casper_types::{runtime_args, ContractHash, ContractPackageHash, Key, RuntimeArgs, U256};
 use test_env::{Sender, TestContract, TestEnv};
 
 use cryptoxide::ed25519;
@@ -337,8 +330,8 @@ impl UniswapInstance {
             sender,
             "swap_cspr_for_exact_tokens",
             runtime_args! {
-                "amount_out" => amount_out,
                 "amount_in_max" => amount_in_max,
+                "amount_out" => amount_out,
                 "path" => path,
                 "to" => to,
                 "deadline" => deadline
@@ -355,13 +348,6 @@ impl UniswapInstance {
                 "amount" => amount
             },
         );
-    }
-
-    pub fn allowance(&self, token: &TestContract, owner: AccountHash, spender: Key) -> U256 {
-        let owner: Key = owner.into();
-        token
-            .query_dictionary("allowances", keys_to_str(&owner, &spender))
-            .unwrap_or_default()
     }
 
     pub fn balance_of<T: Into<Key>>(&self, token: &TestContract, account: T) -> U256 {
@@ -389,20 +375,10 @@ impl UniswapInstance {
         self.0.query_named_key(String::from("pair_hash"))
     }
 
-    // pub fn getter(&self) -> U256 {
-    //     self.0.query_named_key(String::from("val"))
-    // }
-
     pub fn calculate_signature(&self, data: &String, domainseparator: &String) -> (String, String) {
-       // let permit_type: &str =
-       //     "Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)";
-        //let domainseparator = "e3699417b742311a6708baed3e1979141e28823ba6ea47e1342a84dd038585a1";
-
-        //let permit_type_hash = encode(keccak256(permit_type.as_bytes())); // to take a byte hash of Permit Type
         let hash = keccak256(data.as_bytes());
         let hashstring = hex::encode(hash);
-        let data2:String = format!("{}{}",domainseparator,hashstring);
-        //let data2: String = format!("{}", hashstring);
+        let data2: String = format!("{}{}", domainseparator, hashstring);
         let geteip191standard_hash = hash_message(data2);
 
         let secret = "MC4CAQAwBQYDK2VwBCIEIPPGVic1+UO0UJJJRTHaBkpH/05oaDQacEinXQnKoaIu".as_bytes();
@@ -473,35 +449,4 @@ pub fn key_to_str(key: &Key) -> String {
         Key::Hash(package) => hex::encode(package),
         _ => panic!("Unexpected key type"),
     }
-}
-
-pub fn keys_to_str(key_a: &Key, key_b: &Key) -> String {
-    let mut hasher = VarBlake2b::new(32).unwrap();
-    hasher.update(key_a.to_bytes().unwrap());
-    hasher.update(key_b.to_bytes().unwrap());
-    let mut ret = [0u8; 32];
-    hasher.finalize_variable(|hash| ret.clone_from_slice(hash));
-    hex::encode(ret)
-}
-
-/*
-pub fn keys_to_str(key_a: &U256, key_b: &Key) -> String {
-    let mut hasher = VarBlake2b::new(32).unwrap();
-    hasher.update(key_a.to_bytes().unwrap());
-    hasher.update(key_b.to_bytes().unwrap());
-    let mut ret = [0u8; 32];
-    hasher.finalize_variable(|hash| ret.clone_from_slice(hash));
-    hex::encode(ret)
-}
-*/
-
-pub fn _keys_to_str(key_a: &U256, key_b: &U256, key_c: &Vec<ContractHash>, key_d: &Key) -> String {
-    let mut hasher = VarBlake2b::new(32).unwrap();
-    hasher.update(key_a.to_bytes().unwrap());
-    hasher.update(key_b.to_bytes().unwrap());
-    hasher.update(key_c.to_bytes().unwrap());
-    hasher.update(key_d.to_bytes().unwrap());
-    let mut ret = [0u8; 32];
-    hasher.finalize_variable(|hash| ret.clone_from_slice(hash));
-    hex::encode(ret)
 }
