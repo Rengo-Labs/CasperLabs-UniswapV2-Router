@@ -122,6 +122,7 @@ fn add_liquidity_cspr() {
     let amount_token_min: U256 = runtime::get_named_arg("amount_token_min");
     let amount_cspr_min: U256 = runtime::get_named_arg("amount_cspr_min");
     let to: Key = runtime::get_named_arg("to");
+    let purse: Option<URef> = runtime::get_named_arg("purse");
 
     let _token = ContractHash::from(token.into_hash().unwrap_or_default());
     let (amount_token, amount_cspr, liquidity): (U256, U256, U256) = Uniswap::default()
@@ -132,6 +133,7 @@ fn add_liquidity_cspr() {
             amount_token_min,
             amount_cspr_min,
             to,
+            purse,
         );
     runtime::ret(CLValue::from_t((amount_token, amount_cspr, liquidity)).unwrap_or_revert());
 }
@@ -317,9 +319,10 @@ fn swap_exact_cspr_for_tokens() {
     let amount_in: U256 = runtime::get_named_arg("amount_in");
     let path: Vec<Key> = runtime::get_named_arg("path");
     let to: Key = runtime::get_named_arg("to");
+    let purse: Option<URef> = runtime::get_named_arg("purse");
 
     let amounts: Vec<U256> =
-        Uniswap::default().swap_exact_cspr_for_tokens(amount_out_min, amount_in, path, to);
+        Uniswap::default().swap_exact_cspr_for_tokens(amount_out_min, amount_in, path, to, purse);
     runtime::ret(CLValue::from_t(amounts).unwrap_or_revert());
 }
 
@@ -378,9 +381,10 @@ fn swap_cspr_for_exact_tokens() {
     let amount_in_max: U256 = runtime::get_named_arg("amount_in_max");
     let path: Vec<Key> = runtime::get_named_arg("path");
     let to: Key = runtime::get_named_arg("to");
+    let purse: Option<URef> = runtime::get_named_arg("purse");
 
     let amounts: Vec<U256> =
-        Uniswap::default().swap_cspr_for_exact_tokens(amount_out, amount_in_max, path, to);
+        Uniswap::default().swap_cspr_for_exact_tokens(amount_out, amount_in_max, path, to, purse);
     runtime::ret(CLValue::from_t(amounts).unwrap_or_revert());
 }
 
@@ -433,6 +437,7 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("amount_cspr_min", CLType::U256),
             Parameter::new("to", Key::cl_type()),
             Parameter::new("deadline", CLType::U256),
+            Parameter::new("purse", CLType::Option(Box::new(CLType::URef)))
         ],
         CLType::Tuple3([
             Box::new(CLType::U256),
@@ -547,6 +552,7 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("path", CLType::List(Box::new(CLType::Key))),
             Parameter::new("to", CLType::Key),
             Parameter::new("deadline", CLType::U256),
+            Parameter::new("purse", CLType::Option(Box::new(CLType::URef))),
         ],
         CLType::List(Box::new(CLType::U256)),
         EntryPointAccess::Public,
@@ -589,6 +595,7 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("path", CLType::List(Box::new(CLType::Key))),
             Parameter::new("to", CLType::Key),
             Parameter::new("deadline", CLType::U256),
+            Parameter::new("purse", CLType::Option(Box::new(CLType::URef)))
         ],
         CLType::List(Box::new(CLType::U256)),
         EntryPointAccess::Public,

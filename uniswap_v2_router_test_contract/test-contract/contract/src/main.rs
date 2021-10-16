@@ -9,14 +9,14 @@ extern crate alloc;
 use alloc::{boxed::Box, collections::BTreeSet, format, string::String, vec, vec::Vec};
 
 use casper_contract::{
-    contract_api::{runtime, storage},
+    contract_api::{runtime, storage, system, account},
     unwrap_or_revert::UnwrapOrRevert,
 };
 use casper_types::{
     bytesrepr::Bytes,
     contracts::{ContractHash, ContractPackageHash},
     runtime_args, ApiError, CLType, CLTyped, CLValue, EntryPoint, EntryPointAccess, EntryPointType,
-    EntryPoints, Group, Key, Parameter, RuntimeArgs, URef, U256,
+    EntryPoints, Group, Key, Parameter, RuntimeArgs, URef, U256, U512
 };
 
 pub mod mappings;
@@ -69,6 +69,7 @@ fn add_liquidity() {
 
 #[no_mangle]
 fn add_liquidity_cspr() {
+
     let router_address: ContractHash = mappings::get_key(&mappings::router_key());
 
     let token: Key = runtime::get_named_arg("token");
@@ -79,6 +80,14 @@ fn add_liquidity_cspr() {
     let to: Key = runtime::get_named_arg("to");
     let deadline: U256 = runtime::get_named_arg("deadline");
 
+
+
+    // create purse and send balance in it.
+    let contract_purse: URef = system::create_purse();
+    //let caller_purse: URef = account::get_main_purse();
+    //let _ = system::transfer_from_purse_to_purse(caller_purse, contract_purse, U512::from(amount_cspr_desired.as_u128()), None);
+    let purse: Option<URef> = Some(contract_purse);
+
     let args: RuntimeArgs = runtime_args! {
         "token" => token,
         "amount_token_desired" => amount_token_desired,
@@ -86,7 +95,8 @@ fn add_liquidity_cspr() {
         "amount_token_min" => amount_token_min,
         "amount_cspr_min" => amount_cspr_min,
         "to" => to,
-        "deadline" => deadline
+        "deadline" => deadline,
+        "purse" => purse
     };
 
     let (amount_token, amount_cspr, liquidity): (U256, U256, U256) =
@@ -278,12 +288,19 @@ fn swap_exact_cspr_for_tokens() {
     let to: Key = runtime::get_named_arg("to");
     let deadline: U256 = runtime::get_named_arg("deadline");
 
+    // create purse and send balance in it.
+    let contract_purse: URef = system::create_purse();
+    //let caller_purse: URef = account::get_main_purse();
+    //let _ = system::transfer_from_purse_to_purse(caller_purse, contract_purse, U512::from(amount_cspr_desired.as_u128()), None);
+    let purse: Option<URef> = Some(contract_purse);
+
     let args: RuntimeArgs = runtime_args! {
         "amount_out_min" => amount_out_min,
         "amount_in" => amount_in,
         "path" => path,
         "to" => to,
-        "deadline" => deadline
+        "deadline" => deadline,
+        "purse" => purse
     };
 
     let amounts: Vec<U256> =
@@ -347,12 +364,19 @@ fn swap_cspr_for_exact_tokens() {
     let to: Key = runtime::get_named_arg("to");
     let deadline: U256 = runtime::get_named_arg("deadline");
 
+    // create purse and send balance in it.
+    let contract_purse: URef = system::create_purse();
+    //let caller_purse: URef = account::get_main_purse();
+    //let _ = system::transfer_from_purse_to_purse(caller_purse, contract_purse, U512::from(amount_cspr_desired.as_u128()), None);
+    let purse: Option<URef> = Some(contract_purse);
+
     let args: RuntimeArgs = runtime_args! {
         "amount_out" => amount_out,
         "amount_in_max" => amount_in_max,
         "path" => path,
         "to" => to,
-        "deadline" => deadline
+        "deadline" => deadline,
+        "purse" => purse
     };
 
     let amounts: Vec<U256> =

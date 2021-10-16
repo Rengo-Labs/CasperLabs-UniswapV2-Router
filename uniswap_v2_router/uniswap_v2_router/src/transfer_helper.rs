@@ -25,8 +25,11 @@ pub mod transfer_helper {
         let _:() = runtime::call_contract(ContractHash::from(token.into_hash().unwrap_or_default()), "transfer_from", args);
     }
 
+    /*
     pub fn safe_transfer_cspr(to: Key, value: U256)
     {
+
+        /*
         // call deposit method from wcspr
         let args: RuntimeArgs = runtime_args!{
             "to" => to,
@@ -34,5 +37,7 @@ pub mod transfer_helper {
         };
         let wcspr_contract: ContractHash = data::wcspr();
         let () = runtime::call_contract(wcspr_contract, "deposit", args);
+        */
     }
+    */
 }

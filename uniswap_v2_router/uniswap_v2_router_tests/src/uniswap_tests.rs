@@ -83,7 +83,7 @@ fn deploy_uniswap_router() -> (
     TestContract,
     TestContract,
     TestContract,
-    TestContract,
+    TestContract
 ) {
     let env = TestEnv::new();
     let owner = env.next_user();
@@ -111,10 +111,8 @@ fn deploy_uniswap_router() -> (
         "wcspr",
         Sender(owner),
         runtime_args! {
-            "initial_supply" => init_total_supply,
-            "name" => "erc20",
+            "name" => "wcspr",
             "symbol" => "ERC",
-            "decimals" => decimals
         },
     );
 
@@ -125,10 +123,8 @@ fn deploy_uniswap_router() -> (
         "dai",
         Sender(owner),
         runtime_args! {
-            "initial_supply" => init_total_supply,
-            "name" => "erc20",
-            "symbol" => "ERC",
-            "decimals" => decimals
+            "name" => "dai",
+            "symbol" => "dai"
         },
     );
 
@@ -206,7 +202,7 @@ fn deploy_uniswap_router() -> (
     };
     token1.call_contract(Sender(owner), "mint", token_args.clone());
     token2.call_contract(Sender(owner), "mint", token_args.clone());
-    wcspr.call_contract(Sender(owner), "deposit", token_args.clone());
+    //wcspr.call_contract(Sender(owner), "deposit", token_args.clone());
 
     pair_contract.call_contract(Sender(owner), "sync", runtime_args! {});
 
@@ -227,7 +223,7 @@ fn deploy_uniswap_router() -> (
         "to" => Key::Hash(wcspr.contract_hash()),
         "amount" => amount
     };
-    wcspr.call_contract(Sender(owner), "deposit", token_args.clone());
+    //wcspr.call_contract(Sender(owner), "deposit", token_args.clone());
 
     // Deploy Router Contract
     let router_contract = TestContract::new(
@@ -253,7 +249,7 @@ fn deploy_uniswap_router() -> (
     };
     token1.call_contract(Sender(owner), "mint", token_args.clone());
     token2.call_contract(Sender(owner), "mint", token_args.clone());
-    wcspr.call_contract(Sender(owner), "deposit", token_args.clone());
+    //wcspr.call_contract(Sender(owner), "deposit", token_args.clone());
 
     // deploy Test contract
     let token = UniswapInstance::new(
@@ -274,6 +270,7 @@ fn deploy_uniswap_router() -> (
         wcspr,
         factory_contract,
     )
+    
 }
 
 fn create_wcspr_pair(
@@ -294,6 +291,7 @@ fn create_wcspr_pair(
 
 #[test]
 fn test_uniswap_deploy() {
+
     let (_, token, _, _, _, _, _, _, _, _) = deploy_uniswap_router();
     let self_hash: Key = token.uniswap_contract_address();
     let package_hash: Key = token.uniswap_contract_package_hash();
@@ -359,6 +357,7 @@ fn add_liquidity() {
     more_asserts::assert_ge!(amount_b, amount_b_min);
 }
 
+
 #[test]
 fn add_liquidity_cspr() {
     let (_, uniswap, owner, router_package_hash, _, token1, token2, _, _, _) =
@@ -399,6 +398,7 @@ fn add_liquidity_cspr() {
     more_asserts::assert_ge!(amount_token, amount_token_min);
     more_asserts::assert_ge!(amount_cspr, amount_cspr_min);
 }
+
 
 #[test]
 fn remove_liquidity() {
@@ -443,6 +443,7 @@ fn remove_liquidity() {
     more_asserts::assert_ge!(amount_a, amount_a_min);
     more_asserts::assert_ge!(amount_b, amount_b_min);
 }
+
 
 #[test]
 fn remove_liquidity_cspr() {
@@ -513,6 +514,7 @@ fn remove_liquidity_cspr() {
     more_asserts::assert_ge!(amount_cspr, amount_cspr_min);
 }
 
+
 #[test]
 fn remove_liquidity_with_permit() {
     let (_, uniswap, owner, router_package_hash, pair_contract, token1, token2, token3, _, _) =
@@ -572,6 +574,7 @@ fn remove_liquidity_with_permit() {
     more_asserts::assert_ge!(amount_a, amount_a_min);
     more_asserts::assert_ge!(amount_b, amount_b_min);
 }
+
 
 #[test]
 fn remove_liquidity_cspr_with_permit() {
