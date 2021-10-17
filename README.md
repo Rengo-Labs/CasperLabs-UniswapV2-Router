@@ -75,6 +75,7 @@ sudo casper-client put-deploy \
     --session-arg="wcspr:Key='Hash of WCSPR Contract'" \
     --session-arg="library:Key='Hash of Library Contract'" \
     --session-arg="pair:Key='Hash of Pair Contract'" \
+    --session-arg="purse:opt_uref='if the caller is purse pass its contract, if the caller is account pass Null/None'" \
     --session-arg="contract_name:string='contract_name'"
 ```
 
@@ -83,10 +84,10 @@ Before deploying Router Contract, you would need to deploy other contracts first
 
 Name | Network | Account info contract hash | Contract owner
 ---|---|---|---
-Factory | Testnet | ```hash-5028190b8a5b6addbf3d51ee2c6ae5b913f09223d65eff9bcf5985f74ae976ec``` | Casper Association
-Wcspr | Testnet | ```hash-083756dee38a7e3a8a7190a17623cfbc8bc107511de206f03c3dbd1af5463a45``` | Casper Association
-Library | Testnet | ```hash-fa073d1a95a606871983689633dab9464fb5fbe5f723b0855e025ea01b9bf308``` | Casper Association
-Pair | Testnet | ```hash-8e6fbaae9f5ff3bb3cca7cb15723b2a47917d074922575187cb136e8d4b169a7``` | Casper Association
+Factory | Testnet | ```hash-7272481d5b5c8d1a245708f5ca40a07d93bd180ceeb9c2e0dd6b2f295e6328b2``` | Casper Association
+Wcspr | Testnet | ```hash-b707db44a84944dd6844f7582f53846211effa3663a5876396848f31d2cf5976``` | Casper Association
+Library | Testnet | ```hash-e3dae47f3c42dec089c880d35f2a56ee03b7623bbd15c2abc670659cd497ce85``` | Casper Association
+Pair | Testnet | ```hash-8627541e52220fba484c39fd7a8acea38c15082f710a522b815354aa46d9451b``` | Casper Association
 
 
 ### Manual Deployment <a name="manual-deployment"></a>
@@ -117,8 +118,6 @@ sudo casper-client put-deploy \
     --session-arg="public_key:public_key='Public Key In Hex'" \
     --session-arg="name:string='token-name'" \
     --session-arg="symbol:string='token-symbol'" \
-    --session-arg="decimals:u8='unsigned integer value'" \
-    --session-arg="initial_supply:u256='unsigned integer value'" \
     --session-arg="contract_name:string='contract_name'"
 ```
 
@@ -172,7 +171,7 @@ amount_b_desired | U256
 amount_a_min | U256
 amount_b_min | U256
 to | KEY
-deadline | U256
+deadline (epoch in milliseconds) | U256
 
 This method **returns** ```amount_a:U256, amount_b:U256, liquidity:U256```
 
@@ -194,7 +193,8 @@ amount_cspr_desired | U256
 amount_token_min | U256
 amount_cspr_min | U256
 to | KEY
-deadline | U256
+deadline (epoch in milliseconds) | U256
+purse | CLType::Option(Box::new(CLType::URef))
 
 This method **returns** ```amount_token:U256, amount_cspr:U256, liquidity:U256```
 
@@ -215,7 +215,7 @@ liquidity | U256
 amount_a_min | U256
 amount_b_min | U256
 to | Key
-deadline | U256
+deadline (epoch in milliseconds) | U256
 
 This method **returns** ```amount_a:U256, amount_b:U256```
 
@@ -234,7 +234,7 @@ liquidity | U256
 amount_token_min | U256
 amount_cspr_min | U256
 to | Key
-deadline | U256
+deadline (epoch in milliseconds) | U256
 
 This method **returns** ```amount_token:U256, amount_cspr:U256```
 
@@ -253,7 +253,7 @@ liquidity | U256
 amount_a_min | U256
 amount_b_min | U256
 to | Key
-deadline | U256
+deadline (epoch in milliseconds) | U256
 approve_max | Bool
 public_key | String
 signature | String
@@ -276,7 +276,7 @@ liquidity | U256
 amount_token_min | U256
 amount_cspr_min | U256
 to | Key
-deadline | U256
+deadline (epoch in milliseconds) | U256
 approve_max | Bool
 public_key | String
 signature | String
@@ -297,7 +297,7 @@ amount_in | U256
 amount_out_min | U256
 path | Vec<Key>
 to | Key
-deadline | U256
+deadline (epoch in milliseconds) | U256
 
 This method **returns** ```amounts: Vector<U256>```
 
@@ -314,7 +314,7 @@ amount_out | U256
 amount_in_max | U256
 path | Vec<Key>
 to | Key
-deadline | U256
+deadline (epoch in milliseconds) | U256
 
 This method **returns** ```amounts: Vector<U256>```
     
@@ -330,7 +330,8 @@ amount_out_min | U256
 amount_in | U256
 path | Vec<Key>
 to | Key
-deadline | U256
+deadline (epoch in milliseconds) | U256
+purse | CLType::Option(Box::new(CLType::URef))
 
 This method **returns** ```amounts: Vector<U256>```
     
@@ -348,7 +349,7 @@ amount_out | U256
 amount_in_max | U256
 path | Vec<Key>
 to | Key
-deadline | U256
+deadline (epoch in milliseconds) | U256
 
 This method **returns** ```amounts: Vector<U256>```
     
@@ -365,7 +366,7 @@ amount_in | U256
 amount_in_min | U256
 path | Vec<Key>
 to | Key
-deadline | U256
+deadline (epoch in milliseconds) | U256
 
 This method **returns** ```amounts: Vector<U256>```
     
@@ -382,6 +383,11 @@ amount_out | U256
 amount_in_max | U256
 path | Vec<Key>
 to | Key
-deadline | U256
+deadline (epoch in milliseconds) | U256
+purse | CLType::Option(Box::new(CLType::URef))
 
 This method **returns** ```amounts: Vector<U256>```
+
+
+<br><br><br><br>
+**Note:** Testcases for methods that involves purses will fail because casper test crate currenly doesnot support purse.
