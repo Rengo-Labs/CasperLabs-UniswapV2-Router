@@ -74,8 +74,6 @@ sudo casper-client put-deploy \
     --session-arg="factory:Key='Hash of factory Contract'" \
     --session-arg="wcspr:Key='Hash of WCSPR Contract'" \
     --session-arg="library:Key='Hash of Library Contract'" \
-    --session-arg="pair:Key='Hash of Pair Contract'" \
-    --session-arg="purse:opt_uref='if the caller is purse pass its contract, if the caller is account pass Null/None'" \
     --session-arg="contract_name:string='contract_name'"
 ```
 
@@ -87,7 +85,6 @@ Name | Network | Account info contract hash | Contract owner
 Factory | Testnet | ```hash-7272481d5b5c8d1a245708f5ca40a07d93bd180ceeb9c2e0dd6b2f295e6328b2``` | Casper Association
 Wcspr | Testnet | ```hash-b707db44a84944dd6844f7582f53846211effa3663a5876396848f31d2cf5976``` | Casper Association
 Library | Testnet | ```hash-e3dae47f3c42dec089c880d35f2a56ee03b7623bbd15c2abc670659cd497ce85``` | Casper Association
-Pair | Testnet | ```hash-8627541e52220fba484c39fd7a8acea38c15082f710a522b815354aa46d9451b``` | Casper Association
 
 
 ### Manual Deployment <a name="manual-deployment"></a>
@@ -118,6 +115,7 @@ sudo casper-client put-deploy \
     --session-arg="public_key:public_key='Public Key In Hex'" \
     --session-arg="name:string='token-name'" \
     --session-arg="symbol:string='token-symbol'" \
+    --session-arg="decimals:u8='unsigned integer value'" \
     --session-arg="contract_name:string='contract_name'"
 ```
 
@@ -159,6 +157,7 @@ Following are the Router's entry point methods.
 This method adds liquidity to ERC-20⇄ERC-20 pool.
 <br>To cover all possible scenarios, msg.sender should have already given the router an allowance of at least amount_a_desired/amount_b_desired on token_a/token_b.
 <br>Always adds assets at the ideal ratio, according to the price when the transaction is executed.
+<br>**Note:** You need to pass in the pair to this function that you want to add liquidity to.
 
 Following is the table of parameters.
 
@@ -170,8 +169,9 @@ amount_a_desired | U256
 amount_b_desired | U256
 amount_a_min | U256
 amount_b_min | U256
-to | KEY
+to | Key
 deadline (epoch in milliseconds) | U256
+pair | CLType::Option(Box::new(CLType::Key))
 
 This method **returns** ```amount_a:U256, amount_b:U256, liquidity:U256```
 
@@ -181,7 +181,7 @@ This method adds liquidity to ERC-20⇄CSPR pool with CSPR.
 <br>To cover all possible scenarios, msg.sender should have already given the router an allowance of at least amount_token_desired on token.
 <br>Always adds assets at the ideal ratio, according to the price when the transaction is executed.
 <br>Left over cspr if any is returned to msg.sender
-
+<br>**Note:** You need to pass in the pair to this function that you want to add liquidity to. You also need to pass in the purse of the caller.
 
 Following is the table of parameters.
 
@@ -194,7 +194,8 @@ amount_token_min | U256
 amount_cspr_min | U256
 to | KEY
 deadline (epoch in milliseconds) | U256
-purse | CLType::Option(Box::new(CLType::URef))
+pair | CLType::Option(Box::new(CLType::Key))
+purse | URef
 
 This method **returns** ```amount_token:U256, amount_cspr:U256, liquidity:U256```
 
@@ -331,7 +332,7 @@ amount_in | U256
 path | Vec<Key>
 to | Key
 deadline (epoch in milliseconds) | U256
-purse | CLType::Option(Box::new(CLType::URef))
+purse | URef
 
 This method **returns** ```amounts: Vector<U256>```
     
