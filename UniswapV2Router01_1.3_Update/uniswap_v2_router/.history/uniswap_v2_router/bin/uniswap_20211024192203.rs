@@ -71,7 +71,7 @@ fn constructor() {
 #[no_mangle]
 /// Add tokens to liquidity pool.
 ///
-/// Parameters-> token_a:Key, token_b:Key, amount_a_desired:U256, amount_b_desired:U256, amount_a_min:U256, amount_b_min:U256, to:Key, deadline: U256, pair:Option<Key> , purse:URef
+/// Parameters-> token_a:Key, token_b:Key, amount_a_desired:U256, amount_b_desired:U256, amount_a_min:U256, amount_b_min:U256, to:Key, deadline: U256
 fn add_liquidity() {
     let deadline: U256 = runtime::get_named_arg("deadline");
     if !(Uniswap::default().ensure(deadline)) {
@@ -106,7 +106,7 @@ fn add_liquidity() {
 #[no_mangle]
 /// Add cspr to liquidity pool.
 ///
-/// Parameters-> token:Key, amount_token_desired:U256, amount_cspr_desired:U256, amount_token_min:U256, amount_cspr_min:U256, to:Key, deadline:U256, pair:Option<Key> , purse:URef
+/// Parameters-> token:Key, amount_token_desired:U256, amount_cspr_desired:U256, amount_token_min:U256, amount_cspr_min:U256, to:Key, deadline:U256
 fn add_liquidity_cspr() {
     let deadline: U256 = runtime::get_named_arg("deadline");
     if !(Uniswap::default().ensure(deadline)) {
@@ -307,7 +307,7 @@ fn swap_tokens_for_exact_tokens() {
 #[no_mangle]
 /// Swap exact cspr for tokens.
 ///
-/// Parameters-> amount_out_min:U256, amount_in:U256, path:Vec<Key>, to:Key, deadline:U256, purse:URef
+/// Parameters-> amount_out_min:U256, amount_in:U256, path:Vec<Key>, to:Key, deadline:U256
 fn swap_exact_cspr_for_tokens() {
     let deadline: U256 = runtime::get_named_arg("deadline");
     if !(Uniswap::default().ensure(deadline)) {
@@ -367,7 +367,7 @@ fn swap_exact_tokens_for_cspr() {
 
 /// Swap cspr for exact tokens
 ///
-/// Parameters-> amount_out:U256, amount_in_max:U256, path:Vec<Key>, to:Key, deadline:U256, purse:URef
+/// Parameters-> amount_out:U256, amount_in_max:U256, path:Vec<Key>, to:Key, deadline:U256
 
 #[no_mangle]
 fn swap_cspr_for_exact_tokens() {

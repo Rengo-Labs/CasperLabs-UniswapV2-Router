@@ -1,5 +1,7 @@
+//use alloc::string::String;
+
 use casper_contract::unwrap_or_revert::UnwrapOrRevert;
-use casper_types::{contracts::{ContractHash, ContractPackageHash}, Key};
+use casper_types::{contracts::{ContractHash, ContractPackageHash}, Key, URef};
 use contract_utils::{get_key, set_key};
 
 pub const WCSPR: &str = "wcspr";
@@ -7,6 +9,7 @@ pub const FACTORY: &str = "factory";
 pub const SELF_HASH: &str = "self_hash";
 pub const PACKAGE_HASH: &str = "package_hash";
 pub const LIBRARY_HASH: &str = "library_hash";
+pub const SELF_PURSE: &str = "purse";
 
 
 pub fn wcspr() -> ContractHash { get_key(WCSPR).unwrap_or_revert() }
@@ -23,3 +26,17 @@ pub fn set_self_hash(contract_hash: Key) { set_key(SELF_HASH, contract_hash);}
 
 pub fn package_hash() -> ContractPackageHash { get_key(PACKAGE_HASH).unwrap_or_revert()}
 pub fn set_package_hash(package_hash: ContractPackageHash) { set_key(PACKAGE_HASH, package_hash);}
+
+
+// contract purse
+pub fn set_self_purse(purse: URef) 
+{
+    set_key(SELF_PURSE, Key::from(purse));
+}
+
+pub fn get_self_purse() -> URef 
+{
+    let contract_main_purse_key: Key = get_key(SELF_PURSE).unwrap_or_revert();
+    let contract_main_purse = contract_main_purse_key.as_uref().unwrap_or_revert();
+    *contract_main_purse
+}
