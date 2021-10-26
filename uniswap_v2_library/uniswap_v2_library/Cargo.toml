@@ -13,7 +13,7 @@ renvm-sig = "0.1.1"
 hex = "0.4.3"
 
 [[bin]]
-name = "uniswap"
+name = "uniswap-v2-library"
 path = "bin/uniswap.rs"
 bench = false
 doctest = false

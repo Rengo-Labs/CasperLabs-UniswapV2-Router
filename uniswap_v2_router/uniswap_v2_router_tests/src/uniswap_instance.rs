@@ -11,7 +11,7 @@ impl UniswapInstance {
     pub fn new(env: &TestEnv, router_address: Key, sender: Sender) -> UniswapInstance {
         UniswapInstance(TestContract::new(
             env,
-            "test_contract.wasm",
+            "contract.wasm",
             "RouterTest",
             sender,
             runtime_args! {
@@ -377,7 +377,7 @@ impl UniswapInstance {
         let contract_hash: ContractHash = self.0.query_named_key("self_hash".to_string());
         Key::from(contract_hash)
     }
- 
+
 
     /*
     pub fn uniswap_contract_address(&self) -> Key {

@@ -73,14 +73,14 @@ fn deploy_dummy_tokens(
     (token1_contract, token2_contract, token3_contract)
 }
 
-fn deploy_pair_contract( env: &TestEnv, owner: AccountHash, factory_contract: Key, flash_swapper: Key) -> TestContract 
+fn deploy_pair_contract( env: &TestEnv, owner: AccountHash, factory_contract: Key, flash_swapper: Key) -> TestContract
 {
     let decimals: u8 = 18;
     let init_total_supply: U256 = 0.into();
 
     let pair_contract = TestContract::new(
         &env,
-        "pair.wasm",
+        "pair-token.wasm",
         "pair",
         Sender(owner),
         runtime_args! {
@@ -131,7 +131,7 @@ fn deploy_uniswap_router() -> (
     // deploy wcspr contract
     let wcspr = TestContract::new(
         &env,
-        "wcspr.wasm",
+        "wcspr-token.wasm",
         "wcspr",
         Sender(owner),
         runtime_args! {
@@ -144,7 +144,7 @@ fn deploy_uniswap_router() -> (
     // deploy wcspr contract
     let dai = TestContract::new(
         &env,
-        "wcspr.wasm",
+        "wcspr-token.wasm",
         "dai",
         Sender(owner),
         runtime_args! {
@@ -170,7 +170,7 @@ fn deploy_uniswap_router() -> (
     // deploy pair contract
     let pair_contract = TestContract::new(
         &env,
-        "pair.wasm",
+        "pair-token.wasm",
         "pair",
         Sender(owner),
         runtime_args! {
@@ -186,7 +186,7 @@ fn deploy_uniswap_router() -> (
     // deploy library contract
     let library_contract = TestContract::new(
         &env,
-        "library.wasm",
+        "uniswap-v2-library.wasm",
         "library",
         Sender(owner),
         runtime_args! {},
@@ -225,7 +225,7 @@ fn deploy_uniswap_router() -> (
         wcspr,
         factory_contract,
     )
-    
+
 }
 
 
@@ -443,7 +443,7 @@ fn remove_liquidity_cspr() {
 
     let router_package_hash: ContractPackageHash = router_contract.query_named_key(String::from("package_hash"));
     let router_package_hash: Key = router_package_hash.into();
-    
+
 
     let mut rng = rand::thread_rng();
 
@@ -639,7 +639,7 @@ fn remove_liquidity_cspr_with_permit() {
 
     // First Add liquidity
     let pair: TestContract = deploy_pair_contract(&env, owner, Key::Hash(factory.contract_hash()), Key::Hash(flash_swapper.contract_hash()));
- 
+
     let token = Key::Hash(token1.contract_hash());
     let amount_token_desired: U256 = rng.gen_range(300..400).into();
     let amount_cspr_desired: U256 = rng.gen_range(300..400).into();
@@ -738,7 +738,7 @@ fn swap_exact_tokens_for_tokens() {
 
     let router_package_hash: ContractPackageHash = router_contract.query_named_key(String::from("package_hash"));
     let router_package_hash: Key = router_package_hash.into();
-    
+
     // first need to add liquidity
     let pair: TestContract = deploy_pair_contract(&env, owner, Key::Hash(factory.contract_hash()), Key::Hash(flash_swapper.contract_hash()));
 
@@ -819,7 +819,7 @@ fn swap_tokens_for_exact_tokens() {
 
     let router_package_hash: ContractPackageHash = router_contract.query_named_key(String::from("package_hash"));
     let router_package_hash: Key = router_package_hash.into();
-    
+
     // first need to add liquidity
     let pair: TestContract = deploy_pair_contract(&env, owner, Key::Hash(factory.contract_hash()), Key::Hash(flash_swapper.contract_hash()));
 
@@ -864,7 +864,7 @@ fn swap_tokens_for_exact_tokens() {
         Some(Key::Hash(pair.contract_hash()))
     );
 
-    
+
 
     // Swap
     let amount_in_max: U256 = 50.into();
@@ -901,7 +901,7 @@ fn swap_exact_cspr_for_tokens() {
 
     let router_package_hash: ContractPackageHash = router_contract.query_named_key(String::from("package_hash"));
     let router_package_hash: Key = router_package_hash.into();
-    
+
 
     // add liquidity to cspr pair
     let pair: TestContract = deploy_pair_contract(&env, owner, Key::Hash(factory.contract_hash()), Key::Hash(flash_swapper.contract_hash()));
@@ -966,7 +966,7 @@ fn swap_tokens_for_exact_cspr() {
 
     let router_package_hash: ContractPackageHash = router_contract.query_named_key(String::from("package_hash"));
     let router_package_hash: Key = router_package_hash.into();
-    
+
 
     // add liquidity to cspr pair
     let pair: TestContract = deploy_pair_contract(&env, owner, Key::Hash(factory.contract_hash()), Key::Hash(flash_swapper.contract_hash()));
@@ -1036,7 +1036,7 @@ fn swap_exact_tokens_for_cspr() {
 
     let router_package_hash: ContractPackageHash = router_contract.query_named_key(String::from("package_hash"));
     let router_package_hash: Key = router_package_hash.into();
-    
+
     // add liquidity to cspr pair
     let pair: TestContract = deploy_pair_contract(&env, owner, Key::Hash(factory.contract_hash()), Key::Hash(flash_swapper.contract_hash()));
     let token = Key::Hash(token1.contract_hash());
@@ -1104,7 +1104,7 @@ fn swap_cspr_for_exact_tokens() {
 
     let router_package_hash: ContractPackageHash = router_contract.query_named_key(String::from("package_hash"));
     let router_package_hash: Key = router_package_hash.into();
-    
+
     // add liquidity to cspr pair
     let pair: TestContract = deploy_pair_contract(&env, owner, Key::Hash(factory.contract_hash()), Key::Hash(flash_swapper.contract_hash()));
     let token = Key::Hash(token1.contract_hash());

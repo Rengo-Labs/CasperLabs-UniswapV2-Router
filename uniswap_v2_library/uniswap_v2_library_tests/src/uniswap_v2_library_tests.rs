@@ -99,7 +99,7 @@ fn deploy_uniswap_router() -> (TestEnv, UniswapInstance, AccountHash, TestContra
     let owner_library = env.next_user();
     let library_contract = TestContract::new(
         &env,
-        "uniswap.wasm",
+        "uniswap-v2-library.wasm",
         "library",
         Sender(owner_library),
         runtime_args! {},

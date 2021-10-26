@@ -3,7 +3,7 @@ prepare:
 
 build-contract:
 	cargo build --release -p uniswap_v2_library --target wasm32-unknown-unknown
-	wasm-strip target/wasm32-unknown-unknown/release/uniswap.wasm 2>/dev/null | true
+	wasm-strip target/wasm32-unknown-unknown/release/uniswap-v2-library.wasm 2>/dev/null | true
 
 test-only:
 	cargo test -p uniswap_v2_library_tests

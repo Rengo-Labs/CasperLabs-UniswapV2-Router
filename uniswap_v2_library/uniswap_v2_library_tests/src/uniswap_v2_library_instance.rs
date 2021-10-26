@@ -13,13 +13,13 @@ impl UniswapInstance {
         env: &TestEnv,
         contract_name: &str,
         factory: Key,
-        wcspr: Key, 
+        wcspr: Key,
         library: Key,
         sender: Sender
     ) -> UniswapInstance {
         UniswapInstance(TestContract::new(
             env,
-            "uniswap.wasm",
+            "uniswap-v2-library.wasm",
             contract_name,
             sender,
             runtime_args! {
@@ -56,7 +56,7 @@ impl UniswapInstance {
     }
 
     pub fn quote(&self, sender:Sender, amount_a: U256, reserve_a: U256, reserve_b: U256) {
-        
+
         self.0.call_contract(
             sender,
             "quote",
@@ -69,7 +69,7 @@ impl UniswapInstance {
     }
 
     pub fn get_reserves(&self, sender:Sender, factory: ContractHash, token_a: ContractHash, token_b: ContractHash) {
-        
+
         self.0.call_contract(
             sender,
             "get_reserves",
@@ -82,7 +82,7 @@ impl UniswapInstance {
     }
 
     pub fn get_amount_out(&self, sender:Sender, amount_in: U256, reserve_in: U256, reserve_out: U256) {
-        
+
         self.0.call_contract(
             sender,
             "get_amount_out",
@@ -95,7 +95,7 @@ impl UniswapInstance {
     }
 
     pub fn get_amount_in(&self, sender:Sender, amount_out: U256, reserve_in: U256, reserve_out: U256) {
-        
+
         self.0.call_contract(
             sender,
             "get_amount_in",
@@ -108,7 +108,7 @@ impl UniswapInstance {
     }
 
     pub fn get_amounts_out(&self, sender:Sender, factory: ContractHash, amount_in: U256, path: Vec<ContractHash>) {
-        
+
         self.0.call_contract(
             sender,
             "get_amounts_out",
@@ -121,7 +121,7 @@ impl UniswapInstance {
     }
 
     pub fn get_amounts_in(&self, sender:Sender, factory: ContractHash, amount_out: U256, path: Vec<ContractHash>) {
-        
+
         self.0.call_contract(
             sender,
             "get_amounts_in",

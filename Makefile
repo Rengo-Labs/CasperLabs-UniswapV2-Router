@@ -74,7 +74,13 @@ copy-wasm-file:
 	cp ${pair_contract}${wasm_src_path}*.wasm ${wasm_dest_library_path}
 	cp ${wcspr_contract}${wasm_src_path}*.wasm ${wasm_dest_library_path}
 
-	cp ${wasm_dest_library_path}*.wasm ${wasm_dest_router_path}
+	cp ${erc20_contract}${wasm_src_path}*.wasm ${wasm_dest_router_path}
+	cp ${factory_contract}${wasm_src_path}*.wasm ${wasm_dest_router_path}
+	cp ${flash_swapper_contract}${wasm_src_path}*.wasm ${wasm_dest_router_path}
+	cp ${pair_contract}${wasm_src_path}*.wasm ${wasm_dest_router_path}
+	cp ${wcspr_contract}${wasm_src_path}*.wasm ${wasm_dest_router_path}
+	cp ${library_contract}${wasm_src_path}*.wasm ${wasm_dest_router_path}
+	cp ${test_contract}${wasm_src_path}*.wasm ${wasm_dest_router_path}
 
 # run all tests sequentially
 test:

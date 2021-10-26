@@ -1,2 +1,0 @@
-cargo:rustc-env=TYPENUM_BUILD_CONSTS=/Users/dtai/work/me/Casperlabs-UniswapRouter/uniswap_v2_router_test_contract/test-contract/contract/target/wasm32-unknown-unknown/release/build/typenum-a2535ac2dfe3a16d/out/consts.rs
-cargo:rustc-env=TYPENUM_BUILD_OP=/Users/dtai/work/me/Casperlabs-UniswapRouter/uniswap_v2_router_test_contract/test-contract/contract/target/wasm32-unknown-unknown/release/build/typenum-a2535ac2dfe3a16d/out/op.rs
