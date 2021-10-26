@@ -1,4 +1,4 @@
-# Scytalelabs-UniswapRouter
+# Uniswap V2 Router - Casper Blockchain
 Router uses other contracts (factory, pair, library, etc) and add, remove, swap tokens from liquidity pools.
 
 ## Table of contents
