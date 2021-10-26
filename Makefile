@@ -1,14 +1,17 @@
-erc20_contract = UniswapV2Core/CasperLabs-UniswapV2-core/erc20/
-factory_contract = UniswapV2Core/CasperLabs-UniswapV2-core/factory/
-flash_swapper_contract = UniswapV2Core/CasperLabs-UniswapV2-core/flash\ swapper/
-pair_contract = UniswapV2Core/CasperLabs-UniswapV2-core/pair/
-wcspr_contract = UniswapV2Core/CasperLabs-UniswapV2-core/wcspr/
-library_contract = UniswapV2Router01_1.3_Update/uniswap_v2_library/
-router_contract = UniswapV2Router01_1.3_Update/uniswap_v2_router/
-test_contract = UniswapV2Router01_1.3_Update/uniswap_v2_router_test_contract/test-contract/contract/
+uniswap_core_directory = ../CasperLabs-UniswapV2-core
+
+erc20_contract = ${uniswap_core_directory}/erc20/
+factory_contract = ${uniswap_core_directory}/factory/
+flash_swapper_contract = ${uniswap_core_directory}/flash\ swapper/
+pair_contract = ${uniswap_core_directory}/pair/
+wcspr_contract = ${uniswap_core_directory}/wcspr/
+library_contract = ./uniswap_v2_library/
+router_contract = ./uniswap_v2_router/
+test_contract = ./uniswap_v2_router_test_contract/test-contract/contract/
 
 wasm_src_path = target/wasm32-unknown-unknown/release/
-wasm_dest_path = UniswapV2Router01_1.3_Update/uniswap_v2_router/uniswap_v2_router_tests/wasm/
+wasm_dest_library_path = ${library_contract}/uniswap_v2_library_tests/wasm/
+wasm_dest_router_path = ${router_contract}/uniswap_v2_router_tests/wasm/
 
 build-contract:
 	# Build erc20
@@ -64,14 +67,18 @@ clean:
 	
 # copy wasm to required directory with new names
 copy-wasm-file:	
-	cp ${erc20_contract}${wasm_src_path}*.wasm ${wasm_dest_path}token.wasm
-	cp ${factory_contract}${wasm_src_path}*.wasm ${wasm_dest_path}factory.wasm
-	cp ${flash_swapper_contract}${wasm_src_path}*.wasm ${wasm_dest_path}flash-swapper.wasm
-	cp ${pair_contract}${wasm_src_path}*.wasm ${wasm_dest_path}pair.wasm
-	cp ${wcspr_contract}${wasm_src_path}*.wasm ${wasm_dest_path}wcspr.wasm
-	cp ${library_contract}${wasm_src_path}*.wasm ${wasm_dest_path}library.wasm
-	cp ${router_contract}${wasm_src_path}*.wasm ${wasm_dest_path}uniswap-v2-router.wasm
-	cp ${test_contract}${wasm_src_path}*.wasm ${wasm_dest_path}test_contract.wasm
-	
-	
+	cp ${erc20_contract}${wasm_src_path}*.wasm ${wasm_dest_library_path}
+	cp ${factory_contract}${wasm_src_path}*.wasm ${wasm_dest_library_path}
+	cp ${flash_swapper_contract}${wasm_src_path}*.wasm ${wasm_dest_library_path}
+	cp ${pair_contract}${wasm_src_path}*.wasm ${wasm_dest_library_path}
+	cp ${wcspr_contract}${wasm_src_path}*.wasm ${wasm_dest_library_path}
 
+	cp ${library_contract}${wasm_src_path}*.wasm ${wasm_dest_router_path}
+
+# run all tests sequentially
+test:
+	# Test Library
+	cd ${library_contract} && make test
+
+	# Test Router
+	cd ${router_contract} && make test

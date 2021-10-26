@@ -1,0 +1,1 @@
+/Users/dtai/work/me/Casperlabs-UniswapRouter/uniswap_v2_router_test_contract/test-contract/contract/target/wasm32-unknown-unknown/release/contract.wasm: /Users/dtai/work/me/Casperlabs-UniswapRouter/uniswap_v2_router_test_contract/test-contract/contract/src/main.rs /Users/dtai/work/me/Casperlabs-UniswapRouter/uniswap_v2_router_test_contract/test-contract/contract/src/mappings.rs
