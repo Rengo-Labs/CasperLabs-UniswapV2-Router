@@ -15,7 +15,7 @@ use casper_contract::{
 use casper_types::{
     contracts::{ContractHash, ContractPackageHash},
     runtime_args, CLType, CLTyped, EntryPoint, EntryPointAccess, EntryPointType,
-    EntryPoints, Group, Key, Parameter, RuntimeArgs, URef, U256
+    EntryPoints, Group, Key, Parameter, RuntimeArgs, URef, U256, U128
 };
 
 pub mod mappings;
@@ -25,12 +25,18 @@ fn constructor() {
     let contract_hash: ContractHash = runtime::get_named_arg("contract_hash");
     let package_hash: ContractPackageHash = runtime::get_named_arg("package_hash");
     let router_address: Key = runtime::get_named_arg("router_address");
+    let library_address: Key = runtime::get_named_arg("library_address");
+    
 
     mappings::set_key(&mappings::self_hash_key(), contract_hash);
     mappings::set_key(&mappings::self_package_key(), package_hash);
     mappings::set_key(
         &mappings::router_key(),
         ContractHash::from(router_address.into_hash().unwrap_or_default()),
+    );
+    mappings::set_key(
+        &mappings::library_key(),
+        ContractHash::from(library_address.into_hash().unwrap_or_default()),
     );
 }
 
@@ -395,6 +401,118 @@ fn swap_cspr_for_exact_tokens() {
     //mappings::set_key(&mappings::swap_cspr_for_exact_tokens(), amounts);
 }
 
+
+
+#[no_mangle]
+fn get_reserves() {
+
+    let library_address: ContractHash = mappings::get_key(&mappings::library_key());
+
+    let factory: Key = runtime::get_named_arg("factory");
+    let token_a: Key = runtime::get_named_arg("token_a");
+    let token_b: Key = runtime::get_named_arg("token_b");
+
+    let args: RuntimeArgs = runtime_args! {
+        "factory" => factory,
+        "token_a" => token_a,
+        "token_b" => token_b
+    };
+
+    let (reserve_1, reserve_2): (U128, U128) = runtime::call_contract(library_address, "get_reserves", args);
+}
+
+#[no_mangle]
+fn quote() {
+
+    let library_address: ContractHash = mappings::get_key(&mappings::library_key());
+
+    let amount_a: U256 = runtime::get_named_arg("amount_a");
+    let reserve_a: U128 = runtime::get_named_arg("reserve_a");
+    let reserve_b: U128 = runtime::get_named_arg("reserve_b");
+
+    let args: RuntimeArgs = runtime_args! {
+        "amount_a" => amount_a,
+        "reserve_a" => reserve_a,
+        "reserve_b" => reserve_b
+    };
+
+    let quote: U256 = runtime::call_contract(library_address, "quote", args);
+}
+
+
+#[no_mangle]
+fn get_amount_out() {
+
+    let library_address: ContractHash = mappings::get_key(&mappings::library_key());
+
+    let amount_in: U256 = runtime::get_named_arg("amount_in");
+    let reserve_in: U256 = runtime::get_named_arg("reserve_in");
+    let reserve_out: U256 = runtime::get_named_arg("reserve_out");
+
+    let args: RuntimeArgs = runtime_args! {
+        "amount_in" => amount_in,
+        "reserve_in" => reserve_in,
+        "reserve_out" => reserve_out
+    };
+
+    let amount_out: U256 = runtime::call_contract(library_address, "get_amount_out", args);
+}
+
+
+#[no_mangle]
+fn get_amount_in() {
+
+    let library_address: ContractHash = mappings::get_key(&mappings::library_key());
+
+    let amount_out: U256 = runtime::get_named_arg("amount_out");
+    let reserve_in: U256 = runtime::get_named_arg("reserve_in");
+    let reserve_out: U256 = runtime::get_named_arg("reserve_out");
+
+    let args: RuntimeArgs = runtime_args! {
+        "amount_out" => amount_out,
+        "reserve_in" => reserve_in,
+        "reserve_out" => reserve_out
+    };
+
+    let amount_in: U256 = runtime::call_contract(library_address, "get_amount_in", args);
+}
+
+
+#[no_mangle]
+fn get_amounts_out() {
+
+    let library_address: ContractHash = mappings::get_key(&mappings::library_key());
+
+    let factory: Key = runtime::get_named_arg("factory");
+    let amount_in: U256 = runtime::get_named_arg("amount_in");
+    let path: Vec<Key> = runtime::get_named_arg("path");
+
+    let args: RuntimeArgs = runtime_args! {
+        "factory" => factory,
+        "amount_in" => amount_in,
+        "path" => path
+    };
+    let amounts: Vec<U256> = runtime::call_contract(library_address, "get_amounts_out", args);
+}
+
+#[no_mangle]
+fn get_amounts_in() {
+    let library_address: ContractHash = mappings::get_key(&mappings::library_key());
+
+    let factory: Key = runtime::get_named_arg("factory");
+    let amount_out: U256 = runtime::get_named_arg("amount_out");
+    let path: Vec<Key> = runtime::get_named_arg("path");
+
+    let args: RuntimeArgs = runtime_args! {
+        "factory" => factory,
+        "amount_out" => amount_out,
+        "path" => path
+    };
+
+    let amounts: Vec<U256> = runtime::call_contract(library_address, "get_amounts_in", args);
+}
+
+
 fn get_entry_points() -> EntryPoints {
     let mut entry_points = EntryPoints::new();
 
@@ -404,12 +522,15 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("contract_hash", ContractHash::cl_type()),
             Parameter::new("package_hash", ContractPackageHash::cl_type()),
             Parameter::new("router_address", Key::cl_type()),
+            Parameter::new("library_address", Key::cl_type()),
         ],
         <()>::cl_type(),
         EntryPointAccess::Groups(vec![Group::new("constructor")]),
         EntryPointType::Contract,
     ));
 
+
+    // ********************************** ROUTER ENTRY POINTS ********************************
     entry_points.add_entry_point(EntryPoint::new(
         String::from("add_liquidity"),
         vec![
@@ -614,6 +735,82 @@ fn get_entry_points() -> EntryPoints {
         EntryPointType::Session,
     ));
 
+
+
+    // ********************************** LIBRARY ENTRY POINTS ********************************
+    
+    entry_points.add_entry_point(EntryPoint::new(
+        "quote",
+        vec![
+            Parameter::new("amount_a", U256::cl_type()),
+            Parameter::new("reserve_a", U128::cl_type()),
+            Parameter::new("reserve_b", U128::cl_type()),
+        ],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+
+    entry_points.add_entry_point(EntryPoint::new(
+        "get_reserves",
+        vec![
+            Parameter::new("factory", Key::cl_type()),
+            Parameter::new("token_a", Key::cl_type()),
+            Parameter::new("token_b", Key::cl_type()),
+        ],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+
+    entry_points.add_entry_point(EntryPoint::new(
+        "get_amount_out",
+        vec![
+            Parameter::new("amount_in", U256::cl_type()),
+            Parameter::new("reserve_in", U256::cl_type()),
+            Parameter::new("reserve_out", U256::cl_type()),
+        ],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+
+    entry_points.add_entry_point(EntryPoint::new(
+        "get_amount_in",
+        vec![
+            Parameter::new("amount_out", U256::cl_type()),
+            Parameter::new("reserve_in", U256::cl_type()),
+            Parameter::new("reserve_out", U256::cl_type()),
+        ],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+
+    entry_points.add_entry_point(EntryPoint::new(
+        "get_amounts_out",
+        vec![
+            Parameter::new("factory", Key::cl_type()),
+            Parameter::new("amount_in", U256::cl_type()),
+            Parameter::new("path", CLType::List(Box::new(Key::cl_type()))),
+        ],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+
+    entry_points.add_entry_point(EntryPoint::new(
+        "get_amounts_in",
+        vec![
+            Parameter::new("factory", Key::cl_type()),
+            Parameter::new("amount_out", U256::cl_type()),
+            Parameter::new("path", CLType::List(Box::new(Key::cl_type()))),
+        ],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+
     entry_points
 }
 
@@ -626,13 +823,15 @@ pub extern "C" fn call() {
         storage::add_contract_version(package_hash, get_entry_points(), Default::default());
 
     let router_address: Key = runtime::get_named_arg("router_address");
+    let library_address: Key = runtime::get_named_arg("library_address");
 
     // Get parameters and pass it to the constructors
     // Prepare constructor args
     let constructor_args = runtime_args! {
         "contract_hash" => contract_hash,
         "package_hash" => package_hash,
-        "router_address" => router_address
+        "router_address" => router_address,
+        "library_address" => library_address
     };
 
     // Add the constructor group to the package hash with a single URef.

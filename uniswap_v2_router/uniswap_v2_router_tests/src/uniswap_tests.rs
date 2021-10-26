@@ -24,7 +24,7 @@ fn deploy_dummy_tokens(
     };
     let token1_contract = TestContract::new(
         &env,
-        "token.wasm",
+        "erc20-token.wasm",
         "token1_contract",
         Sender(token1_owner),
         runtime_args! {
@@ -42,7 +42,7 @@ fn deploy_dummy_tokens(
     };
     let token2_contract = TestContract::new(
         &env,
-        "token.wasm",
+        "erc20-token.wasm",
         "token2_contract",
         Sender(token2_owner),
         runtime_args! {
@@ -60,7 +60,7 @@ fn deploy_dummy_tokens(
     };
     let token3_contract = TestContract::new(
         &env,
-        "token.wasm",
+        "erc20-token.wasm",
         "token3_contract",
         Sender(token3_owner),
         runtime_args! {
@@ -127,7 +127,7 @@ fn deploy_uniswap_router() -> (
     );
 
     let decimals: u8 = 18;
-    let init_total_supply: U256 = 5000.into();
+    let init_total_supply: U256 = 0.into();
     // deploy wcspr contract
     let wcspr = TestContract::new(
         &env,
@@ -206,15 +206,16 @@ fn deploy_uniswap_router() -> (
     );
 
     // deploy Test contract
-    let token = UniswapInstance::new(
+    let test_contract = UniswapInstance::new(
         &env,
         Key::Hash(router_contract.contract_hash()),
+        Key::Hash(library_contract.contract_hash()),
         Sender(owner),
     );
 
     (
         env,
-        token,
+        test_contract,
         owner,
         router_contract,
         flash_swapper,

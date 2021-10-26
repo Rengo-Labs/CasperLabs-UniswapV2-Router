@@ -1,11 +1,10 @@
 use casper_engine_test_support::AccountHash;
-use casper_types::{contracts::ContractHash, runtime_args, Key, RuntimeArgs, U256};
+use casper_types::{contracts::ContractHash, runtime_args, Key, RuntimeArgs, U256, ContractPackageHash};
 use test_env::{Sender, TestContract, TestEnv};
+use std::time::{SystemTime, UNIX_EPOCH};
 
-use crate::uniswap_v2_library_instance::UniswapInstance;
-
-const NAME: &str = "uniswap_router";
-
+use crate::uniswap_v2_library_instance::LibraryInstance;
+/*
 fn deploy_dummy_tokens(env: &TestEnv) -> (TestContract, TestContract, TestContract) {
     let decimals: u8 = 18;
     let init_total_supply: U256 = 1000.into();
@@ -67,143 +66,373 @@ fn deploy_dummy_tokens(env: &TestEnv) -> (TestContract, TestContract, TestContra
 
     (token1_contract, token2_contract, token3_contract)
 }
+*/
 
-fn deploy_uniswap_router() -> (TestEnv, UniswapInstance, AccountHash, TestContract) {
+fn deploy_dummy_tokens(
+    env: &TestEnv,
+    owner: Option<AccountHash>,
+) -> (TestContract, TestContract, TestContract) {
+    let decimals: u8 = 18;
+    let init_total_supply: U256 = 1000.into();
+
+    let token1_owner = if owner.is_none() {
+        env.next_user()
+    } else {
+        owner.unwrap()
+    };
+    let token1_contract = TestContract::new(
+        &env,
+        "erc20-token.wasm",
+        "token1_contract",
+        Sender(token1_owner),
+        runtime_args! {
+            "initial_supply" => init_total_supply,
+            "name" => "token1",
+            "symbol" => "tk1",
+            "decimals" => decimals
+        },
+    );
+
+    let token2_owner = if owner.is_none() {
+        env.next_user()
+    } else {
+        owner.unwrap()
+    };
+    let token2_contract = TestContract::new(
+        &env,
+        "erc20-token.wasm",
+        "token2_contract",
+        Sender(token2_owner),
+        runtime_args! {
+            "initial_supply" => init_total_supply,
+            "name" => "token2",
+            "symbol" => "tk2",
+            "decimals" => decimals
+        },
+    );
+
+    let token3_owner = if owner.is_none() {
+        env.next_user()
+    } else {
+        owner.unwrap()
+    };
+    let token3_contract = TestContract::new(
+        &env,
+        "erc20-token.wasm",
+        "token3_contract",
+        Sender(token3_owner),
+        runtime_args! {
+            "initial_supply" => init_total_supply,
+            "name" => "token3",
+            "symbol" => "tk3",
+            "decimals" => decimals
+        },
+    );
+    (token1_contract, token2_contract, token3_contract)
+}
+
+                        
+fn deploy_library() -> (TestEnv, AccountHash, LibraryInstance, TestContract, TestContract, TestContract, TestContract) // env, owner, TestContract, LibraryContract, FactoryContract, Pair, Router
+{
+    
     let env = TestEnv::new();
     let owner = env.next_user();
 
+    let (_, _, token3) = deploy_dummy_tokens(&env, Some(owner));
+
     // deploy factory contract
-    let owner_factory = env.next_user();
     let factory_contract = TestContract::new(
         &env,
         "factory.wasm",
         "factory",
-        Sender(owner_factory),
+        Sender(owner),
         runtime_args! {
-            "fee_to_setter" => Key::from(owner_factory)
+            "fee_to_setter" => Key::Hash(token3.contract_hash())
             // contract_name is passed seperately, so we don't need to pass it here.
         },
     );
 
+    let decimals: u8 = 18;
     // deploy wcspr contract
-    let owner_wcspr = env.next_user();
     let wcspr = TestContract::new(
         &env,
         "wcspr-token.wasm",
         "wcspr",
-        Sender(owner_wcspr),
-        runtime_args! {},
+        Sender(owner),
+        runtime_args! {
+            "name" => "wcspr",
+            "symbol" => "ERC",
+            "decimals" => decimals
+        },
+    );
+
+    // deploy wcspr contract
+    let dai = TestContract::new(
+        &env,
+        "wcspr-token.wasm",
+        "dai",
+        Sender(owner),
+        runtime_args! {
+            "name" => "dai",
+            "symbol" => "dai",
+            "decimals" => decimals
+        },
+    );
+
+    // deploy flash swapper
+    let flash_swapper = TestContract::new(
+        &env,
+        "flash-swapper.wasm",
+        "flash_swapper",
+        Sender(owner),
+        runtime_args! {
+            "uniswap_v2_factory" => Key::Hash(factory_contract.contract_hash()),
+            "wcspr" => Key::Hash(wcspr.contract_hash()),
+            "dai" => Key::Hash(dai.contract_hash())
+        },
+    );
+
+    // deploy pair contract
+    let init_total_supply: U256 = 0.into();
+    let pair_contract = TestContract::new(
+        &env,
+        "pair-token.wasm",
+        "pair",
+        Sender(owner),
+        runtime_args! {
+            "name" => "erc20",
+            "symbol" => "ERC",
+            "decimals" => decimals,
+            "initial_supply" => init_total_supply,
+            "factory_hash" => Key::Hash(factory_contract.contract_hash()),
+            "callee_contract_hash" => Key::Hash(flash_swapper.contract_hash())
+        },
     );
 
     // deploy library contract
-    let owner_library = env.next_user();
     let library_contract = TestContract::new(
         &env,
         "uniswap-v2-library.wasm",
         "library",
-        Sender(owner_library),
+        Sender(owner),
         runtime_args! {},
     );
 
-    let token = UniswapInstance::new(
+    // Deploy Router Contract
+    let router_contract = TestContract::new(
         &env,
-        NAME,
-        Key::Hash(factory_contract.contract_hash()),
-        Key::Hash(wcspr.contract_hash()),
+        "uniswap-v2-router.wasm",
+        "Uniswap Router",
+        Sender(owner),
+        runtime_args! {
+            "factory" => Key::Hash(factory_contract.contract_hash()),
+            "wcspr" => Key::Hash(wcspr.contract_hash()),
+            "library" => Key::Hash(library_contract.contract_hash())
+        },
+    );
+
+    // deploy library contract
+    let library_contract = TestContract::new(
+        &env,
+        "uniswap-v2-library.wasm",
+        "library",
+        Sender(owner),
+        runtime_args! {},
+    );
+
+
+    // deploy Test contract
+    let test_contract = LibraryInstance::new(
+        &env,
+        Key::Hash(router_contract.contract_hash()),
         Key::Hash(library_contract.contract_hash()),
         Sender(owner),
     );
 
-    println!(
-        "Factory: {}",
-        Key::Hash(factory_contract.contract_hash()).to_formatted_string()
-    );
-    println!(
-        "WCSPR: {}",
-        Key::Hash(wcspr.contract_hash()).to_formatted_string()
-    );
-    println!(
-        "Library: {}",
-        Key::Hash(library_contract.contract_hash()).to_formatted_string()
-    );
-    (env, token, owner, factory_contract)
+    (env, owner, test_contract, library_contract, factory_contract, pair_contract, router_contract)
 }
 
 #[test]
-fn test_uniswap_deploy() {
-    let (_, token, owner, _) = deploy_uniswap_router();
+fn test_library_deploy() {
+    let (_, owner, _, library_contract, _, _, _) = deploy_library();
     println!("Owner: {}", owner);
-    let self_hash: Key = token.uniswap_contract_address();
+    let self_hash: ContractHash = library_contract.query_named_key("self_hash".to_string());
     let zero_addr: Key = Key::from_formatted_str(
         "hash-0000000000000000000000000000000000000000000000000000000000000000",
     )
     .unwrap();
-    assert_ne!(self_hash, zero_addr);
+    assert_ne!(Key::from(self_hash), zero_addr);
 }
+
+
 
 #[test]
 fn quote() {
-    let (_, uniswap, owner, _) = deploy_uniswap_router();
+    let (_, owner, test_contract, _, _, _, _) = deploy_library();
 
-    uniswap.quote(Sender(owner), 100.into(), 200.into(), 300.into());
+    test_contract.quote(Sender(owner), 100.into(), 200.into(), 300.into());
 }
+
 
 #[test]
 fn test_uniswap_get_reserves() {
-    let (env, uniswap, owner, factory) = deploy_uniswap_router();
-    let (token1, token2, _) = deploy_dummy_tokens(&env);
+    let (env, owner, test_contract, _, factory, pair, _) = deploy_library();
+    let (token1, token2, _) = deploy_dummy_tokens(&env, Some(owner));
 
-    uniswap.get_reserves(
+    factory.call_contract(
+        Sender(owner), 
+        "create_pair", 
+        runtime_args!{
+            "token_a" => Key::Hash(token1.contract_hash()), 
+            "token_b" => Key::Hash(token2.contract_hash()), 
+            "pair_hash" => Key::Hash(pair.contract_hash())
+    });
+
+    test_contract.get_reserves(
         Sender(owner),
-        factory.contract_hash().into(),
-        token1.contract_hash().into(),
-        token2.contract_hash().into(),
+        Key::Hash(factory.contract_hash()),
+        Key::Hash(token1.contract_hash()),
+        Key::Hash(token2.contract_hash()),
     );
 }
 
 #[test]
 fn test_uniswap_get_amount_out() {
-    let (_, uniswap, owner, _) = deploy_uniswap_router();
+    let (_, owner, test_contract, _, _, _, _) = deploy_library();
 
-    uniswap.get_amount_out(Sender(owner), 100.into(), 200.into(), 300.into());
+    test_contract.get_amount_out(Sender(owner), 100.into(), 200.into(), 300.into());
 }
+
 
 #[test]
 fn test_uniswap_get_amount_in() {
-    let (_, uniswap, owner, _) = deploy_uniswap_router();
+    let (_, owner, test_contract, _, _, _, _) = deploy_library();
 
-    uniswap.get_amount_in(Sender(owner), 100.into(), 200.into(), 300.into());
+    test_contract.get_amount_in(Sender(owner), 100.into(), 200.into(), 300.into());
 }
 
 #[test]
 fn test_uniswap_get_amounts_out() {
-    let (env, uniswap, owner, factory) = deploy_uniswap_router();
-    let (token1, token2, _) = deploy_dummy_tokens(&env);
+    let (env, owner, test_contract, _, factory, pair, router_contract) = deploy_library();
+    let (token1, token2, token3) = deploy_dummy_tokens(&env, Some(owner));
 
-    let mut path: Vec<ContractHash> = Vec::new();
-    path.push(token1.contract_hash().into());
-    path.push(token2.contract_hash().into());
+    // need to create pair and liquidity for this test
+    let router_package_hash: ContractPackageHash = router_contract.query_named_key(String::from("package_hash"));
+    let router_package_hash: Key = router_package_hash.into();
 
-    uniswap.get_amounts_out(
+    let token_a = Key::Hash(token1.contract_hash());
+    let token_b = Key::Hash(token2.contract_hash());
+    let to = Key::Hash(token3.contract_hash());
+
+    let amount_a_desired: U256 = 400.into();
+    let amount_b_desired: U256 = 400.into();
+    let amount_a_min: U256 = 200.into();
+    let amount_b_min: U256 = 200.into();
+
+    let deadline: u128 = match SystemTime::now().duration_since(UNIX_EPOCH) {
+        Ok(n) => n.as_millis() + (1000 * (30 * 60)), // current epoch time in milisecond + 30 minutes
+        Err(_) => 0,
+    };
+
+    // approve the router to spend tokens
+    test_contract.approve(
+        &token1,
         Sender(owner),
-        factory.contract_hash().into(),
+        router_package_hash,
+        amount_a_desired,
+    );
+    test_contract.approve(
+        &token2,
+        Sender(owner),
+        router_package_hash,
+        amount_b_desired,
+    );
+
+    test_contract.add_liquidity(
+        Sender(owner),
+        token_a,
+        token_b,
+        amount_a_desired,
+        amount_b_desired,
+        amount_a_min,
+        amount_b_min,
+        to,
+        deadline.into(),
+        Some(Key::Hash(pair.contract_hash()))
+    );
+
+
+
+    let mut path: Vec<Key> = Vec::new();
+    path.push(Key::Hash(token1.contract_hash()));
+    path.push(Key::Hash(token2.contract_hash()));
+
+    test_contract.get_amounts_out(
+        Sender(owner),
+        Key::Hash(factory.contract_hash()),
         100.into(),
-        path,
+        path
     );
 }
 
+
 #[test]
 fn test_uniswap_get_amounts_in() {
-    let (env, uniswap, owner, factory) = deploy_uniswap_router();
-    let (token1, token2, _) = deploy_dummy_tokens(&env);
+    let (env, owner, test_contract, _, factory, pair, router_contract) = deploy_library();
+    let (token1, token2, token3) = deploy_dummy_tokens(&env, Some(owner));
 
-    let mut path: Vec<ContractHash> = Vec::new();
-    path.push(token1.contract_hash().into());
-    path.push(token2.contract_hash().into());
+        // need to create pair and liquidity for this test
+    let router_package_hash: ContractPackageHash = router_contract.query_named_key(String::from("package_hash"));
+    let router_package_hash: Key = router_package_hash.into();
 
-    uniswap.get_amounts_in(
+    let token_a = Key::Hash(token1.contract_hash());
+    let token_b = Key::Hash(token2.contract_hash());
+    let to = Key::Hash(token3.contract_hash());
+
+    let amount_a_desired: U256 = 400.into();
+    let amount_b_desired: U256 = 400.into();
+    let amount_a_min: U256 = 200.into();
+    let amount_b_min: U256 = 200.into();
+
+    let deadline: u128 = match SystemTime::now().duration_since(UNIX_EPOCH) {
+        Ok(n) => n.as_millis() + (1000 * (30 * 60)), // current epoch time in milisecond + 30 minutes
+        Err(_) => 0,
+    };
+
+    // approve the router to spend tokens
+    test_contract.approve(
+        &token1,
         Sender(owner),
-        factory.contract_hash().into(),
+        router_package_hash,
+        amount_a_desired,
+    );
+    test_contract.approve(
+        &token2,
+        Sender(owner),
+        router_package_hash,
+        amount_b_desired,
+    );
+
+    test_contract.add_liquidity(
+        Sender(owner),
+        token_a,
+        token_b,
+        amount_a_desired,
+        amount_b_desired,
+        amount_a_min,
+        amount_b_min,
+        to,
+        deadline.into(),
+        Some(Key::Hash(pair.contract_hash()))
+    );
+    
+    let mut path: Vec<Key> = Vec::new();
+    path.push(Key::Hash(token1.contract_hash()));
+    path.push(Key::Hash(token2.contract_hash()));
+
+    test_contract.get_amounts_in(
+        Sender(owner),
+        Key::Hash(factory.contract_hash()),
         100.into(),
         path,
     );

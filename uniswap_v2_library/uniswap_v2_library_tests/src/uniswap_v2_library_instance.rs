@@ -2,30 +2,22 @@ use blake2::{
     digest::{Update, VariableOutput},
     VarBlake2b,
 };
-use casper_types::{bytesrepr::ToBytes, runtime_args, Key, RuntimeArgs, U256, ContractHash};
+use casper_types::{bytesrepr::ToBytes, runtime_args, Key, RuntimeArgs, U256, U128, ContractHash};
 use test_env::{Sender, TestContract, TestEnv};
 
-pub struct UniswapInstance(TestContract);
+pub struct LibraryInstance(TestContract);
 
-impl UniswapInstance {
+impl LibraryInstance {
 
-    pub fn new(
-        env: &TestEnv,
-        contract_name: &str,
-        factory: Key,
-        wcspr: Key,
-        library: Key,
-        sender: Sender
-    ) -> UniswapInstance {
-        UniswapInstance(TestContract::new(
+    pub fn new(env: &TestEnv, router_address: Key, library_address: Key, sender: Sender) -> LibraryInstance {
+        LibraryInstance(TestContract::new(
             env,
-            "uniswap-v2-library.wasm",
-            contract_name,
+            "contract.wasm",
+            "LibraryTest",
             sender,
             runtime_args! {
-                "factory" => factory,
-                "wcspr" => wcspr,
-                "library" => library
+                "router_address" => router_address,
+                "library_address" => library_address
                 // contract_name is passed seperately, so we don't need to pass it here.
             },
         ))
@@ -51,11 +43,12 @@ impl UniswapInstance {
         );
     }
 
-    pub fn uniswap_contract_address(&self) -> Key {
-        self.0.query_named_key(String::from("self_hash"))
+    pub fn library_contract_address(&self) -> Key {
+        let address: ContractHash = self.0.query_named_key(String::from("self_hash"));
+        Key::from(address)
     }
 
-    pub fn quote(&self, sender:Sender, amount_a: U256, reserve_a: U256, reserve_b: U256) {
+    pub fn quote(&self, sender:Sender, amount_a: U256, reserve_a: U128, reserve_b: U128) {
 
         self.0.call_contract(
             sender,
@@ -68,7 +61,7 @@ impl UniswapInstance {
         );
     }
 
-    pub fn get_reserves(&self, sender:Sender, factory: ContractHash, token_a: ContractHash, token_b: ContractHash) {
+    pub fn get_reserves(&self, sender:Sender, factory: Key, token_a: Key, token_b: Key) {
 
         self.0.call_contract(
             sender,
@@ -107,7 +100,7 @@ impl UniswapInstance {
         );
     }
 
-    pub fn get_amounts_out(&self, sender:Sender, factory: ContractHash, amount_in: U256, path: Vec<ContractHash>) {
+    pub fn get_amounts_out(&self, sender:Sender, factory: Key, amount_in: U256, path: Vec<Key>) {
 
         self.0.call_contract(
             sender,
@@ -120,7 +113,7 @@ impl UniswapInstance {
         );
     }
 
-    pub fn get_amounts_in(&self, sender:Sender, factory: ContractHash, amount_out: U256, path: Vec<ContractHash>) {
+    pub fn get_amounts_in(&self, sender:Sender, factory: Key, amount_out: U256, path: Vec<Key>) {
 
         self.0.call_contract(
             sender,
@@ -132,6 +125,48 @@ impl UniswapInstance {
             }
         );
     }
+
+    pub fn add_liquidity(
+        &self,
+        sender: Sender,
+        token_a: Key,
+        token_b: Key,
+        amount_a_desired: U256,
+        amount_b_desired: U256,
+        amount_a_min: U256,
+        amount_b_min: U256,
+        to: Key,
+        deadline: U256,
+        pair: Option<Key>
+    ) {
+        self.0.call_contract(
+            sender,
+            "add_liquidity",
+            runtime_args! {
+                "token_a" => token_a,
+                "token_b" => token_b,
+                "amount_a_desired" => amount_a_desired,
+                "amount_b_desired" => amount_b_desired,
+                "amount_a_min" => amount_a_min,
+                "amount_b_min" => amount_b_min,
+                "to" => to,
+                "deadline" => deadline,
+                "pair" => pair
+            },
+        );
+    }
+    
+    pub fn approve(&self, token: &TestContract, sender: Sender, spender: Key, amount: U256) {
+        token.call_contract(
+            sender,
+            "approve",
+            runtime_args! {
+                "spender" => spender,
+                "amount" => amount
+            },
+        );
+    }
+
 }
 
 pub fn key_to_str(key: &Key) -> String {

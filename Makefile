@@ -66,13 +66,15 @@ clean:
 	# clean test contract
 	cd ${test_contract} && cargo clean
 
-# copy wasm to required directory with new names
+# copy wasm to required directory
 copy-wasm-file:
 	cp ${erc20_contract}${wasm_src_path}*.wasm ${wasm_dest_library_path}
 	cp ${factory_contract}${wasm_src_path}*.wasm ${wasm_dest_library_path}
 	cp ${flash_swapper_contract}${wasm_src_path}*.wasm ${wasm_dest_library_path}
 	cp ${pair_contract}${wasm_src_path}*.wasm ${wasm_dest_library_path}
 	cp ${wcspr_contract}${wasm_src_path}*.wasm ${wasm_dest_library_path}
+	cp ${router_contract}${wasm_src_path}*.wasm ${wasm_dest_library_path}
+	cp ${test_contract}${wasm_src_path}*.wasm ${wasm_dest_library_path}
 
 	cp ${erc20_contract}${wasm_src_path}*.wasm ${wasm_dest_router_path}
 	cp ${factory_contract}${wasm_src_path}*.wasm ${wasm_dest_router_path}

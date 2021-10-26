@@ -53,6 +53,10 @@ pub fn router_key() -> String {
     format!("router_hash")
 }
 
+pub fn library_key() -> String {
+    format!("library_hash")
+}
+
 pub fn add_liquidity_key() -> String {
     format!("add_liquidity_result")
 }
