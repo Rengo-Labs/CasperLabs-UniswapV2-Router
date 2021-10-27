@@ -5,7 +5,7 @@ Router uses other contracts (factory, pair, library, etc) and add, remove, swap 
 
 - [Interacting with the contract](#interacting-with-the-contract)
   - [Install the prerequisites](#install-the-prerequisites)
-  - [Testing](#testing)
+  - [All Test Cases](#all-test-cases)
   - [Known contract hashes](#known-contract-hashes)
   - [Deploying Router contract manually](#deploying-router-contract-manually)
   - [Manual Deployment](#manual-deployment)
@@ -52,7 +52,7 @@ sudo apt update
 sudo apt install casper-client -y
 ```
 
-### Testing <a name="testing"></a>
+### All Test Cases<a name="all-test-cases"></a>
 
 Tests require that the CasperLabs-UniswapV2-core repository to be checked out
 into a sibling directory (one up from the current directory).
@@ -67,7 +67,7 @@ To build the contracts and run the tests, first navigate back to this directory
 and run:
 
 ```
-make build-contract
+make all
 ```
 
 To run all the tests:

@@ -14,7 +14,7 @@ wasm_src_path = target/wasm32-unknown-unknown/release/
 wasm_dest_library_path = ${library_contract}/uniswap_v2_library_tests/wasm/
 wasm_dest_router_path = ${router_contract}/uniswap_v2_router_tests/wasm/
 
-build-contract:
+all:
 	# Build erc20
 	cd ${erc20_contract} && make build-contract
 
