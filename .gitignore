@@ -1,11 +1,2 @@
 target
-uniswap_v2_library/target
-uniswap_v2_library/uniswap_v2_library/target
-uniswap_v2_router/target
-uniswap_v2_router/uniswap_v2_router/target
-uniswap_v2_router/uniswap_v2_router_tests/target
-uniswap_v2_library/uniswap_v2_library_tests/.history
-uniswap_v2_router/uniswap_v2_router/.history
-uniswap_v2_router/uniswap_v2_router_tests/.history/
-uniswap_v2_router_test_contract/test-contract/contract/.history
-
+*.wasm
