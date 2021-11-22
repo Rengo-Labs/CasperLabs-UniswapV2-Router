@@ -75,42 +75,27 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         let pair: ContractHash = ContractHash::from(pair.into_hash().unwrap_or_default()); // convert key into ContractHash
         let pair_package_hash: ContractPackageHash = runtime::call_contract(pair, "package_hash", runtime_args!{});
 
-        // qsp2 fix - temporarily commented out
-        // let result:Result<(), u32> = transfer_helper::safe_transfer_from(
-        //     Key::from(token_a),
-        //     Key::from(runtime::get_caller()),
-        //     Key::from(Key::from(pair_package_hash)),
-        //     amount_a,
-        // );
-        // if result.is_err()                    // transfer_from failed
-        // {
-        //     runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
-        // }
-
-        // let result:Result<(), u32> = transfer_helper::safe_transfer_from(
-        //     Key::from(token_b),
-        //     Key::from(runtime::get_caller()),
-        //     Key::from(Key::from(pair_package_hash)),
-        //     amount_b,
-        // );
-        // if result.is_err()                    // transfer_from failed
-        // {
-        //     runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
-        // }
-
-        transfer_helper::safe_transfer_from(
+        let result:Result<(), u32> = transfer_helper::safe_transfer_from(
             Key::from(token_a),
             Key::from(runtime::get_caller()),
             Key::from(Key::from(pair_package_hash)),
             amount_a,
         );
+        if result.is_err()                    // transfer_from failed
+        {
+            runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
+        }
 
-        transfer_helper::safe_transfer_from(
+        let result:Result<(), u32> = transfer_helper::safe_transfer_from(
             Key::from(token_b),
             Key::from(runtime::get_caller()),
             Key::from(Key::from(pair_package_hash)),
             amount_b,
         );
+        if result.is_err()                    // transfer_from failed
+        {
+            runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
+        }
 
         // call mint function from IUniswapV2Pair contract
         let args: RuntimeArgs = runtime_args! {
@@ -123,91 +108,6 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             args,
         );
         (amount_a, amount_b, liquidity)
-    }
-
-    
-    fn remove_liquidity(
-        &mut self,
-        token_a: ContractHash,
-        token_b: ContractHash,
-        liquidity: U256,
-        amount_a_min: U256,
-        amount_b_min: U256,
-        to: Key,
-    ) -> (U256, U256) {
-        let factory: ContractHash = data::factory();
-
-        // call pair_for from library contract
-        let uniswapv2_library_contract_hash = data::library_hash().to_formatted_string();
-        let args: RuntimeArgs = runtime_args! {
-            "factory" => Key::from(factory),
-            "token_a" => Key::from(token_a),
-            "token_b" => Key::from(token_b)
-        };
-        let pair: Key = Self::call_contract(
-            &uniswapv2_library_contract_hash,
-            uniswapv2_contract_methods::LIBRARY_PAIR_FOR,
-            args,
-        );
-        let pair: ContractHash = ContractHash::from(pair.into_hash().unwrap_or_default()); // convert key into ContractHash
-        let pair_package_hash: ContractPackageHash = runtime::call_contract(pair, "package_hash", runtime_args!{});
-
-        
-        // call transferFrom from IUniSwapV2Pair
-        let args: RuntimeArgs = runtime_args! {
-            "owner" => Key::from(runtime::get_caller()),
-            "recipient" => Key::from(pair_package_hash),
-            "amount" => liquidity
-        };
-        // qsp2 fix - temporarily commented out
-        // let result:Result<(), u32> = Self::call_contract(
-        //     &pair.to_formatted_string(),
-        //     uniswapv2_contract_methods::PAIR_TRANSFER_FROM,
-        //     args,
-        // );
-        // if result.is_err()
-        // {
-        //     runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
-        // }
-        
-        let _ : () = Self::call_contract(
-            &pair.to_formatted_string(),
-            uniswapv2_contract_methods::PAIR_TRANSFER_FROM,
-            args,
-        );
-
-        // call burn from IUniSwapV2Pair
-        let args: RuntimeArgs = runtime_args! {
-            "to" => to,
-        };
-        let (amount0, amount1): (U256, U256) = Self::call_contract(
-            &pair.to_formatted_string(),
-            uniswapv2_contract_methods::PAIR_BURN,
-            args,
-        );
-
-        // call sortTokens from library contract
-        let args: RuntimeArgs = runtime_args! {
-            "token_a" => Key::from(token_a),
-            "token_b" => Key::from(token_b)
-        };
-
-        let (token0, _): (ContractHash, ContractHash) = Self::call_contract(
-            &uniswapv2_library_contract_hash,
-            uniswapv2_contract_methods::LIBRARY_SORT_TOKENS,
-            args,
-        );
-
-        let (amount_a, amount_b): (U256, U256) = if token_a == token0 {
-            (amount0, amount1)
-        } else {
-            (amount1, amount0)
-        };
-
-        if amount_a < amount_a_min || amount_b < amount_b_min {
-            runtime::revert(ApiError::User(ErrorCodes::Abort as u16));
-        }
-        (amount_a, amount_b)
     }
 
     fn add_liquidity_cspr(
@@ -254,85 +154,52 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         }
         
         // call safe_transfer_from from TransferHelper
-        // qsp2 fix - temporarily commented out
-
-        // let result: Result<(), u32> = transfer_helper::safe_transfer_from(
-        //     Key::from(token),
-        //     Key::from(runtime::get_caller()),
-        //     Key::from(pair_package_hash),
-        //     amount_token,
-        // );
-        // if result.is_err()                    // transfer_from failed
-        // {
-        //     runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
-        // }
-        
-        let _ : () = transfer_helper::safe_transfer_from(
-                Key::from(token),
-                Key::from(runtime::get_caller()),
-                Key::from(pair_package_hash),
-                amount_token,
+        let result: Result<(), u32> = transfer_helper::safe_transfer_from(
+            Key::from(token),
+            Key::from(runtime::get_caller()),
+            Key::from(pair_package_hash),
+            amount_token,
         );
+        if result.is_err()                    // transfer_from failed
+        {
+            runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
+        }
+        
 
         let self_purse = system::create_purse();                    // create new temporary purse and transfer cspr from caller purse to this
         let _:() = system::transfer_from_purse_to_purse(caller_purse, self_purse,  U512::from(amount_cspr.as_u128()), None).unwrap_or_revert();
 
         // this call will submit cspr to the wcspr contract and in return get wcspr tokens which will be sent to pair
-        
-        // qsp2 fix - temporarily commented out
-
-        // let args: RuntimeArgs = runtime_args! {
-        //     "amount" => U512::from(amount_cspr.as_u128()),
-        //     "purse" => self_purse
-        // };
-        // let result: Result<(), u32> = Self::call_contract(
-        //     &wcspr.to_formatted_string(),
-        //     uniswapv2_contract_methods::WCSPR_DEPOSIT,
-        //     args,
-        // );
-        // if result.is_err()                    // transfer_from failed
-        // {
-        //     runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
-        // }
 
         let args: RuntimeArgs = runtime_args! {
             "amount" => U512::from(amount_cspr.as_u128()),
             "purse" => self_purse
         };
-        
-        let _:() = Self::call_contract(
+        let result: Result<(), u32> = Self::call_contract(
             &wcspr.to_formatted_string(),
             uniswapv2_contract_methods::WCSPR_DEPOSIT,
             args,
         );
+        if result.is_err()                    // transfer_from failed
+        {
+            runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
+        }
 
         // call transfer method from wcspr
-        // qsp2 fix - temporarily commented out
-
-        // let args: RuntimeArgs = runtime_args! {
-        //     "recipient" => Key::from(pair_package_hash),
-        //     "amount" => amount_cspr
-        // };
-        // let result: Result<(), u32> = Self::call_contract(
-        //     &wcspr.to_formatted_string(),
-        //     uniswapv2_contract_methods::WCSPR_TRANSFER,
-        //     args,
-        // );
-        // if result.is_err()                    // transfer_from failed
-        // {
-        //     runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
-        // }
-
         let args: RuntimeArgs = runtime_args! {
             "recipient" => Key::from(pair_package_hash),
             "amount" => amount_cspr
         };
-        let _: () = Self::call_contract(
+        let result: Result<(), u32> = Self::call_contract(
             &wcspr.to_formatted_string(),
             uniswapv2_contract_methods::WCSPR_TRANSFER,
             args,
         );
-        
+        if result.is_err()                    // transfer_from failed
+        {
+            runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
+        }
+
         // call mint function from pair contract
         let args: RuntimeArgs = runtime_args! {
             "to" => to,
@@ -347,6 +214,85 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         // No need to transfer the leftover cspr, because we are already taking the exact amount out from the caller purse
         (amount_token, amount_cspr, liquidity)
     }
+    
+    fn remove_liquidity(
+        &mut self,
+        token_a: ContractHash,
+        token_b: ContractHash,
+        liquidity: U256,
+        amount_a_min: U256,
+        amount_b_min: U256,
+        to: Key,
+    ) -> (U256, U256) {
+        let factory: ContractHash = data::factory();
+
+        // call pair_for from library contract
+        let uniswapv2_library_contract_hash = data::library_hash().to_formatted_string();
+        let args: RuntimeArgs = runtime_args! {
+            "factory" => Key::from(factory),
+            "token_a" => Key::from(token_a),
+            "token_b" => Key::from(token_b)
+        };
+        let pair: Key = Self::call_contract(
+            &uniswapv2_library_contract_hash,
+            uniswapv2_contract_methods::LIBRARY_PAIR_FOR,
+            args,
+        );
+        let pair: ContractHash = ContractHash::from(pair.into_hash().unwrap_or_default()); // convert key into ContractHash
+        let pair_package_hash: ContractPackageHash = runtime::call_contract(pair, "package_hash", runtime_args!{});
+
+        
+        // call transferFrom from IUniSwapV2Pair
+        let args: RuntimeArgs = runtime_args! {
+            "owner" => Key::from(runtime::get_caller()),
+            "recipient" => Key::from(pair_package_hash),
+            "amount" => liquidity
+        };
+
+        let result:Result<(), u32> = Self::call_contract(
+            &pair.to_formatted_string(),
+            uniswapv2_contract_methods::PAIR_TRANSFER_FROM,
+            args,
+        );
+        if result.is_err()
+        {
+            runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
+        }
+        
+        // call burn from IUniSwapV2Pair
+        let args: RuntimeArgs = runtime_args! {
+            "to" => to,
+        };
+        let (amount0, amount1): (U256, U256) = Self::call_contract(
+            &pair.to_formatted_string(),
+            uniswapv2_contract_methods::PAIR_BURN,
+            args,
+        );
+
+        // call sortTokens from library contract
+        let args: RuntimeArgs = runtime_args! {
+            "token_a" => Key::from(token_a),
+            "token_b" => Key::from(token_b)
+        };
+
+        let (token0, _): (ContractHash, ContractHash) = Self::call_contract(
+            &uniswapv2_library_contract_hash,
+            uniswapv2_contract_methods::LIBRARY_SORT_TOKENS,
+            args,
+        );
+
+        let (amount_a, amount_b): (U256, U256) = if token_a == token0 {
+            (amount0, amount1)
+        } else {
+            (amount1, amount0)
+        };
+
+        if amount_a < amount_a_min || amount_b < amount_b_min {
+            runtime::revert(ApiError::User(ErrorCodes::Abort as u16));
+        }
+        (amount_a, amount_b)
+    }
+
 
     fn remove_liquidity_cspr(
         &mut self,
@@ -376,45 +322,27 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             runtime::call_versioned_contract(package_hash, None, "remove_liquidity", args);
 
         // transfer token to 'to'
-        // qsp2 fix - temporarily commented out
-
-        // let result: Result<(), u32> = transfer_helper::safe_transfer(Key::from(token), to, amount_token);
-        // if result.is_err()                                  // transfer_from failed
-        // {
-        //     runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
-        // }
-        transfer_helper::safe_transfer(Key::from(token), to, amount_token);
-
-
+        let result: Result<(), u32> = transfer_helper::safe_transfer(Key::from(token), to, amount_token);
+        if result.is_err()                                  // transfer failed
+        {
+            runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
+        }
 
         // call withdraw and transfer cspr to 'to'
-        // qsp2 fix - temporarily commented out
-
-        // let args: RuntimeArgs = runtime_args! {
-        //     "to" => to,
-        //     "amount" => U512::from(amount_cspr.as_u128())
-        // };
-
-        // let result: Result<(), u32> = Self::call_contract(
-        //     &wcspr.to_formatted_string(),
-        //     uniswapv2_contract_methods::WCSPR_WITHDRAW,
-        //     args,
-        // );
-        // if result.is_err()                    // transfer_from failed
-        // {
-        //     runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
-        // }
-
         let args: RuntimeArgs = runtime_args! {
             "to" => to,
             "amount" => U512::from(amount_cspr.as_u128())
         };
-    
-        let _ : () = Self::call_contract(
+
+        let result: Result<(), u32> = Self::call_contract(
             &wcspr.to_formatted_string(),
             uniswapv2_contract_methods::WCSPR_WITHDRAW,
             args,
         );
+        if result.is_err()                    // wcspr_withdraw failed
+        {
+            runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
+        }
 
         (amount_token, amount_cspr)
     }
@@ -601,25 +529,16 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         let pair: ContractHash = ContractHash::from(pair.into_hash().unwrap_or_default()); // convert key into ContractHash
         let pair_package_hash: ContractPackageHash = runtime::call_contract(pair, "package_hash", runtime_args!{});
 
-
-        // qsp2 fix - temporarily commented out
-        // let result: Result<(), u32> = transfer_helper::safe_transfer_from(
-        //     path[0],
-        //     Key::from(runtime::get_caller()),
-        //     Key::from(pair_package_hash),
-        //     amounts[0],
-        // );
-        // if result.is_err()                                  // transfer_from failed
-        // {
-        //     runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
-        // }
-
-        transfer_helper::safe_transfer_from(
+        let result: Result<(), u32> = transfer_helper::safe_transfer_from(
             path[0],
             Key::from(runtime::get_caller()),
             Key::from(pair_package_hash),
             amounts[0],
         );
+        if result.is_err()                                  // transfer_from failed
+        {
+            runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
+        }
 
         Self::_swap(&amounts, &path, to);
         amounts
@@ -667,25 +586,16 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         let pair: ContractHash = ContractHash::from(pair.into_hash().unwrap_or_default()); // convert key into ContractHash
         let pair_package_hash: ContractPackageHash = runtime::call_contract(pair, "package_hash", runtime_args!{});
 
-        
-        // qsp2 fix - temporarily commented out
-        // let result: Result<(), u32> = transfer_helper::safe_transfer_from(
-        //     path[0],
-        //     Key::from(runtime::get_caller()),
-        //     Key::from(pair_package_hash),
-        //     amounts[0],
-        // );
-        // if result.is_err()                                  // transfer_from failed
-        // {
-        //     runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
-        // }
-
-        transfer_helper::safe_transfer_from(
+        let result: Result<(), u32> = transfer_helper::safe_transfer_from(
             path[0],
             Key::from(runtime::get_caller()),
             Key::from(pair_package_hash),
             amounts[0],
         );
+        if result.is_err()                                  // transfer_from failed
+        {
+            runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
+        }
         
         Self::_swap(&amounts, &path, to);
         amounts
@@ -726,30 +636,19 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         let self_purse = system::create_purse();                    // create new temporary purse and transfer cspr from caller purse to this
         let _:() = system::transfer_from_purse_to_purse(caller_purse, self_purse,  U512::from(amounts[0].as_u128()), None).unwrap_or_revert();
 
-        // qsp2 fix - commented out
-        // let args: RuntimeArgs = runtime_args! {
-        //     "amount" => U512::from(amounts[0].as_u128()),
-        //     "purse" => self_purse,
-        // };
-        // let result: Result<(), u32> = Self::call_contract(
-        //     &wcspr.to_formatted_string(),
-        //     uniswapv2_contract_methods::WCSPR_DEPOSIT,
-        //     args,
-        // );
-        // if result.is_err()                    // transfer_from failed
-        // {
-        //     runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
-        // }
-
         let args: RuntimeArgs = runtime_args! {
             "amount" => U512::from(amounts[0].as_u128()),
             "purse" => self_purse,
         };
-        let _ : () = Self::call_contract(
+        let result: Result<(), u32> = Self::call_contract(
             &wcspr.to_formatted_string(),
             uniswapv2_contract_methods::WCSPR_DEPOSIT,
             args,
         );
+        if result.is_err()                    // transfer_from failed
+        {
+            runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
+        }
 
         // call transfer method from IWETH
         // Get pair
@@ -772,22 +671,16 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             "amount" => amounts[0]
         };
 
-        // qsp2 fix - commented out
-        // let result: Result<(), u32> = Self::call_contract(
-        //     &wcspr.to_formatted_string(),
-        //     uniswapv2_contract_methods::WCSPR_TRANSFER,
-        //     args,
-        // );
-        // if result.is_err()                    // transfer_from failed
-        // {
-        //     runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
-        // }
-
-        let _: () = Self::call_contract(
+        let result: Result<(), u32> = Self::call_contract(
             &wcspr.to_formatted_string(),
             uniswapv2_contract_methods::WCSPR_TRANSFER,
             args,
         );
+        if result.is_err()                    // transfer_from failed
+        {
+            runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
+        }
+
         Self::_swap(&amounts, &path, to);
 
         amounts
@@ -843,52 +736,33 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         let pair: ContractHash = ContractHash::from(pair.into_hash().unwrap_or_default()); // convert key into ContractHash
         let pair_package_hash: ContractPackageHash = runtime::call_contract(pair, "package_hash", runtime_args!{});
 
-        // qsp2 fix - commented out
-        // let result: Result<(), u32> = transfer_helper::safe_transfer_from(
-        //     path[0],
-        //     Key::from(runtime::get_caller()),
-        //     Key::from(pair_package_hash),
-        //     amounts[0],
-        // );
-        // if result.is_err()                                  // transfer_from failed
-        // {
-        //     runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
-        // }
-        transfer_helper::safe_transfer_from(
+        let result: Result<(), u32> = transfer_helper::safe_transfer_from(
             path[0],
             Key::from(runtime::get_caller()),
             Key::from(pair_package_hash),
             amounts[0],
         );
+        if result.is_err()                                  // transfer_from failed
+        {
+            runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
+        }
         
         Self::_swap(&amounts, &path, self_addr);
 
         // call withdraw from WCSPR and transfer cspr to 'to'
-        
-        // qsp2 fix - commented out
-        // let args: RuntimeArgs = runtime_args! {
-        //     "to" => to,
-        //     "amount" => U512::from(amounts[amounts.len() - 1].as_u128())
-        // };
-        // let result: Result<(), u32> = Self::call_contract(
-        //     &wcspr.to_formatted_string(),
-        //     uniswapv2_contract_methods::WCSPR_WITHDRAW,
-        //     args,
-        // );
-        // if result.is_err()                    // transfer_from failed
-        // {
-        //     runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
-        // }
-
         let args: RuntimeArgs = runtime_args! {
             "to" => to,
             "amount" => U512::from(amounts[amounts.len() - 1].as_u128())
         };
-        let _ : () = Self::call_contract(
+        let result: Result<(), u32> = Self::call_contract(
             &wcspr.to_formatted_string(),
             uniswapv2_contract_methods::WCSPR_WITHDRAW,
             args,
         );
+        if result.is_err()                    // transfer_from failed
+        {
+            runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
+        }
 
         amounts
     }
@@ -940,54 +814,34 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         let pair: ContractHash = ContractHash::from(pair.into_hash().unwrap_or_default()); // convert key into ContractHash
         let pair_package_hash: ContractPackageHash = runtime::call_contract(pair, "package_hash", runtime_args!{});
 
-        // qsp2 fix commented out
-        // let result: Result<(), u32> = transfer_helper::safe_transfer_from(
-        //     path[0],
-        //     Key::from(runtime::get_caller()),
-        //     Key::from(pair_package_hash),
-        //     amounts[0],
-        // );
-        // if result.is_err()                                  // transfer_from failed
-        // {
-        //     runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
-        // }
-
-        transfer_helper::safe_transfer_from(
+        let result: Result<(), u32> = transfer_helper::safe_transfer_from(
             path[0],
             Key::from(runtime::get_caller()),
             Key::from(pair_package_hash),
             amounts[0],
         );
+        if result.is_err()                                  // transfer_from failed
+        {
+            runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
+        }
         
         Self::_swap(&amounts, &path, self_addr);
         
-        // call withdraw from WCSPR and transfer cspr to 'to'
-        
-        // qsp2 fix - commented out
-        // let args: RuntimeArgs = runtime_args! {
-        //     "to" => to,
-        //     "amount" => U512::from(amounts[amounts.len() - 1].as_u128())
-        // };
-        // let result: Result<(), u32> = Self::call_contract(
-        //     &wcspr.to_formatted_string(),
-        //     uniswapv2_contract_methods::WCSPR_WITHDRAW,
-        //     args,
-        // );
-        // if result.is_err()                    // transfer_from failed
-        // {
-        //     runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
-        // }
-        
 
+        // call withdraw from WCSPR and transfer cspr to 'to'        
         let args: RuntimeArgs = runtime_args! {
             "to" => to,
             "amount" => U512::from(amounts[amounts.len() - 1].as_u128())
         };
-        let _ : () = Self::call_contract(
+        let result: Result<(), u32> = Self::call_contract(
             &wcspr.to_formatted_string(),
             uniswapv2_contract_methods::WCSPR_WITHDRAW,
             args,
         );
+        if result.is_err()                    // transfer_from failed
+        {
+            runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
+        }
 
         amounts
     }
@@ -1029,31 +883,19 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
 
 
         // call deposit method from wcspr
-
-        // qsp2 fix commented out
-        // let args: RuntimeArgs = runtime_args! {
-        //     "amount" => U512::from(amounts[0].as_u128()),
-        //     "purse" => self_purse
-        // };
-        // let result: Result<(), u32> = Self::call_contract(
-        //     &wcspr.to_formatted_string(),
-        //     uniswapv2_contract_methods::WCSPR_DEPOSIT,
-        //     args,
-        // );
-        // if result.is_err()                    // transfer_from failed
-        // {
-        //     runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
-        // }
-
         let args: RuntimeArgs = runtime_args! {
             "amount" => U512::from(amounts[0].as_u128()),
             "purse" => self_purse
         };
-        let _ : () = Self::call_contract(
+        let result: Result<(), u32> = Self::call_contract(
             &wcspr.to_formatted_string(),
             uniswapv2_contract_methods::WCSPR_DEPOSIT,
             args,
         );
+        if result.is_err()                    // transfer_from failed
+        {
+            runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
+        }
 
 
         // call transfer method from wcspr
@@ -1072,30 +914,19 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         let pair: ContractHash = ContractHash::from(pair.into_hash().unwrap_or_default()); // convert key into ContractHash
         let pair_package_hash: ContractPackageHash = runtime::call_contract(pair, "package_hash", runtime_args!{});
 
-        // qsp2 fix - commented out
-        // let args: RuntimeArgs = runtime_args! {
-        //     "recipient" => Key::from(pair_package_hash),
-        //     "amount" => amounts[0]
-        // };
-        // let result: Result<(), u32> = Self::call_contract(
-        //     &wcspr.to_formatted_string(),
-        //     uniswapv2_contract_methods::WCSPR_TRANSFER,
-        //     args,
-        // );
-        // if result.is_err()                    // transfer_from failed
-        // {
-        //     runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
-        // }
-
         let args: RuntimeArgs = runtime_args! {
             "recipient" => Key::from(pair_package_hash),
             "amount" => amounts[0]
         };
-        let _ : () = Self::call_contract(
+        let result: Result<(), u32> = Self::call_contract(
             &wcspr.to_formatted_string(),
             uniswapv2_contract_methods::WCSPR_TRANSFER,
             args,
         );
+        if result.is_err()                    // transfer_from failed
+        {
+            runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
+        }
 
         Self::_swap(&amounts, &path, to);
 
