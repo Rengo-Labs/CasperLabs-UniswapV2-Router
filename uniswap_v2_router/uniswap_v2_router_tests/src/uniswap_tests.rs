@@ -213,6 +213,11 @@ fn deploy_uniswap_router() -> (
         Sender(owner),
     );
 
+
+    // insert router to the factory's white-list
+    let router_package_hash: ContractPackageHash = router_contract.query_named_key("package_hash".to_string());
+    factory_contract.call_contract(Sender(owner), "set_white_list" ,runtime_args! {"white_list" => Key::from(router_package_hash)});
+
     (
         env,
         test_contract,

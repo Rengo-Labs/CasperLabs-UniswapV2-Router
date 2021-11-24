@@ -249,6 +249,10 @@ fn deploy_library() -> (TestEnv, AccountHash, LibraryInstance, TestContract, Tes
         Sender(owner),
     );
 
+    // insert router to the factory's white-list
+    let router_package_hash: ContractPackageHash = router_contract.query_named_key("package_hash".to_string());
+    factory_contract.call_contract(Sender(owner), "set_white_list" ,runtime_args! {"white_list" => Key::from(router_package_hash)});
+
     (env, owner, test_contract, library_contract, factory_contract, pair_contract, router_contract)
 }
 
@@ -276,17 +280,53 @@ fn quote() {
 
 #[test]
 fn test_uniswap_get_reserves() {
-    let (env, owner, test_contract, _, factory, pair, _) = deploy_library();
-    let (token1, token2, _) = deploy_dummy_tokens(&env, Some(owner));
+    let (env, owner, test_contract, _, factory, pair, router_contract) = deploy_library();
+    let (token1, token2, token3) = deploy_dummy_tokens(&env, Some(owner));
 
-    factory.call_contract(
-        Sender(owner), 
-        "create_pair", 
-        runtime_args!{
-            "token_a" => Key::Hash(token1.contract_hash()), 
-            "token_b" => Key::Hash(token2.contract_hash()), 
-            "pair_hash" => Key::Hash(pair.contract_hash())
-    });
+    // need to create pair and liquidity for this test
+    let router_package_hash: ContractPackageHash = router_contract.query_named_key(String::from("package_hash"));
+    let router_package_hash: Key = router_package_hash.into();
+    
+    let token_a = Key::Hash(token1.contract_hash());
+    let token_b = Key::Hash(token2.contract_hash());
+    let to = Key::Hash(token3.contract_hash());
+    
+    let amount_a_desired: U256 = 400.into();
+    let amount_b_desired: U256 = 400.into();
+    let amount_a_min: U256 = 200.into();
+    let amount_b_min: U256 = 200.into();
+    
+    let deadline: u128 = match SystemTime::now().duration_since(UNIX_EPOCH) {
+        Ok(n) => n.as_millis() + (1000 * (30 * 60)), // current epoch time in milisecond + 30 minutes
+        Err(_) => 0,
+    };
+    
+        // approve the router to spend tokens
+    test_contract.approve(
+        &token1,
+        Sender(owner),
+        router_package_hash,
+        amount_a_desired,
+    );
+    test_contract.approve(
+        &token2,
+        Sender(owner),
+        router_package_hash,
+        amount_b_desired,
+    );
+    
+    test_contract.add_liquidity(
+        Sender(owner),
+        token_a,
+        token_b,
+        amount_a_desired,
+        amount_b_desired,
+        amount_a_min,
+        amount_b_min,
+        to,
+        deadline.into(),
+        Some(Key::Hash(pair.contract_hash()))
+    );
 
     test_contract.get_reserves(
         Sender(owner),
