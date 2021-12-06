@@ -394,7 +394,7 @@ fn get_amount_out() {
     let reserve_in: U256 = runtime::get_named_arg("reserve_in");
     let reserve_out: U256 = runtime::get_named_arg("reserve_out");
 
-    let amount_out: U256 = Uniswap::default().get_amount_out(amount_in, reserve_in, reserve_out);
+    let amount_out: U256 = Uniswap::get_amount_out(amount_in, reserve_in, reserve_out);
     runtime::ret(CLValue::from_t(amount_out).unwrap_or_revert())
 }
 
@@ -405,7 +405,7 @@ fn get_amount_in() {
     let reserve_in: U256 = runtime::get_named_arg("reserve_in");
     let reserve_out: U256 = runtime::get_named_arg("reserve_out");
 
-    let amount_in: U256 = Uniswap::default().get_amount_in(amount_out, reserve_in, reserve_out);
+    let amount_in: U256 = Uniswap::get_amount_in(amount_out, reserve_in, reserve_out);
     runtime::ret(CLValue::from_t(amount_in).unwrap_or_revert())
 }
 
@@ -420,7 +420,7 @@ fn get_amounts_out() {
         path.push(value.into_hash().unwrap_or_default().into());
     }
 
-    let amounts: Vec<U256> = Uniswap::default().get_amounts_out(amount_in, path);
+    let amounts: Vec<U256> = Uniswap::get_amounts_out(amount_in, path);
     runtime::ret(CLValue::from_t(amounts).unwrap_or_revert())
 }
 
@@ -435,7 +435,7 @@ fn get_amounts_in() {
         path.push(value.into_hash().unwrap_or_default().into());
     }
 
-    let amounts: Vec<U256> = Uniswap::default().get_amounts_in(amount_out, path);
+    let amounts: Vec<U256> = Uniswap::get_amounts_in(amount_out, path);
     runtime::ret(CLValue::from_t(amounts).unwrap_or_revert())
 }
 
