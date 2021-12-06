@@ -388,6 +388,17 @@ fn swap_cspr_for_exact_tokens() {
 }
 
 #[no_mangle]
+// given some amount of an asset and pair reserves, returns an equivalent amount of the other asset
+fn quote() {
+    let amount_a: U256 = runtime::get_named_arg("amount_a");
+    let reserve_a: U256 = runtime::get_named_arg("reserve_a");
+    let reserve_b: U256 = runtime::get_named_arg("reserve_b");
+
+    let amount_b: U256 = Uniswap::quote(amount_a, reserve_a, reserve_b);
+    runtime::ret(CLValue::from_t(amount_b).unwrap_or_revert())
+}
+
+#[no_mangle]
 // given an input amount of an asset and pair reserves, returns the maximum output amount of the other asset
 fn get_amount_out() {
     let amount_in: U256 = runtime::get_named_arg("amount_in");
@@ -656,6 +667,18 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("purse", CLType::URef)
         ],
         CLType::List(Box::new(CLType::U256)),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+
+    entry_points.add_entry_point(EntryPoint::new(
+        "quote",
+        vec![
+            Parameter::new("amount_a", U256::cl_type()),
+            Parameter::new("reserve_a", U256::cl_type()),
+            Parameter::new("reserve_b", U256::cl_type()),
+        ],
+        U256::cl_type(),
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));

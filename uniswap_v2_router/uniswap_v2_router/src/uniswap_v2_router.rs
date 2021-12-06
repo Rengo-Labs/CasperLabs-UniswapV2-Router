@@ -938,8 +938,8 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         let uniswapv2_library_contract_hash = data::library_hash().to_formatted_string();
         let args: RuntimeArgs = runtime_args! {
             "amount_a" => amount_a,
-            "reserve_a" => reserve_a,
-            "reserve_b" => reserve_b
+            "reserve_a" => U128::from(reserve_a.as_u128()),
+            "reserve_b" => U128::from(reserve_b.as_u128())
         };
 
         let amount_b: U256 = Self::call_contract(
