@@ -388,6 +388,58 @@ fn swap_cspr_for_exact_tokens() {
 }
 
 #[no_mangle]
+// given an input amount of an asset and pair reserves, returns the maximum output amount of the other asset
+fn get_amount_out() {
+    let amount_in: U256 = runtime::get_named_arg("amount_in");
+    let reserve_in: U256 = runtime::get_named_arg("reserve_in");
+    let reserve_out: U256 = runtime::get_named_arg("reserve_out");
+
+    let amount_out: U256 = Uniswap::default().get_amount_out(amount_in, reserve_in, reserve_out);
+    runtime::ret(CLValue::from_t(amount_out).unwrap_or_revert())
+}
+
+#[no_mangle]
+// given an output amount of an asset and pair reserves, returns a required input amount of the other asset
+fn get_amount_in() {
+    let amount_out: U256 = runtime::get_named_arg("amount_out");
+    let reserve_in: U256 = runtime::get_named_arg("reserve_in");
+    let reserve_out: U256 = runtime::get_named_arg("reserve_out");
+
+    let amount_in: U256 = Uniswap::default().get_amount_in(amount_out, reserve_in, reserve_out);
+    runtime::ret(CLValue::from_t(amount_in).unwrap_or_revert())
+}
+
+#[no_mangle]
+// performs chained getAmountOut calculations on any number of pairs
+fn get_amounts_out() {
+    let amount_in: U256 = runtime::get_named_arg("amount_in");
+    let _path: Vec<Key> = runtime::get_named_arg("path");
+
+    let mut path: Vec<ContractHash> = Vec::new();
+    for value in _path {
+        path.push(value.into_hash().unwrap_or_default().into());
+    }
+
+    let amounts: Vec<U256> = Uniswap::default().get_amounts_out(amount_in, path);
+    runtime::ret(CLValue::from_t(amounts).unwrap_or_revert())
+}
+
+#[no_mangle]
+// performs chained getAmountIn calculations on any number of pairs
+fn get_amounts_in() {
+    let amount_out: U256 = runtime::get_named_arg("amount_out");
+    let _path: Vec<Key> = runtime::get_named_arg("path");
+
+    let mut path: Vec<ContractHash> = Vec::new();
+    for value in _path {
+        path.push(value.into_hash().unwrap_or_default().into());
+    }
+
+    let amounts: Vec<U256> = Uniswap::default().get_amounts_in(amount_out, path);
+    runtime::ret(CLValue::from_t(amounts).unwrap_or_revert())
+}
+
+#[no_mangle]
 fn package_hash() {
     let ret: ContractPackageHash = Uniswap::default().get_package_hash();
     runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
@@ -604,6 +656,52 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("purse", CLType::URef)
         ],
         CLType::List(Box::new(CLType::U256)),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+
+    entry_points.add_entry_point(EntryPoint::new(
+        String::from("get_amount_out"),
+        vec![
+            Parameter::new("amount_in", U256::cl_type()),
+            Parameter::new("reserve_in", U256::cl_type()),
+            Parameter::new("reserve_out", U256::cl_type()),
+        ],
+        U256::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+
+    entry_points.add_entry_point(EntryPoint::new(
+        String::from("get_amount_in"),
+        vec![
+            Parameter::new("amount_out", U256::cl_type()),
+            Parameter::new("reserve_in", U256::cl_type()),
+            Parameter::new("reserve_out", U256::cl_type()),
+        ],
+        U256::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+
+    entry_points.add_entry_point(EntryPoint::new(
+        String::from("get_amounts_out"),
+        vec![
+            Parameter::new("amount_in", U256::cl_type()),
+            Parameter::new("path", CLType::List(Box::new(Key::cl_type()))),
+        ],
+        CLType::List(Box::new(U256::cl_type())),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+
+    entry_points.add_entry_point(EntryPoint::new(
+        String::from("get_amounts_in"),
+        vec![
+            Parameter::new("amount_out", U256::cl_type()),
+            Parameter::new("path", CLType::List(Box::new(Key::cl_type()))),
+        ],
+        CLType::List(Box::new(U256::cl_type())),
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
