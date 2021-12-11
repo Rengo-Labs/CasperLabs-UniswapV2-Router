@@ -77,7 +77,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
 
         let result:Result<(), u32> = transfer_helper::safe_transfer_from(
             Key::from(token_a),
-            Key::from(runtime::get_caller()),
+            self.get_caller(),
             Key::from(Key::from(pair_package_hash)),
             amount_a,
         );
@@ -88,7 +88,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
 
         let result:Result<(), u32> = transfer_helper::safe_transfer_from(
             Key::from(token_b),
-            Key::from(runtime::get_caller()),
+            self.get_caller(),
             Key::from(Key::from(pair_package_hash)),
             amount_b,
         );
@@ -156,7 +156,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         // call safe_transfer_from from TransferHelper
         let result: Result<(), u32> = transfer_helper::safe_transfer_from(
             Key::from(token),
-            Key::from(runtime::get_caller()),
+            self.get_caller(),
             Key::from(pair_package_hash),
             amount_token,
         );
@@ -244,11 +244,12 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         
         // call transferFrom from IUniSwapV2Pair
         let args: RuntimeArgs = runtime_args! {
-            "owner" => Key::from(runtime::get_caller()),
+            "owner" => self.get_caller(),
             "recipient" => Key::from(pair_package_hash),
             "amount" => liquidity
         };
 
+        
         let result:Result<(), u32> = Self::call_contract(
             &pair.to_formatted_string(),
             uniswapv2_contract_methods::PAIR_TRANSFER_FROM,
@@ -300,27 +301,18 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         liquidity: U256,
         amount_token_min: U256,
         amount_cspr_min: U256,
-        to: Key,
+        to: Key,                            // to's key to transfer back token
         deadline: U256,
+        to_purse: URef                      // to's purse to transfer back cspr
+        
     ) -> (U256, U256) {
 
         // calling self contract's removeLiquidity
         let package_hash = data::package_hash();
         let wcspr: ContractHash = data::wcspr();
 
-        let args: RuntimeArgs = runtime_args! {
-            "token_a" => Key::from(token),
-            "token_b" => Key::from(wcspr),
-            "liquidity" => liquidity,
-            "amount_a_min" => amount_token_min,
-            "amount_b_min" => amount_cspr_min,
-            "to" => Key::from(package_hash),               // same as self.self_addr()
-            "deadline" => deadline
-        };
-
-        let (amount_token, amount_cspr): (U256, U256) =
-            runtime::call_versioned_contract(package_hash, None, "remove_liquidity", args);
-
+        let (amount_token, amount_cspr): (U256, U256) = self.remove_liquidity(token, wcspr, liquidity, amount_token_min, amount_cspr_min, Key::from(package_hash));
+        
         // transfer token to 'to'
         let result: Result<(), u32> = transfer_helper::safe_transfer(Key::from(token), to, amount_token);
         if result.is_err()                                  // transfer failed
@@ -330,7 +322,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
 
         // call withdraw and transfer cspr to 'to'
         let args: RuntimeArgs = runtime_args! {
-            "to" => to,
+            "to_purse" => to_purse,
             "amount" => U512::from(amount_cspr.as_u128())
         };
 
@@ -390,7 +382,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         let args: RuntimeArgs = runtime_args! {
             "public" => public_key,
             "signature" => signature,
-            "owner" => Key::from(runtime::get_caller()),
+            "owner" => self.get_caller(),
             "spender" => Key::from(data::package_hash()),
             "value" => value,
             "deadline" => deadline.as_u64()
@@ -403,19 +395,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         );
 
         // call self remove_liquidity
-        let args: RuntimeArgs = runtime_args! {
-            "token_a" => Key::from(token_a),
-            "token_b" => Key::from(token_b),
-            "liquidity" => liquidity,
-            "amount_a_min" => amount_a_min,
-            "amount_b_min" => amount_b_min,
-            "to" => to,
-            "deadline" => deadline
-        };
-
-        let package_hash = data::package_hash();
-        let (amount_a, amount_b): (U256, U256) =
-            runtime::call_versioned_contract(package_hash, None, "remove_liquidity", args);
+        let (amount_a, amount_b): (U256, U256) = self.remove_liquidity(token_a, token_b, liquidity, amount_a_min, amount_b_min, to);
         (amount_a, amount_b)
     }
 
@@ -430,6 +410,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         public_key: String,
         signature: String,
         deadline: U256,
+        to_purse: URef
     ) -> (U256, U256) {
         let factory: ContractHash = data::factory();
         let wcspr: ContractHash = data::wcspr();
@@ -461,7 +442,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         let args: RuntimeArgs = runtime_args! {
             "public" => public_key,
             "signature" => signature,
-            "owner" => Key::from(runtime::get_caller()),
+            "owner" => self.get_caller(),
             "spender" => Key::from(data::package_hash()),
             "value" => value,
             "deadline" => deadline.as_u64()
@@ -473,19 +454,8 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         );
 
         // call remove_liquidity_cspr
-        let args: RuntimeArgs = runtime_args! {
-            "token" => Key::from(token),
-            "liquidity" => liquidity,
-            "amount_token_min" => amount_token_min,
-            "amount_cspr_min" => amount_cspr_min,
-            "to" => to,
-            "deadline" => deadline
-        };
 
-        let package_hash = data::package_hash();
-        let (amount_token, amount_cspr): (U256, U256) =
-            runtime::call_versioned_contract(package_hash, None, "remove_liquidity_cspr", args);
-
+        let (amount_token, amount_cspr): (U256, U256) = self.remove_liquidity_cspr(token, liquidity, amount_token_min, amount_cspr_min, to, deadline, to_purse);
         (amount_token, amount_cspr)
     }
 
@@ -531,7 +501,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
 
         let result: Result<(), u32> = transfer_helper::safe_transfer_from(
             path[0],
-            Key::from(runtime::get_caller()),
+            self.get_caller(),
             Key::from(pair_package_hash),
             amounts[0],
         );
@@ -588,7 +558,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
 
         let result: Result<(), u32> = transfer_helper::safe_transfer_from(
             path[0],
-            Key::from(runtime::get_caller()),
+            self.get_caller(),
             Key::from(pair_package_hash),
             amounts[0],
         );
@@ -691,11 +661,11 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         amount_out: U256,
         amount_in_max: U256,
         path: Vec<Key>,
-        to: Key,
+        to: URef,                   // recipient of cspr, must be a purse
     ) -> Vec<U256> {
         let wcspr: ContractHash = data::wcspr();
         let factory: ContractHash = data::factory();
-        let self_addr: Key = data::self_hash();
+        let self_addr: Key = Key::from(data::package_hash());
 
         if !(path[path.len() - 1] == Key::from(wcspr)) {
             runtime::revert(ApiError::User(ErrorCodes::Abort as u16));
@@ -738,7 +708,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
 
         let result: Result<(), u32> = transfer_helper::safe_transfer_from(
             path[0],
-            Key::from(runtime::get_caller()),
+            self.get_caller(),
             Key::from(pair_package_hash),
             amounts[0],
         );
@@ -751,7 +721,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
 
         // call withdraw from WCSPR and transfer cspr to 'to'
         let args: RuntimeArgs = runtime_args! {
-            "to" => to,
+            "to_purse" => to,
             "amount" => U512::from(amounts[amounts.len() - 1].as_u128())
         };
         let result: Result<(), u32> = Self::call_contract(
@@ -772,11 +742,11 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         amount_in: U256,
         amount_out_min: U256,
         path: Vec<Key>,
-        to: Key,
+        to: URef,                           // recipient of cspr, must be a purse
     ) -> Vec<U256> {
         let wcspr: ContractHash = data::wcspr();
         let factory: ContractHash = data::factory();
-        let self_addr: Key = data::self_hash();
+        let self_addr: Key = Key::from(data::package_hash());
 
         if !(path[path.len() - 1] == Key::from(wcspr)) {
             runtime::revert(ApiError::User(ErrorCodes::Abort as u16));
@@ -816,7 +786,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
 
         let result: Result<(), u32> = transfer_helper::safe_transfer_from(
             path[0],
-            Key::from(runtime::get_caller()),
+            self.get_caller(),
             Key::from(pair_package_hash),
             amounts[0],
         );
@@ -830,7 +800,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
 
         // call withdraw from WCSPR and transfer cspr to 'to'        
         let args: RuntimeArgs = runtime_args! {
-            "to" => to,
+            "to_purse" => to,
             "amount" => U512::from(amounts[amounts.len() - 1].as_u128())
         };
         let result: Result<(), u32> = Self::call_contract(
@@ -880,7 +850,6 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
 
         let self_purse = system::create_purse();                    // create new temporary purse and transfer cspr from caller purse to this
         let _:() = system::transfer_from_purse_to_purse(caller_purse, self_purse,  U512::from(amounts[0].as_u128()), None).unwrap_or_revert();
-
 
         // call deposit method from wcspr
         let args: RuntimeArgs = runtime_args! {

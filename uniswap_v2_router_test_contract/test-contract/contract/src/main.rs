@@ -9,13 +9,13 @@ extern crate alloc;
 use alloc::{boxed::Box, collections::BTreeSet, format, string::String, vec, vec::Vec};
 
 use casper_contract::{
-    contract_api::{runtime, storage, account},
+    contract_api::{runtime, storage, account, system},
     unwrap_or_revert::UnwrapOrRevert,
 };
 use casper_types::{
     contracts::{ContractHash, ContractPackageHash},
     runtime_args, CLType, CLTyped, EntryPoint, EntryPointAccess, EntryPointType,
-    EntryPoints, Group, Key, Parameter, RuntimeArgs, URef, U256, U128
+    EntryPoints, Group, Key, Parameter, RuntimeArgs, URef, U256, U128, U512
 };
 
 pub mod mappings;
@@ -53,7 +53,28 @@ fn add_liquidity() {
     let to: Key = runtime::get_named_arg("to");
     let deadline: U256 = runtime::get_named_arg("deadline");
     let pair: Option<Key> = runtime::get_named_arg("pair");
+    
+    
+    let router_package_hash: ContractPackageHash = runtime::call_contract(router_address, "package_hash", runtime_args!{});
 
+    // approve the router to spend tokens
+    let _ : () = runtime::call_contract(
+        ContractHash::from(token_a.into_hash().unwrap_or_revert()), 
+        "approve", 
+        runtime_args!{
+        "spender" => Key::from(router_package_hash),
+        "amount" => amount_a_desired
+    });
+
+    let _ : () = runtime::call_contract(
+        ContractHash::from(token_b.into_hash().unwrap_or_revert()), 
+        "approve", 
+        runtime_args!{
+        "spender" => Key::from(router_package_hash),
+        "amount" => amount_b_desired
+    });
+
+        
     let args: RuntimeArgs = runtime_args! {
         "token_a" => token_a,
         "token_b" => token_b,
@@ -74,6 +95,17 @@ fn add_liquidity() {
     );
 }
 
+// need a seperate entry point methods to transfer cspr
+#[no_mangle]
+fn transfer_cspr() {
+
+    let src_purse: URef = runtime::get_named_arg("src_purse");
+    let dest_purse: URef = runtime::get_named_arg("dest_purse");
+    let amount: U512 = runtime::get_named_arg("amount");
+
+    let _:() = system::transfer_from_purse_to_purse(src_purse, dest_purse,  amount, None).unwrap_or_revert();
+}
+
 #[no_mangle]
 fn add_liquidity_cspr() {
 
@@ -92,8 +124,29 @@ fn add_liquidity_cspr() {
     let deadline: U256 = runtime::get_named_arg("deadline");
     let pair: Option<Key> = runtime::get_named_arg("pair");
 
-    // get caller purse
+    let router_package_hash: ContractPackageHash = runtime::call_contract(router_address, "package_hash", runtime_args!{});
+
+    // Approve contract
+    let _ : () = runtime::call_contract(
+        ContractHash::from(token.into_hash().unwrap_or_revert()), 
+        "approve",  
+        runtime_args!{
+        "spender" => Key::from(router_package_hash),
+        "amount" => amount_token_desired
+    });
+
+
+    // create dummy contract purse and send some cspr to it
+    let self_purse: URef = system::create_purse();                        // create contract's purse 
     let caller_purse: URef = account::get_main_purse();
+
+    // transfer dummy cspr to self_purse. 
+    // Since system::transfer_from_purse_to_purse works with contracts having type 'Contract' and since this method has type 'Session' thus creating a sperate entry point for transfering funds between purses
+    let _: () = runtime::call_contract(self_hash, "transfer_cspr", runtime_args!{
+        "src_purse" => caller_purse,
+        "dest_purse" => self_purse,
+        "amount" => U512::from(amount_cspr_desired.as_u32())
+    });
 
 
     let args: RuntimeArgs = runtime_args! {
@@ -105,7 +158,7 @@ fn add_liquidity_cspr() {
         "to" => to,
         "deadline" => deadline,
         "pair" => pair,
-        "purse" => caller_purse
+        "purse" => self_purse
     };
 
     let (amount_token, amount_cspr, liquidity): (U256, U256, U256) =
@@ -141,6 +194,17 @@ fn remove_liquidity() {
     let to: Key = runtime::get_named_arg("to");
     let deadline: U256 = runtime::get_named_arg("deadline");
 
+    let pair_contract: Key = runtime::get_named_arg("pair");
+    let router_package_hash: ContractPackageHash = runtime::call_contract(router_address, "package_hash", runtime_args!{});
+
+    let _ : () = runtime::call_contract(
+        ContractHash::from(pair_contract.into_hash().unwrap_or_revert()), 
+        "approve",  
+        runtime_args!{
+        "spender" => Key::from(router_package_hash),
+        "amount" => liquidity
+    });
+
     let args: RuntimeArgs = runtime_args! {
         "token_a" => token_a,
         "token_b" => token_b,
@@ -152,12 +216,13 @@ fn remove_liquidity() {
     };
 
     let (amount_a, amount_b): (U256, U256) =
-        runtime::call_contract(router_address, "remove_liquidity", args);
-    mappings::set_key(&mappings::remove_liquidity_key(), (amount_a, amount_b));
+         runtime::call_contract(router_address, "remove_liquidity", args);
+     mappings::set_key(&mappings::remove_liquidity_key(), (amount_a, amount_b));
 }
 
 #[no_mangle]
 fn remove_liquidity_cspr() {
+    
     let router_address: ContractHash = mappings::get_key(&mappings::router_key());
 
     let token: Key = runtime::get_named_arg("token");
@@ -167,22 +232,41 @@ fn remove_liquidity_cspr() {
     let to: Key = runtime::get_named_arg("to");
     let deadline: U256 = runtime::get_named_arg("deadline");
 
+    let pair_contract: Key = runtime::get_named_arg("pair");
+    let router_package_hash: ContractPackageHash = runtime::call_contract(router_address, "package_hash", runtime_args!{});
+
+    
+    let _ : () = runtime::call_contract(
+        ContractHash::from(pair_contract.into_hash().unwrap_or_revert()), 
+        "approve", 
+        runtime_args!{
+        "spender" => Key::from(router_package_hash),
+        "amount" => liquidity
+    });
+
+
+    // create dummy contract purse to receive cspr from router
+    let self_purse: URef = system::create_purse();                        // create contract's purse 
+
     let args: RuntimeArgs = runtime_args! {
         "token" => token,
         "liquidity" => liquidity,
         "amount_token_min" => amount_token_min,
         "amount_cspr_min" => amount_cspr_min,
         "to" => to,
-        "deadline" => deadline
+        "deadline" => deadline,
+        "to_purse" => self_purse
     };
 
     let (amount_token, amount_cspr): (U256, U256) =
         runtime::call_contract(router_address, "remove_liquidity_cspr", args);
+    
     mappings::set_key(
         &mappings::remove_liquidity_cspr_key(),
         (amount_token, amount_cspr),
     );
 }
+
 
 #[no_mangle]
 fn remove_liquidity_with_permit() {
@@ -233,6 +317,9 @@ fn remove_liquidity_cspr_with_permit() {
     let public_key: String = runtime::get_named_arg("public_key");
     let signature: String = runtime::get_named_arg("signature");
     let deadline: U256 = runtime::get_named_arg("deadline");
+    
+    // create dummy contract purse
+    let self_purse: URef = system::create_purse();                        // create contract's purse 
 
     let args: RuntimeArgs = runtime_args! {
         "token" => token,
@@ -243,7 +330,8 @@ fn remove_liquidity_cspr_with_permit() {
         "deadline" => deadline,
         "approve_max" => approve_max,
         "public_key" => public_key,
-        "signature" => signature
+        "signature" => signature,
+        "to_purse" => self_purse
     };
 
     let (amount_a, amount_b): (U256, U256) =
@@ -263,6 +351,17 @@ fn swap_exact_tokens_for_tokens() {
     let path: Vec<Key> = runtime::get_named_arg("path");
     let to: Key = runtime::get_named_arg("to");
     let deadline: U256 = runtime::get_named_arg("deadline");
+
+    let router_package_hash: ContractPackageHash = runtime::call_contract(router_address, "package_hash", runtime_args!{});
+
+    // give approval to input token
+    let _ : () = runtime::call_contract(
+        ContractHash::from(path[0].into_hash().unwrap_or_revert()), 
+        "approve", 
+        runtime_args!{
+        "spender" => Key::from(router_package_hash),
+        "amount" => amount_in
+    });
 
     let args: RuntimeArgs = runtime_args! {
         "amount_in" => amount_in,
@@ -286,6 +385,17 @@ fn swap_tokens_for_exact_tokens() {
     let path: Vec<Key> = runtime::get_named_arg("path");
     let to: Key = runtime::get_named_arg("to");
     let deadline: U256 = runtime::get_named_arg("deadline");
+
+    let router_package_hash: ContractPackageHash = runtime::call_contract(router_address, "package_hash", runtime_args!{});
+
+    // give approval to input token
+    let _ : () = runtime::call_contract(
+        ContractHash::from(path[0].into_hash().unwrap_or_revert()), 
+        "approve", 
+        runtime_args!{
+        "spender" => Key::from(router_package_hash),
+        "amount" => amount_in_max
+    });
 
     let args: RuntimeArgs = runtime_args! {
         "amount_out" => amount_out,
@@ -334,14 +444,28 @@ fn swap_tokens_for_exact_cspr() {
     let amount_out: U256 = runtime::get_named_arg("amount_out");
     let amount_in_max: U256 = runtime::get_named_arg("amount_in_max");
     let path: Vec<Key> = runtime::get_named_arg("path");
-    let to: Key = runtime::get_named_arg("to");
+    //let to: Key = runtime::get_named_arg("to");
     let deadline: U256 = runtime::get_named_arg("deadline");
+
+    let router_package_hash: ContractPackageHash = runtime::call_contract(router_address, "package_hash", runtime_args!{});
+
+    // give approval to input token
+    let _ : () = runtime::call_contract(
+        ContractHash::from(path[0].into_hash().unwrap_or_revert()), 
+        "approve", 
+        runtime_args!{
+        "spender" => Key::from(router_package_hash),
+        "amount" => amount_in_max
+    });
+
+    // create dummy contract purse
+    let to_purse: URef = system::create_purse();                        // create contract's purse 
 
     let args: RuntimeArgs = runtime_args! {
         "amount_out" => amount_out,
         "amount_in_max" => amount_in_max,
         "path" => path,
-        "to" => to,
+        "to" => to_purse,
         "deadline" => deadline
     };
 
@@ -357,14 +481,27 @@ fn swap_exact_tokens_for_cspr() {
     let amount_in: U256 = runtime::get_named_arg("amount_in");
     let amount_out_min: U256 = runtime::get_named_arg("amount_out_min");
     let path: Vec<Key> = runtime::get_named_arg("path");
-    let to: Key = runtime::get_named_arg("to");
     let deadline: U256 = runtime::get_named_arg("deadline");
+
+    let router_package_hash: ContractPackageHash = runtime::call_contract(router_address, "package_hash", runtime_args!{});
+
+    // give approval to input token
+    let _ : () = runtime::call_contract(
+        ContractHash::from(path[0].into_hash().unwrap_or_revert()), 
+        "approve", 
+        runtime_args!{
+        "spender" => Key::from(router_package_hash),
+        "amount" => amount_in
+    });
+
+    // create dummy contract purse
+    let to_purse: URef = system::create_purse();                        // create contract's purse 
 
     let args: RuntimeArgs = runtime_args! {
         "amount_in" => amount_in,
         "amount_out_min" => amount_out_min,
         "path" => path,
-        "to" => to,
+        "to" => to_purse,
         "deadline" => deadline
     };
 
@@ -383,6 +520,18 @@ fn swap_cspr_for_exact_tokens() {
     let path: Vec<Key> = runtime::get_named_arg("path");
     let to: Key = runtime::get_named_arg("to");
     let deadline: U256 = runtime::get_named_arg("deadline");
+
+
+    let router_package_hash: ContractPackageHash = runtime::call_contract(router_address, "package_hash", runtime_args!{});
+
+    // give approval to input token
+    let _ : () = runtime::call_contract(
+        ContractHash::from(path[0].into_hash().unwrap_or_revert()), 
+        "approve", 
+        runtime_args!{
+        "spender" => Key::from(router_package_hash),
+        "amount" => amount_in_max
+    });
 
     // create purse and send balance in it.
     let caller_purse: URef = account::get_main_purse();
@@ -512,6 +661,19 @@ fn get_amounts_in() {
     let amounts: Vec<U256> = runtime::call_contract(library_address, "get_amounts_in", args);
 }
 
+#[no_mangle]
+fn approve() {
+    let token: Key = runtime::get_named_arg("token");
+    let spender: Key = runtime::get_named_arg("spender");
+    let amount: U256 = runtime::get_named_arg("amount");
+
+    let args: RuntimeArgs = runtime_args! {
+        "spender" => spender,
+        "amount" => amount
+    };
+
+    let () = runtime::call_contract(token.into_hash().unwrap().into(), "approve", args);
+}
 
 fn get_entry_points() -> EntryPoints {
     let mut entry_points = EntryPoints::new();
@@ -580,6 +742,17 @@ fn get_entry_points() -> EntryPoints {
         EntryPointType::Contract,
     ));
 
+    entry_points.add_entry_point(EntryPoint::new(
+        String::from("transfer_cspr"),
+        vec![
+            Parameter::new("src_purse", CLType::URef),
+            Parameter::new("dest_purse", CLType::URef),
+            Parameter::new("amount", CLType::U512),
+        ],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
 
     entry_points.add_entry_point(EntryPoint::new(
         String::from("remove_liquidity"),
@@ -591,6 +764,7 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("amount_b_min", CLType::U256),
             Parameter::new("to", Key::cl_type()),
             Parameter::new("deadline", CLType::U256),
+            Parameter::new("pair", CLType::Key)
         ],
         <()>::cl_type(),
         EntryPointAccess::Public,
@@ -606,11 +780,13 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("amount_cspr_min", CLType::U256),
             Parameter::new("to", Key::cl_type()),
             Parameter::new("deadline", CLType::U256),
+            Parameter::new("pair", CLType::Key),
         ],
         <()>::cl_type(),
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
+
 
     entry_points.add_entry_point(EntryPoint::new(
         String::from("remove_liquidity_with_permit"),
@@ -698,7 +874,7 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("amount_out", CLType::U256),
             Parameter::new("amount_in_max", CLType::U256),
             Parameter::new("path", CLType::List(Box::new(CLType::Key))),
-            Parameter::new("to", CLType::Key),
+            //Parameter::new("to", CLType::Key),
             Parameter::new("deadline", CLType::U256),
         ],
         CLType::List(Box::new(CLType::U256)),
@@ -712,7 +888,7 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("amount_in", CLType::U256),
             Parameter::new("amount_out_min", CLType::U256),
             Parameter::new("path", CLType::List(Box::new(CLType::Key))),
-            Parameter::new("to", CLType::Key),
+            //Parameter::new("to", CLType::Key),
             Parameter::new("deadline", CLType::U256),
         ],
         CLType::List(Box::new(CLType::U256)),
@@ -805,6 +981,18 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("factory", Key::cl_type()),
             Parameter::new("amount_out", U256::cl_type()),
             Parameter::new("path", CLType::List(Box::new(Key::cl_type()))),
+        ],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+
+    entry_points.add_entry_point(EntryPoint::new(
+        "approve",
+        vec![
+            Parameter::new("token", Key::cl_type()),
+            Parameter::new("spender", Key::cl_type()),
+            Parameter::new("amount", U256::cl_type()),
         ],
         <()>::cl_type(),
         EntryPointAccess::Public,

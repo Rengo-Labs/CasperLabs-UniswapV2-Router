@@ -2,14 +2,21 @@ use blake2::{
     digest::{Update, VariableOutput},
     VarBlake2b,
 };
-use casper_types::{bytesrepr::ToBytes, runtime_args, Key, RuntimeArgs, U256, U128, ContractHash};
+use casper_types::{
+    bytesrepr::ToBytes, runtime_args, ContractHash, ContractPackageHash, Key, RuntimeArgs, U128,
+    U256,
+};
 use test_env::{Sender, TestContract, TestEnv};
 
 pub struct LibraryInstance(TestContract);
 
 impl LibraryInstance {
-
-    pub fn new(env: &TestEnv, router_address: Key, library_address: Key, sender: Sender) -> LibraryInstance {
+    pub fn new(
+        env: &TestEnv,
+        router_address: Key,
+        library_address: Key,
+        sender: Sender,
+    ) -> LibraryInstance {
         LibraryInstance(TestContract::new(
             env,
             "contract.wasm",
@@ -48,8 +55,7 @@ impl LibraryInstance {
         Key::from(address)
     }
 
-    pub fn quote(&self, sender:Sender, amount_a: U256, reserve_a: U128, reserve_b: U128) {
-
+    pub fn quote(&self, sender: Sender, amount_a: U256, reserve_a: U128, reserve_b: U128) {
         self.0.call_contract(
             sender,
             "quote",
@@ -57,12 +63,11 @@ impl LibraryInstance {
                 "amount_a" => amount_a,
                 "reserve_a" => reserve_a,
                 "reserve_b" => reserve_b
-            }
+            },
         );
     }
 
-    pub fn get_reserves(&self, sender:Sender, factory: Key, token_a: Key, token_b: Key) {
-
+    pub fn get_reserves(&self, sender: Sender, factory: Key, token_a: Key, token_b: Key) {
         self.0.call_contract(
             sender,
             "get_reserves",
@@ -70,12 +75,17 @@ impl LibraryInstance {
                 "factory" => factory,
                 "token_a" => token_a,
                 "token_b" => token_b
-            }
+            },
         );
     }
 
-    pub fn get_amount_out(&self, sender:Sender, amount_in: U256, reserve_in: U256, reserve_out: U256) {
-
+    pub fn get_amount_out(
+        &self,
+        sender: Sender,
+        amount_in: U256,
+        reserve_in: U256,
+        reserve_out: U256,
+    ) {
         self.0.call_contract(
             sender,
             "get_amount_out",
@@ -83,12 +93,17 @@ impl LibraryInstance {
                 "amount_in" => amount_in,
                 "reserve_in" => reserve_in,
                 "reserve_out" => reserve_out
-            }
+            },
         );
     }
 
-    pub fn get_amount_in(&self, sender:Sender, amount_out: U256, reserve_in: U256, reserve_out: U256) {
-
+    pub fn get_amount_in(
+        &self,
+        sender: Sender,
+        amount_out: U256,
+        reserve_in: U256,
+        reserve_out: U256,
+    ) {
         self.0.call_contract(
             sender,
             "get_amount_in",
@@ -96,12 +111,11 @@ impl LibraryInstance {
                 "amount_out" => amount_out,
                 "reserve_in" => reserve_in,
                 "reserve_out" => reserve_out
-            }
+            },
         );
     }
 
-    pub fn get_amounts_out(&self, sender:Sender, factory: Key, amount_in: U256, path: Vec<Key>) {
-
+    pub fn get_amounts_out(&self, sender: Sender, factory: Key, amount_in: U256, path: Vec<Key>) {
         self.0.call_contract(
             sender,
             "get_amounts_out",
@@ -109,12 +123,11 @@ impl LibraryInstance {
                 "factory" => factory,
                 "amount_in" => amount_in,
                 "path" => path
-            }
+            },
         );
     }
 
-    pub fn get_amounts_in(&self, sender:Sender, factory: Key, amount_out: U256, path: Vec<Key>) {
-
+    pub fn get_amounts_in(&self, sender: Sender, factory: Key, amount_out: U256, path: Vec<Key>) {
         self.0.call_contract(
             sender,
             "get_amounts_in",
@@ -122,7 +135,7 @@ impl LibraryInstance {
                 "factory" => factory,
                 "amount_out" => amount_out,
                 "path" => path
-            }
+            },
         );
     }
 
@@ -137,7 +150,7 @@ impl LibraryInstance {
         amount_b_min: U256,
         to: Key,
         deadline: U256,
-        pair: Option<Key>
+        pair: Option<Key>,
     ) {
         self.0.call_contract(
             sender,
@@ -155,7 +168,7 @@ impl LibraryInstance {
             },
         );
     }
-    
+
     pub fn approve(&self, token: &TestContract, sender: Sender, spender: Key, amount: U256) {
         token.call_contract(
             sender,
@@ -167,6 +180,21 @@ impl LibraryInstance {
         );
     }
 
+    pub fn proxy_approve(&self, sender: Sender, token: &TestContract, spender: Key, amount: U256) {
+        self.0.call_contract(
+            sender,
+            "approve",
+            runtime_args! {
+                "token" => Key::Hash(token.contract_hash()),
+                "spender" => spender,
+                "amount" => amount
+            },
+        );
+    }
+
+    pub fn package_hash_result(&self) -> ContractPackageHash {
+        self.0.query_named_key("package_hash".to_string())
+    }
 }
 
 pub fn key_to_str(key: &Key) -> String {

@@ -114,6 +114,7 @@ impl UniswapInstance {
         amount_b_min: U256,
         to: Key,
         deadline: U256,
+        pair: Key
     ) {
         self.0.call_contract(
             sender,
@@ -125,7 +126,8 @@ impl UniswapInstance {
                 "amount_a_min" => amount_a_min,
                 "amount_b_min" => amount_b_min,
                 "to" => to,
-                "deadline" => deadline
+                "deadline" => deadline,
+                "pair" => pair
             },
         );
     }
@@ -139,6 +141,7 @@ impl UniswapInstance {
         amount_cspr_min: U256,
         to: Key,
         deadline: U256,
+        pair: Key,
     ) {
         self.0.call_contract(
             sender,
@@ -149,7 +152,8 @@ impl UniswapInstance {
                 "amount_token_min" => amount_token_min,
                 "amount_cspr_min" => amount_cspr_min,
                 "to" => to,
-                "deadline" => deadline
+                "deadline" => deadline,
+                "pair" => pair,
             },
         );
     }
@@ -290,7 +294,6 @@ impl UniswapInstance {
         amount_out: U256,
         amount_in_max: U256,
         path: Vec<Key>,
-        to: Key,
         deadline: U256,
     ) {
         self.0.call_contract(
@@ -300,7 +303,6 @@ impl UniswapInstance {
                 "amount_out" => amount_out,
                 "amount_in_max" => amount_in_max,
                 "path" => path,
-                "to" => to,
                 "deadline" => deadline
             },
         );
@@ -312,7 +314,6 @@ impl UniswapInstance {
         amount_in: U256,
         amount_out_min: U256,
         path: Vec<Key>,
-        to: Key,
         deadline: U256,
     ) {
         self.0.call_contract(
@@ -322,7 +323,6 @@ impl UniswapInstance {
                 "amount_in" => amount_in,
                 "amount_out_min" => amount_out_min,
                 "path" => path,
-                "to" => to,
                 "deadline" => deadline
             },
         );

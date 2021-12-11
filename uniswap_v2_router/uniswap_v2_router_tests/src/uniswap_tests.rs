@@ -218,6 +218,20 @@ fn deploy_uniswap_router() -> (
     let router_package_hash: ContractPackageHash = router_contract.query_named_key("package_hash".to_string());
     factory_contract.call_contract(Sender(owner), "set_white_list" ,runtime_args! {"white_list" => Key::from(router_package_hash)});
 
+
+    let amount: U256 = 1000.into();
+    token1.call_contract(Sender(owner), "mint", runtime_args!{
+        "to" => test_contract.test_contract_package_hash(),
+         "amount" => amount,
+    });
+    token2.call_contract(Sender(owner), "mint", runtime_args!{
+        "to" => test_contract.test_contract_package_hash(),
+         "amount" => amount,
+    });
+    token3.call_contract(Sender(owner), "mint", runtime_args!{
+        "to" => test_contract.test_contract_package_hash(),
+         "amount" => amount,
+    });
     (
         env,
         test_contract,
@@ -231,7 +245,6 @@ fn deploy_uniswap_router() -> (
         wcspr,
         factory_contract,
     )
-
 }
 
 
@@ -253,7 +266,6 @@ fn add_liquidity() {
 
     let token_a = Key::Hash(token1.contract_hash());
     let token_b = Key::Hash(token2.contract_hash());
-    let to = Key::Hash(token3.contract_hash());
 
     let mut rng = rand::thread_rng();
     let amount_a_desired: U256 = rng.gen_range(300..600).into();
@@ -266,20 +278,7 @@ fn add_liquidity() {
         Err(_) => 0,
     };
 
-    // approve the router to spend tokens
-    uniswap.approve(
-        &token1,
-        Sender(owner),
-        router_package_hash,
-        amount_a_desired,
-    );
-    uniswap.approve(
-        &token2,
-        Sender(owner),
-        router_package_hash,
-        amount_b_desired,
-    );
-
+    // approvals of tokens are done in test contract, calling test contract's add_liquidity method
     uniswap.add_liquidity(
         Sender(owner),
         token_a,
@@ -288,7 +287,7 @@ fn add_liquidity() {
         amount_b_desired,
         amount_a_min,
         amount_b_min,
-        to,
+        uniswap.test_contract_package_hash(),
         deadline.into(),
         Some(Key::Hash(pair.contract_hash()))
     );
@@ -308,8 +307,6 @@ fn add_liquidity_cspr() {
     let router_package_hash: Key = router_package_hash.into();
     let pair: TestContract = deploy_pair_contract(&env, owner, Key::Hash(factory.contract_hash()), Key::Hash(flash_swapper.contract_hash()));
 
-    let to = Key::Hash(token2.contract_hash());
-
     let mut rng = rand::thread_rng();
     let token = Key::Hash(token1.contract_hash());
     let amount_token_desired: U256 = rng.gen_range(300..600).into();
@@ -322,13 +319,7 @@ fn add_liquidity_cspr() {
         Err(_) => 0,
     };
 
-    uniswap.approve(
-        &token1,
-        Sender(owner),
-        router_package_hash,
-        amount_token_desired,
-    );
-
+    // approving is done in test contract
     uniswap.add_liquidity_cspr(
         Sender(owner),
         token,
@@ -336,7 +327,7 @@ fn add_liquidity_cspr() {
         amount_cspr_desired,
         amount_token_min,
         amount_cspr_min,
-        to,
+        uniswap.test_contract_package_hash(),
         deadline.into(),
         Some(Key::Hash(pair.contract_hash())),
         Key::Hash(router_contract.contract_hash()),
@@ -375,20 +366,8 @@ fn remove_liquidity() {
         Err(_) => 0,
     };
 
-    // approve the router to spend tokens
-    uniswap.approve(
-        &token1,
-        Sender(owner),
-        router_package_hash,
-        amount_a_desired,
-    );
-    uniswap.approve(
-        &token2,
-        Sender(owner),
-        router_package_hash,
-        amount_b_desired,
-    );
 
+    // Token Approving is done in test contract
     uniswap.add_liquidity(
         Sender(owner),
         token_a,
@@ -397,22 +376,15 @@ fn remove_liquidity() {
         amount_b_desired,
         amount_a_min,
         amount_b_min,
-        Key::from(owner),
+        uniswap.test_contract_package_hash(),
         deadline.into(),
         Some(Key::Hash(pair.contract_hash()))
     );
     let (_, _, liquidity): (U256, U256, U256) = uniswap.add_liquidity_result();
 
 
+
     // Now remove liquidity
-
-    // approve router on pair
-    let args: RuntimeArgs = runtime_args! {
-        "spender" => router_package_hash,
-        "amount" => liquidity
-    };
-    pair.call_contract(Sender(owner), "approve", args);
-
     uniswap.remove_liquidity(
         Sender(owner),
         token_a,
@@ -420,8 +392,9 @@ fn remove_liquidity() {
         liquidity,
         amount_a_min,
         amount_b_min,
-        Key::from(owner),
+        uniswap.test_contract_package_hash(),
         deadline.into(),
+        Key::Hash(pair.contract_hash())
     );
 
     let (amount_a, amount_b): (U256, U256) = uniswap.remove_liquidity_result();
@@ -455,12 +428,6 @@ fn remove_liquidity_cspr() {
         Err(_) => 0,
     };
 
-    uniswap.approve(
-        &token1,
-        Sender(owner),
-        router_package_hash,
-        amount_token_desired,
-    );
     uniswap.add_liquidity_cspr(
         Sender(owner),
         token,
@@ -468,40 +435,25 @@ fn remove_liquidity_cspr() {
         amount_cspr_desired,
         amount_token_min,
         amount_cspr_min,
-        Key::from(owner),
+        uniswap.test_contract_package_hash(),
         deadline.into(),
         Some(Key::Hash(pair.contract_hash())),
         Key::Hash(router_contract.contract_hash()),
-        uniswap.test_contract_hash()
+        uniswap.test_contract_hash(),
     );
-    let (amount_token, _, liquidity): (U256, U256, U256) = uniswap.add_liquidity_cspr_result();
+    let (amount_token, amount_cspr, liquidity): (U256, U256, U256) = uniswap.add_liquidity_cspr_result();
 
 
     // Now Remove liquidity
-
-    // approve router on pair
-    let args: RuntimeArgs = runtime_args! {
-        "spender" => router_package_hash,
-        "amount" => liquidity
-    };
-    pair.call_contract(Sender(owner), "approve", args);
-
-
-    //approve router on token
-    // let args: RuntimeArgs = runtime_args! {
-    //     "spender" => router_package_hash,
-    //     "amount" => amount_token
-    // };
-    // token1.call_contract(Sender(owner), "approve", args);
-
     uniswap.remove_liquidity_cspr(
         Sender(owner),
         token,
         liquidity,
         amount_token_min,
         amount_cspr_min,
-        Key::from(owner),
+        uniswap.test_contract_package_hash(),
         deadline.into(),
+        Key::Hash(pair.contract_hash()),
     );
 
     let (amount_token, amount_cspr): (U256, U256) = uniswap.remove_liquidity_cspr_result();
@@ -537,19 +489,6 @@ fn remove_liquidity_with_permit() {
     };
 
     // approve the router to spend tokens
-    uniswap.approve(
-        &token1,
-        Sender(owner),
-        router_package_hash,
-        amount_a_desired,
-    );
-    uniswap.approve(
-        &token2,
-        Sender(owner),
-        router_package_hash,
-        amount_b_desired,
-    );
-
     uniswap.add_liquidity(
         Sender(owner),
         token_a,
@@ -558,12 +497,11 @@ fn remove_liquidity_with_permit() {
         amount_b_desired,
         amount_a_min,
         amount_b_min,
-        Key::from(owner),
+        uniswap.test_contract_package_hash(),
         deadline.into(),
         Some(Key::Hash(pair.contract_hash()))
     );
     let (_, _, liquidity): (U256, U256, U256) = uniswap.add_liquidity_result();
-
 
 
 
@@ -579,7 +517,7 @@ fn remove_liquidity_with_permit() {
     let data: String = format!(
         "{}{}{}{}{}{}",
         permit_type_hash,
-        Key::from(owner),
+        uniswap.test_contract_package_hash(),
         router_package_hash,
         liquidity,
         nonces,
@@ -595,7 +533,7 @@ fn remove_liquidity_with_permit() {
         liquidity,
         amount_a_min,
         amount_b_min,
-        Key::from(owner),
+        uniswap.test_contract_package_hash(),
         deadline.into(),
         approve_max,
         public_key,
@@ -632,12 +570,6 @@ fn remove_liquidity_cspr_with_permit() {
         Err(_) => 0,
     };
 
-    uniswap.approve(
-        &token1,
-        Sender(owner),
-        router_package_hash,
-        amount_token_desired,
-    );
     uniswap.add_liquidity_cspr(
         Sender(owner),
         token,
@@ -645,7 +577,7 @@ fn remove_liquidity_cspr_with_permit() {
         amount_cspr_desired,
         amount_token_min,
         amount_cspr_min,
-        Key::from(owner),
+        uniswap.test_contract_package_hash(),
         deadline.into(),
         Some(Key::Hash(pair.contract_hash())),
         Key::Hash(router_contract.contract_hash()),
@@ -667,7 +599,7 @@ fn remove_liquidity_cspr_with_permit() {
     let data: String = format!(
         "{}{}{}{}{}{}",
         permit_type_hash,
-        Key::from(owner),
+        uniswap.test_contract_package_hash(),
         router_package_hash,
         liquidity,
         nonces,
@@ -727,20 +659,6 @@ fn swap_exact_tokens_for_tokens() {
         Err(_) => 0,
     };
 
-    // approve the router to spend tokens
-    uniswap.approve(
-        &token1,
-        Sender(owner),
-        router_package_hash,
-        amount_a_desired,
-    );
-    uniswap.approve(
-        &token2,
-        Sender(owner),
-        router_package_hash,
-        amount_b_desired,
-    );
-
     uniswap.add_liquidity(
         Sender(owner),
         token_a,
@@ -769,9 +687,7 @@ fn swap_exact_tokens_for_tokens() {
         Err(_) => 0,
     };
 
-    // give approval to input token
-    uniswap.approve(&token1, Sender(owner), router_package_hash, amount_in);
-    //token1.call_contract(Sender(owner), "mint", runtime_args!{"to" => Key::from})
+    // approval done in test contract
     uniswap.swap_exact_tokens_for_tokens(
         Sender(owner),
         amount_in,
@@ -808,20 +724,6 @@ fn swap_tokens_for_exact_tokens() {
         Err(_) => 0,
     };
 
-    // approve the router to spend tokens
-    uniswap.approve(
-        &token1,
-        Sender(owner),
-        router_package_hash,
-        amount_a_desired,
-    );
-    uniswap.approve(
-        &token2,
-        Sender(owner),
-        router_package_hash,
-        amount_b_desired,
-    );
-
     uniswap.add_liquidity(
         Sender(owner),
         token_a,
@@ -834,7 +736,6 @@ fn swap_tokens_for_exact_tokens() {
         deadline.into(),
         Some(Key::Hash(pair.contract_hash()))
     );
-
 
 
     // Swap
@@ -850,9 +751,6 @@ fn swap_tokens_for_exact_tokens() {
         Err(_) => 0,
     };
 
-    // give approval to input token
-    uniswap.approve(&token1, Sender(owner), router_package_hash, amount_in_max);
-
     uniswap.swap_tokens_for_exact_tokens(
         Sender(owner),
         amount_out,
@@ -862,8 +760,6 @@ fn swap_tokens_for_exact_tokens() {
         deadline.into(),
     );
 }
-
-
 
 #[test]
 fn swap_exact_cspr_for_tokens() {
@@ -888,12 +784,6 @@ fn swap_exact_cspr_for_tokens() {
         Err(_) => 0,
     };
 
-    uniswap.approve(
-        &token1,
-        Sender(owner),
-        router_package_hash,
-        amount_token_desired,
-    );
     uniswap.add_liquidity_cspr(
         Sender(owner),
         token,
@@ -947,19 +837,11 @@ fn swap_tokens_for_exact_cspr() {
     let amount_token_min: U256 = 400.into();
     let amount_cspr_min: U256 = 400.into();
 
-    let to = Key::Hash(token2.contract_hash());
-
     let deadline: u128 = match SystemTime::now().duration_since(UNIX_EPOCH) {
         Ok(n) => n.as_millis() + (1000 * (30 * 60)), // current epoch time in milisecond + 30 minutes
         Err(_) => 0,
     };
 
-    uniswap.approve(
-        &token1,
-        Sender(owner),
-        router_package_hash,
-        amount_token_desired,
-    );
     uniswap.add_liquidity_cspr(
         Sender(owner),
         token,
@@ -975,8 +857,7 @@ fn swap_tokens_for_exact_cspr() {
     );
 
 
-
-    // Swap
+    // Calling Swap now
     let amount_in_max: U256 = 50.into();
     let amount_out: U256 = 25.into();
     let path: Vec<Key> = vec![
@@ -984,17 +865,11 @@ fn swap_tokens_for_exact_cspr() {
         Key::Hash(wcspr.contract_hash()),
     ];
 
-    // give approval to input token
-    let _am: U256 = 10000.into();
-    uniswap.approve(&wcspr, Sender(owner), router_package_hash, _am);
-    uniswap.approve(&token1, Sender(owner), router_package_hash, _am);
-
     uniswap.swap_tokens_for_exact_cspr(
         Sender(owner),
         amount_out,
         amount_in_max,
         path,
-        to,
         deadline.into(),
     );
 }
@@ -1023,12 +898,6 @@ fn swap_exact_tokens_for_cspr() {
         Err(_) => 0,
     };
 
-    uniswap.approve(
-        &token1,
-        Sender(owner),
-        router_package_hash,
-        amount_token_desired,
-    );
     uniswap.add_liquidity_cspr(
         Sender(owner),
         token,
@@ -1043,7 +912,6 @@ fn swap_exact_tokens_for_cspr() {
         uniswap.test_contract_hash()
     );
 
-
     // Swap
     let amount_in: U256 = 50.into();
     let amount_out_min: U256 = 25.into();
@@ -1052,20 +920,14 @@ fn swap_exact_tokens_for_cspr() {
         Key::Hash(wcspr.contract_hash()),
     ];
 
-
-    // give approval to input token
-    uniswap.approve(&token1, Sender(owner), router_package_hash, amount_in);
-
     uniswap.swap_exact_tokens_for_cspr(
         Sender(owner),
         amount_in,
         amount_out_min,
         path,
-        to,
         deadline.into(),
     );
 }
-
 
 
 #[test]
@@ -1091,12 +953,6 @@ fn swap_cspr_for_exact_tokens() {
         Err(_) => 0,
     };
 
-    uniswap.approve(
-        &token1,
-        Sender(owner),
-        router_package_hash,
-        amount_token_desired,
-    );
     uniswap.add_liquidity_cspr(
         Sender(owner),
         token,
@@ -1112,6 +968,7 @@ fn swap_cspr_for_exact_tokens() {
     );
 
 
+    // calling swap now
     let amount_in_max: U256 = 50.into();
     let amount_out: U256 = 25.into();
 
@@ -1119,9 +976,6 @@ fn swap_cspr_for_exact_tokens() {
         Key::Hash(wcspr.contract_hash()),
         Key::Hash(token1.contract_hash()),
     ];
-
-    // give approval to input token
-    uniswap.approve(&wcspr, Sender(owner), router_package_hash, amount_in_max);
 
     uniswap.swap_cspr_for_exact_tokens(
         Sender(owner),

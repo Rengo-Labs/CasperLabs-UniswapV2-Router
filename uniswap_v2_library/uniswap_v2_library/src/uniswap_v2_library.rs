@@ -2,10 +2,7 @@ extern crate alloc;
 
 use alloc::{vec, vec::Vec};
 
-use casper_contract::{
-    contract_api::{runtime},
-    unwrap_or_revert::UnwrapOrRevert,
-};
+use casper_contract::{contract_api::runtime, unwrap_or_revert::UnwrapOrRevert};
 
 use casper_types::{
     api_error::ApiError,
@@ -111,7 +108,9 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
 
         let amount_in_with_fee: U256 = amount_in * 997;
         let numerator: U256 = amount_in_with_fee * reserve_out;
-        let denominator: U256 = reserve_in.checked_mul(U256::from(1000)).unwrap_or_revert()
+        let denominator: U256 = reserve_in
+            .checked_mul(U256::from(1000))
+            .unwrap_or_revert()
             .checked_add(amount_in_with_fee)
             .ok_or(ApiError::User(ErrorCode::Zero as u16))
             .unwrap_or_revert();
@@ -154,10 +153,10 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
             let (reserve_in, reserve_out): (U128, U128) =
                 self.get_reserves(factory, path[i], path[i + 1]);
 
-                let reserve_in: U256 = U256::from(reserve_in.as_u128());
-                let reserve_out: U256 = U256::from(reserve_out.as_u128());
+            let reserve_in: U256 = U256::from(reserve_in.as_u128());
+            let reserve_out: U256 = U256::from(reserve_out.as_u128());
 
-                amounts[i + 1] = self.get_amount_out(amounts[i], reserve_in, reserve_out);
+            amounts[i + 1] = self.get_amount_out(amounts[i], reserve_in, reserve_out);
         }
         amounts
     }
