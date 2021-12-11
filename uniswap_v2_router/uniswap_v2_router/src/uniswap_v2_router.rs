@@ -302,7 +302,6 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         amount_token_min: U256,
         amount_cspr_min: U256,
         to: Key,                            // to's key to transfer back token
-        deadline: U256,
         to_purse: URef                      // to's purse to transfer back cspr
         
     ) -> (U256, U256) {
@@ -455,7 +454,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
 
         // call remove_liquidity_cspr
 
-        let (amount_token, amount_cspr): (U256, U256) = self.remove_liquidity_cspr(token, liquidity, amount_token_min, amount_cspr_min, to, deadline, to_purse);
+        let (amount_token, amount_cspr): (U256, U256) = self.remove_liquidity_cspr(token, liquidity, amount_token_min, amount_cspr_min, to, to_purse);
         (amount_token, amount_cspr)
     }
 

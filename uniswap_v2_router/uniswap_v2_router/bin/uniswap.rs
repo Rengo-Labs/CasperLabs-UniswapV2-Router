@@ -283,7 +283,6 @@ fn remove_liquidity_cspr() {
         amount_token_min,
         amount_cspr_min,
         to,
-        deadline,
         to_purse
     );
     runtime::ret(CLValue::from_t((amount_token, amount_cspr)).unwrap_or_revert());
@@ -304,6 +303,7 @@ fn remove_liquidity_cspr_js_client() {
     let amount_token_min: U256 = runtime::get_named_arg("amount_token_min");
     let amount_cspr_min: U256 = runtime::get_named_arg("amount_cspr_min");
     let to: Key = runtime::get_named_arg("to");
+    let to_purse: URef = runtime::get_named_arg("to_purse");
 
     let _token = ContractHash::from(token.into_hash().unwrap_or_default());
     let (_amount_token, _amount_cspr): (U256, U256) = Uniswap::default().remove_liquidity_cspr(
@@ -312,7 +312,7 @@ fn remove_liquidity_cspr_js_client() {
         amount_token_min,
         amount_cspr_min,
         to,
-        deadline,
+        to_purse,
     );
 }
 
@@ -436,6 +436,7 @@ fn remove_liquidity_cspr_with_permit_js_client() {
     let public_key: String = runtime::get_named_arg("public_key");
     let signature: String = runtime::get_named_arg("signature");
     let deadline: U256 = runtime::get_named_arg("deadline");
+    let to_purse: URef = runtime::get_named_arg("to_purse");
 
     let _token = ContractHash::from(token.into_hash().unwrap_or_default());
     let (_amount_token, _amount_cspr): (U256, U256) = Uniswap::default()
@@ -449,6 +450,7 @@ fn remove_liquidity_cspr_with_permit_js_client() {
             public_key,
             signature,
             deadline,
+            to_purse
         );
 }
 
@@ -604,7 +606,7 @@ fn swap_tokens_for_exact_cspr_js_client() {
     let amount_out: U256 = runtime::get_named_arg("amount_out");
     let amount_in_max: U256 = runtime::get_named_arg("amount_in_max");
     let path: Vec<Key> = runtime::get_named_arg("path");
-    let to: Key = runtime::get_named_arg("to");
+    let to: URef = runtime::get_named_arg("to");
 
     let _amounts: Vec<U256> =
         Uniswap::default().swap_tokens_for_exact_cspr(amount_out, amount_in_max, path, to);
@@ -643,7 +645,7 @@ fn swap_exact_tokens_for_cspr_js_client() {
     let amount_in: U256 = runtime::get_named_arg("amount_in");
     let amount_out_min: U256 = runtime::get_named_arg("amount_out_min");
     let path: Vec<Key> = runtime::get_named_arg("path");
-    let to: Key = runtime::get_named_arg("to");
+    let to: URef = runtime::get_named_arg("to");
 
     let _amounts: Vec<U256> =
         Uniswap::default().swap_exact_tokens_for_cspr(amount_in, amount_out_min, path, to);
@@ -846,6 +848,7 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("amount_cspr_min", CLType::U256),
             Parameter::new("to", Key::cl_type()),
             Parameter::new("deadline", CLType::U256),
+            Parameter::new("to_purse", CLType::URef),
         ],
         <()>::cl_type(),
         EntryPointAccess::Public,
@@ -920,6 +923,7 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("approve_max", CLType::Bool),
             Parameter::new("public_key", CLType::String),
             Parameter::new("signature", CLType::String),
+            Parameter::new("to_purse", CLType::URef)
         ],
         <()>::cl_type(),
         EntryPointAccess::Public,
@@ -1032,7 +1036,7 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("amount_out", CLType::U256),
             Parameter::new("amount_in_max", CLType::U256),
             Parameter::new("path", CLType::List(Box::new(CLType::Key))),
-            Parameter::new("to", CLType::Key),
+            Parameter::new("to", CLType::URef),
             Parameter::new("deadline", CLType::U256),
         ],
         <()>::cl_type(),
@@ -1060,7 +1064,7 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("amount_in", CLType::U256),
             Parameter::new("amount_out_min", CLType::U256),
             Parameter::new("path", CLType::List(Box::new(CLType::Key))),
-            Parameter::new("to", CLType::Key),
+            Parameter::new("to", CLType::URef),                         // purse to transfer cspr to
             Parameter::new("deadline", CLType::U256),
         ],
         <()>::cl_type(),
