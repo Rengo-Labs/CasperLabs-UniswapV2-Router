@@ -982,12 +982,12 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         amount_in
     }
 
-    fn get_amounts_out(amount_in: U256, path: Vec<ContractHash>) -> Vec<U256> {
+    fn get_amounts_out(amount_in: U256, path: Vec<Key>) -> Vec<U256> {
         let uniswapv2_library_contract_hash = data::library_hash().to_formatted_string();
         let factory: ContractHash = data::factory();
 
         let args: RuntimeArgs = runtime_args! {
-            "factory" => factory,
+            "factory" => Key::from(factory),
             "amount_in" => amount_in,
             "path" => path
         };
