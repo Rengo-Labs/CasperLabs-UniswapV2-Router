@@ -434,12 +434,7 @@ fn get_amounts_out() {
 // performs chained getAmountIn calculations on any number of pairs
 fn get_amounts_in() {
     let amount_out: U256 = runtime::get_named_arg("amount_out");
-    let _path: Vec<Key> = runtime::get_named_arg("path");
-
-    let mut path: Vec<ContractHash> = Vec::new();
-    for value in _path {
-        path.push(value.into_hash().unwrap_or_default().into());
-    }
+    let path: Vec<Key> = runtime::get_named_arg("path");
 
     let amounts: Vec<U256> = Uniswap::get_amounts_in(amount_out, path);
     runtime::ret(CLValue::from_t(amounts).unwrap_or_revert())
