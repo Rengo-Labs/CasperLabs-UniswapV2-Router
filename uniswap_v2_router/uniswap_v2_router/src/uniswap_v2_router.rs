@@ -906,8 +906,8 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         let uniswapv2_library_contract_hash = data::library_hash().to_formatted_string();
         let args: RuntimeArgs = runtime_args! {
             "amount_a" => amount_a,
-            "reserve_a" => reserve_a,
-            "reserve_b" => reserve_b
+            "reserve_a" => U128::from(reserve_a.as_u128()),
+            "reserve_b" => U128::from(reserve_b.as_u128())
         };
 
         let amount_b: U256 = Self::call_contract(
@@ -950,12 +950,12 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         amount_in
     }
 
-    fn get_amounts_out(amount_in: U256, path: Vec<ContractHash>) -> Vec<U256> {
+    fn get_amounts_out(amount_in: U256, path: Vec<Key>) -> Vec<U256> {
         let uniswapv2_library_contract_hash = data::library_hash().to_formatted_string();
         let factory: ContractHash = data::factory();
 
         let args: RuntimeArgs = runtime_args! {
-            "factory" => factory,
+            "factory" => Key::from(factory),
             "amount_in" => amount_in,
             "path" => path
         };
@@ -968,12 +968,12 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         amounts_out
     }
 
-    fn get_amounts_in(amount_out: U256, path: Vec<ContractHash>) -> Vec<U256> {
+    fn get_amounts_in(amount_out: U256, path: Vec<Key>) -> Vec<U256> {
         let uniswapv2_library_contract_hash = data::library_hash().to_formatted_string();
         let factory: ContractHash = data::factory();
 
         let args: RuntimeArgs = runtime_args! {
-            "factory" => factory,
+            "factory" => Key::from(factory),
             "amount_out" => amount_out,
             "path" => path
         };
