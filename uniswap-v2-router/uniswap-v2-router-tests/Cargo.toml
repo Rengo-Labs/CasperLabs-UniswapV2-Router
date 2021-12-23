@@ -1,5 +1,5 @@
 [package]
-name = "uniswap_v2_router_tests"
+name = "uniswap-v2-router-tests"
 version = "0.2.1"
 authors = ["Muzahir Hussain <muzahir.hussain@scytalelabs.com>", "Bassam Munib <bassam.munib@scytalelabs.com>"]
 edition = "2018"

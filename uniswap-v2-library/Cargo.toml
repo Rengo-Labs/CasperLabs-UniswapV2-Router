@@ -1,8 +1,8 @@
 [workspace]
 
 members = [
-    "uniswap_v2_router",
-    "uniswap_v2_router_tests"
+    "uniswap-v2-library",
+    "uniswap-v2-library-tests"
 ]
 
 [profile.release]

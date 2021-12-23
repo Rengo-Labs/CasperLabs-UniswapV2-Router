@@ -1,10 +1,10 @@
-# Contributing to Uniswap V2 Core - Casper Blockchain
+# Contributing to Uniswap V2 Router - Casper Blockchain
 
 The following is a set of rules and guidelines for contributing to this repo. Please feel free to propose changes to this document in a pull request.
 
 ## Submitting issues
 
-If you have questions about how to use Uniswap V2 Core, please direct these to the related discord channels and do not file an issue:
+If you have questions about how to use Uniswap V2 Router, please direct these to the related discord channels and do not file an issue:
 * [#validators-general](https://discord.gg/9CTHRvvA4d)
 * [#node-tech-support](https://discord.gg/9CTHRvvA4d)
 
