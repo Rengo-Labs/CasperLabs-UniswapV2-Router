@@ -146,12 +146,14 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             uniswapv2_contract_methods::LIBRARY_PAIR_FOR,
             args,
         );
+        
         let pair: ContractHash = ContractHash::from(pair.into_hash().unwrap_or_default()); // convert key into ContractHash
         let pair_package_hash: ContractPackageHash = runtime::call_contract(pair, "package_hash", runtime_args!{});
 
         if amount_token <= 0.into() {
             runtime::revert(ApiError::User(ErrorCodes::Two as u16));
         }
+        
         
         // call safe_transfer_from from TransferHelper
         let result: Result<(), u32> = transfer_helper::safe_transfer_from(
@@ -165,7 +167,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
         }
         
-
+        
         let self_purse = system::create_purse();                    // create new temporary purse and transfer cspr from caller purse to this
         let _:() = system::transfer_from_purse_to_purse(caller_purse, self_purse,  U512::from(amount_cspr.as_u128()), None).unwrap_or_revert();
 
@@ -185,6 +187,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
         }
 
+        
         // call transfer method from wcspr
         let args: RuntimeArgs = runtime_args! {
             "recipient" => Key::from(pair_package_hash),
@@ -1021,7 +1024,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         if pair_received.is_none()
         {
             if pair == zero_addr {                      // if pair is none and it doesnot already exist, revert
-                runtime::revert(ApiError::User(ErrorCodes::Abort as u16));
+                runtime::revert(ApiError::User(ErrorCodes::ZeroAddr as u16));
             }
             else {
                 pair_already_exist = true;
@@ -1092,7 +1095,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
                 );
 
                 if amount_a_optimal > amount_a_desired {
-                    runtime::revert(ApiError::User(ErrorCodes::Abort as u16));
+                    runtime::revert(ApiError::User(ErrorCodes::InvalidArguments as u16));
                 }
 
                 if amount_a_optimal >= amount_a_min {
@@ -1135,12 +1138,12 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
                         "token_a" => output,
                         "token_b" => path[i + 2]
                     };
-                    let hash: ContractHash = Self::call_contract(
+                    let hash: Key = Self::call_contract(
                         &uniswapv2_library_contract_hash,
                         uniswapv2_contract_methods::LIBRARY_PAIR_FOR,
                         args,
                     );
-                    Key::from(hash)
+                    hash
                 } else {
                     _to
                 }

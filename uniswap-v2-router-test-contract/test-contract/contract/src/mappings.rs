@@ -13,9 +13,10 @@ use casper_contract::{
 
 use casper_types::{
     bytesrepr::{ToBytes, FromBytes},
-    CLTyped
+    CLTyped, URef, ApiError
 };
 
+const SELF_PURSE: &str = "self_purse";
 
 pub fn get_key<T: FromBytes + CLTyped + Default>(name: &str) -> T {
     match runtime::get_key(name) {
@@ -103,4 +104,21 @@ pub fn swap_exact_tokens_for_cspr() -> String {
 
 pub fn swap_cspr_for_exact_tokens() -> String {
     format!("swap_cspr_for_exact_tokens")
+}
+
+pub fn purse_balance() -> String{
+    format!("purse_balance")
+}
+
+pub fn set_self_purse(purse: URef) {
+    runtime::put_key(&SELF_PURSE, purse.into());
+}
+
+pub fn get_self_purse() -> URef {
+    let destination_purse_key = runtime::get_key(&SELF_PURSE).unwrap_or_revert();
+
+    match destination_purse_key.as_uref() {
+        Some(uref) => *uref,
+        None => runtime::revert(ApiError::User(40 as u16)),
+    }
 }

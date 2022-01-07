@@ -38,7 +38,34 @@ fn constructor() {
         &mappings::library_key(),
         ContractHash::from(library_address.into_hash().unwrap_or_default()),
     );
+
+    let purse: URef = runtime::get_named_arg("purse");
+    mappings::set_self_purse(purse);
 }
+
+#[no_mangle]
+fn store_cspr() {
+    let self_hash: Key = runtime::get_named_arg("self_hash");
+    let amount: U256 = runtime::get_named_arg("amount");
+    
+    let self_hash: ContractHash = ContractHash::from(self_hash.into_hash().unwrap_or_revert());
+    let caller_purse: URef = account::get_main_purse();
+
+    let _:() = runtime::call_contract(self_hash, "store_cspr_helper", runtime_args!{"purse" => caller_purse, "amount" => amount});
+}
+
+#[no_mangle]
+fn store_cspr_helper() {
+    let this_purse: URef = mappings::get_self_purse();
+    let purse: URef = runtime::get_named_arg("purse");
+    let amount: U256 = runtime::get_named_arg("amount");
+
+
+    let _:() = system::transfer_from_purse_to_purse(purse, this_purse,  U512::from(amount.as_u128()), None).unwrap_or_revert();
+    let amount: U512 = system::get_purse_balance(this_purse).unwrap_or_default();
+    mappings::set_key(&mappings::purse_balance(), amount);
+}
+
 
 #[no_mangle]
 fn add_liquidity() {
@@ -135,19 +162,8 @@ fn add_liquidity_cspr() {
         "amount" => amount_token_desired
     });
 
-
-    // create dummy contract purse and send some cspr to it
-    let self_purse: URef = system::create_purse();                        // create contract's purse 
-    let caller_purse: URef = account::get_main_purse();
-
-    // transfer dummy cspr to self_purse. 
-    // Since system::transfer_from_purse_to_purse works with contracts having type 'Contract' and since this method has type 'Session' thus creating a sperate entry point for transfering funds between purses
-    let _: () = runtime::call_contract(self_hash, "transfer_cspr", runtime_args!{
-        "src_purse" => caller_purse,
-        "dest_purse" => self_purse,
-        "amount" => U512::from(amount_cspr_desired.as_u32())
-    });
-
+    // get self purse, which should already be funded
+    let self_purse: URef = mappings::get_self_purse();
 
     let args: RuntimeArgs = runtime_args! {
         "token" => token,
@@ -421,7 +437,8 @@ fn swap_exact_cspr_for_tokens() {
     let to: Key = runtime::get_named_arg("to");
     let deadline: U256 = runtime::get_named_arg("deadline");
 
-    let caller_purse: URef = account::get_main_purse();
+    // should already be funded
+    let purse: URef = mappings::get_self_purse();
 
     let args: RuntimeArgs = runtime_args! {
         "amount_out_min" => amount_out_min,
@@ -429,7 +446,7 @@ fn swap_exact_cspr_for_tokens() {
         "path" => path,
         "to" => to,
         "deadline" => deadline,
-        "purse" => caller_purse
+        "purse" => purse
     };
 
     let amounts: Vec<U256> =
@@ -685,6 +702,7 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("package_hash", ContractPackageHash::cl_type()),
             Parameter::new("router_address", Key::cl_type()),
             Parameter::new("library_address", Key::cl_type()),
+            Parameter::new("purse", URef::cl_type()),
         ],
         <()>::cl_type(),
         EntryPointAccess::Groups(vec![Group::new("constructor")]),
@@ -727,7 +745,7 @@ fn get_entry_points() -> EntryPoints {
         ],
         <()>::cl_type(),
         EntryPointAccess::Public,
-        EntryPointType::Session,
+        EntryPointType::Contract,
     ));
 
     entry_points.add_entry_point(EntryPoint::new(
@@ -865,7 +883,7 @@ fn get_entry_points() -> EntryPoints {
         ],
         CLType::List(Box::new(CLType::U256)),
         EntryPointAccess::Public,
-        EntryPointType::Session,
+        EntryPointType::Contract,
     ));
 
     entry_points.add_entry_point(EntryPoint::new(
@@ -911,7 +929,28 @@ fn get_entry_points() -> EntryPoints {
         EntryPointType::Session,
     ));
 
-
+    entry_points.add_entry_point(EntryPoint::new(
+        "store_cspr",
+        vec![
+            Parameter::new("self_hash", Key::cl_type()),
+            Parameter::new("amount", U256::cl_type())
+        ],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Session,
+    ));
+    
+    entry_points.add_entry_point(EntryPoint::new(
+        "store_cspr_helper",
+        vec![
+            Parameter::new("purse", URef::cl_type()),
+            Parameter::new("amount", U256::cl_type())
+        ],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    
 
     // ********************************** LIBRARY ENTRY POINTS ********************************
     
@@ -1012,6 +1051,7 @@ pub extern "C" fn call() {
 
     let router_address: Key = runtime::get_named_arg("router_address");
     let library_address: Key = runtime::get_named_arg("library_address");
+    let purse: URef = system::create_purse();
 
     // Get parameters and pass it to the constructors
     // Prepare constructor args
@@ -1019,7 +1059,8 @@ pub extern "C" fn call() {
         "contract_hash" => contract_hash,
         "package_hash" => package_hash,
         "router_address" => router_address,
-        "library_address" => library_address
+        "library_address" => library_address,
+        "purse" => purse
     };
 
     // Add the constructor group to the package hash with a single URef.
@@ -1062,4 +1103,5 @@ pub extern "C" fn call() {
         &format!("{}_package_access_token", contract_name),
         access_token.into(),
     );
+    runtime::put_key(&format!("{}_contract_purse", contract_name), purse.into());
 }

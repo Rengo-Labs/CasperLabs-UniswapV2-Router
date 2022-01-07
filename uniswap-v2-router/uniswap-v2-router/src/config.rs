@@ -10,7 +10,9 @@ pub enum ErrorCodes {
     
     Abort = 35,
     TimedOut,
-    TransferFailed
+    TransferFailed,
+    ZeroAddr,
+    InvalidArguments
 }
 
 pub mod uniswapv2_contract_methods {

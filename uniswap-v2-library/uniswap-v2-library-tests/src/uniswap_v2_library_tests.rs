@@ -6,69 +6,6 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use test_env::{Sender, TestContract, TestEnv};
 
 use crate::uniswap_v2_library_instance::LibraryInstance;
-/*
-fn deploy_dummy_tokens(env: &TestEnv) -> (TestContract, TestContract, TestContract) {
-    let decimals: u8 = 18;
-    let init_total_supply: U256 = 1000.into();
-
-    let token1_owner = env.next_user();
-    let token1_contract = TestContract::new(
-        &env,
-        "token.wasm",
-        "token1_contract",
-        Sender(token1_owner),
-        runtime_args! {
-            "initial_supply" => init_total_supply,
-            "name" => "token1",
-            "symbol" => "tk1",
-            "decimals" => decimals
-        },
-    );
-
-    let token2_owner = env.next_user();
-    let token2_contract = TestContract::new(
-        &env,
-        "token.wasm",
-        "token2_contract",
-        Sender(token2_owner),
-        runtime_args! {
-            "initial_supply" => init_total_supply,
-            "name" => "token2",
-            "symbol" => "tk2",
-            "decimals" => decimals
-        },
-    );
-
-    let token3_owner = env.next_user();
-    let token3_contract = TestContract::new(
-        &env,
-        "token.wasm",
-        "token3_contract",
-        Sender(token3_owner),
-        runtime_args! {
-            "initial_supply" => init_total_supply,
-            "name" => "token3",
-            "symbol" => "tk3",
-            "decimals" => decimals
-        },
-    );
-
-    println!(
-        "DT1: {}",
-        Key::Hash(token1_contract.contract_hash()).to_formatted_string()
-    );
-    println!(
-        "DT2: {}",
-        Key::Hash(token2_contract.contract_hash()).to_formatted_string()
-    );
-    println!(
-        "DT3: {}",
-        Key::Hash(token3_contract.contract_hash()).to_formatted_string()
-    );
-
-    (token1_contract, token2_contract, token3_contract)
-}
-*/
 
 fn deploy_dummy_tokens(
     env: &TestEnv,
@@ -315,10 +252,10 @@ fn test_uniswap_get_reserves() {
     let token_b = Key::Hash(token2.contract_hash());
     let to = Key::Hash(token3.contract_hash());
 
-    let amount_a_desired: U256 = 400.into();
-    let amount_b_desired: U256 = 400.into();
-    let amount_a_min: U256 = 200.into();
-    let amount_b_min: U256 = 200.into();
+    let amount_a_desired: U256 = U256::from("10000000000");
+    let amount_b_desired: U256 = U256::from("10000000000");
+    let amount_a_min: U256 = U256::from("1000000");
+    let amount_b_min: U256 = U256::from("1000000");
 
     let deadline: u128 = match SystemTime::now().duration_since(UNIX_EPOCH) {
         Ok(n) => n.as_millis() + (1000 * (30 * 60)), // current epoch time in milisecond + 30 minutes
@@ -331,7 +268,7 @@ fn test_uniswap_get_reserves() {
         "mint",
         runtime_args! {
             "to" => Key::from(test_contract.package_hash_result()),
-            "amount" => U256::from(100000)
+            "amount" => U256::from("100000000000")
         },
     );
     token2.call_contract(
@@ -339,7 +276,7 @@ fn test_uniswap_get_reserves() {
         "mint",
         runtime_args! {
             "to" => Key::from(test_contract.package_hash_result()),
-            "amount" => U256::from(100000)
+            "amount" => U256::from("100000000000")
         },
     );
 
@@ -391,10 +328,10 @@ fn test_uniswap_get_amounts_out() {
     let token_b = Key::Hash(token2.contract_hash());
     let to = Key::Hash(token3.contract_hash());
 
-    let amount_a_desired: U256 = 400.into();
-    let amount_b_desired: U256 = 400.into();
-    let amount_a_min: U256 = 200.into();
-    let amount_b_min: U256 = 200.into();
+    let amount_a_desired: U256 = U256::from("10000000000");
+    let amount_b_desired: U256 = U256::from("10000000000");
+    let amount_a_min: U256 = U256::from("1000000");
+    let amount_b_min: U256 = U256::from("1000000");
 
     let deadline: u128 = match SystemTime::now().duration_since(UNIX_EPOCH) {
         Ok(n) => n.as_millis() + (1000 * (30 * 60)), // current epoch time in milisecond + 30 minutes
@@ -407,7 +344,7 @@ fn test_uniswap_get_amounts_out() {
         "mint",
         runtime_args! {
             "to" => Key::from(test_contract.package_hash_result()),
-            "amount" => U256::from(100000)
+            "amount" => U256::from("100000000000")
         },
     );
     token2.call_contract(
@@ -415,7 +352,7 @@ fn test_uniswap_get_amounts_out() {
         "mint",
         runtime_args! {
             "to" => Key::from(test_contract.package_hash_result()),
-            "amount" => U256::from(100000)
+            "amount" => U256::from("100000000000")
         },
     );
 
@@ -471,10 +408,10 @@ fn test_uniswap_get_amounts_in() {
     let token_b = Key::Hash(token2.contract_hash());
     let to = Key::Hash(token3.contract_hash());
 
-    let amount_a_desired: U256 = 400.into();
-    let amount_b_desired: U256 = 400.into();
-    let amount_a_min: U256 = 200.into();
-    let amount_b_min: U256 = 200.into();
+    let amount_a_desired: U256 = U256::from("10000000000");
+    let amount_b_desired: U256 = U256::from("10000000000");
+    let amount_a_min: U256 = U256::from("1000000");
+    let amount_b_min: U256 = U256::from("1000000");
 
     let deadline: u128 = match SystemTime::now().duration_since(UNIX_EPOCH) {
         Ok(n) => n.as_millis() + (1000 * (30 * 60)), // current epoch time in milisecond + 30 minutes
@@ -487,7 +424,7 @@ fn test_uniswap_get_amounts_in() {
         "mint",
         runtime_args! {
             "to" => Key::from(test_contract.package_hash_result()),
-            "amount" => U256::from(100000)
+            "amount" => U256::from("100000000000")
         },
     );
     token2.call_contract(
@@ -495,7 +432,7 @@ fn test_uniswap_get_amounts_in() {
         "mint",
         runtime_args! {
             "to" => Key::from(test_contract.package_hash_result()),
-            "amount" => U256::from(100000)
+            "amount" => U256::from("100000000000")
         },
     );
 

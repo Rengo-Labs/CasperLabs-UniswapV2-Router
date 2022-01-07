@@ -1,4 +1,4 @@
-use casper_types::{runtime_args, ContractHash, ContractPackageHash, Key, RuntimeArgs, U256};
+use casper_types::{runtime_args, ContractHash, ContractPackageHash, Key, RuntimeArgs, U256, U512};
 use test_env::{Sender, TestContract, TestEnv};
 
 use cryptoxide::ed25519;
@@ -352,6 +352,17 @@ impl UniswapInstance {
         );
     }
 
+    pub fn store_cspr(&self, sender: Sender, test_contract_hash: Key, amount: U256) {
+        self.0.call_contract(
+            sender,
+            "store_cspr",
+            runtime_args! {
+                "self_hash" => test_contract_hash,
+                "amount" => amount
+            },
+        );
+    }
+
     pub fn approve(&self, token: &TestContract, sender: Sender, spender: Key, amount: U256) {
         token.call_contract(
             sender,
@@ -379,6 +390,10 @@ impl UniswapInstance {
         Key::from(contract_hash)
     }
 
+    pub fn get_purse_balance(&self) -> U512 {
+        let balance: U512 = self.0.query_named_key("purse_balance".to_string());
+        balance
+    }
 
     pub fn calculate_signature(&self, data: &String, domainseparator: &String) -> (String, String) {
         let hash = keccak256(data.as_bytes());
