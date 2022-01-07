@@ -769,7 +769,7 @@ fn swap_tokens_for_exact_tokens() {
     );
 }
 
-/*
+
 #[test]
 fn swap_exact_cspr_for_tokens() {
     let (env, uniswap, owner, router_contract, flash_swapper, _, token1, token2, _, wcspr, factory) =
@@ -822,8 +822,8 @@ fn swap_exact_cspr_for_tokens() {
     let to: Key = Key::Hash(token2.contract_hash());
 
     // store some cspr to test's purse
-    //let test_contract_hash = uniswap.test_contract_hash();
-    //uniswap.store_cspr(Sender(owner), test_contract_hash, 1000000.into());
+    let test_contract_hash = uniswap.test_contract_hash();
+    uniswap.store_cspr(Sender(owner), test_contract_hash, 1000000.into());
 
     uniswap.swap_exact_cspr_for_tokens(
         Sender(owner),
@@ -850,15 +850,19 @@ fn swap_tokens_for_exact_cspr() {
     // add liquidity to cspr pair
     let pair: TestContract = deploy_pair_contract(&env, owner, Key::Hash(factory.contract_hash()), Key::Hash(flash_swapper.contract_hash()));
     let token = Key::Hash(token1.contract_hash());
-    let amount_token_desired: U256 = 400.into();
-    let amount_cspr_desired: U256 = 400.into();
-    let amount_token_min: U256 = 400.into();
-    let amount_cspr_min: U256 = 400.into();
+    let amount_token_desired: U256 = U256::from(10000000);
+    let amount_cspr_desired: U256 = U256::from(10000000);
+    let amount_token_min: U256 = U256::from(100000);
+    let amount_cspr_min: U256 = U256::from(100000);
+
 
     let deadline: u128 = match SystemTime::now().duration_since(UNIX_EPOCH) {
         Ok(n) => n.as_millis() + (1000 * (30 * 60)), // current epoch time in milisecond + 30 minutes
         Err(_) => 0,
     };
+
+    let test_contract_hash = uniswap.test_contract_hash();
+    uniswap.store_cspr(Sender(owner), test_contract_hash, amount_cspr_desired);
 
     uniswap.add_liquidity_cspr(
         Sender(owner),
@@ -876,12 +880,16 @@ fn swap_tokens_for_exact_cspr() {
 
 
     // Calling Swap now
-    let amount_in_max: U256 = 50.into();
-    let amount_out: U256 = 25.into();
+    let amount_in_max: U256 = 1000000.into();
+    let amount_out: U256 = 10000.into();
+
     let path: Vec<Key> = vec![
         Key::Hash(token1.contract_hash()),
         Key::Hash(wcspr.contract_hash()),
     ];
+
+    let test_contract_hash = uniswap.test_contract_hash();
+    uniswap.store_cspr(Sender(owner), test_contract_hash, 1000000.into());
 
     uniswap.swap_tokens_for_exact_cspr(
         Sender(owner),
@@ -904,10 +912,11 @@ fn swap_exact_tokens_for_cspr() {
     // add liquidity to cspr pair
     let pair: TestContract = deploy_pair_contract(&env, owner, Key::Hash(factory.contract_hash()), Key::Hash(flash_swapper.contract_hash()));
     let token = Key::Hash(token1.contract_hash());
-    let amount_token_desired: U256 = 400.into();
-    let amount_cspr_desired: U256 = 400.into();
-    let amount_token_min: U256 = 400.into();
-    let amount_cspr_min: U256 = 400.into();
+
+    let amount_token_desired: U256 = U256::from(10000000);
+    let amount_cspr_desired: U256 = U256::from(10000000);
+    let amount_token_min: U256 = U256::from(100000);
+    let amount_cspr_min: U256 = U256::from(100000);
 
     let to = Key::Hash(token2.contract_hash());
 
@@ -915,6 +924,9 @@ fn swap_exact_tokens_for_cspr() {
         Ok(n) => n.as_millis() + (1000 * (30 * 60)), // current epoch time in milisecond + 30 minutes
         Err(_) => 0,
     };
+
+    let test_contract_hash = uniswap.test_contract_hash();
+    uniswap.store_cspr(Sender(owner), test_contract_hash, amount_cspr_desired);
 
     uniswap.add_liquidity_cspr(
         Sender(owner),
@@ -931,12 +943,16 @@ fn swap_exact_tokens_for_cspr() {
     );
 
     // Swap
-    let amount_in: U256 = 50.into();
-    let amount_out_min: U256 = 25.into();
+    let amount_in: U256 = 1000000.into();
+    let amount_out_min: U256 = 10000.into();
+    
     let path: Vec<Key> = vec![
         Key::Hash(token1.contract_hash()),
         Key::Hash(wcspr.contract_hash()),
     ];
+
+    let test_contract_hash = uniswap.test_contract_hash();
+    uniswap.store_cspr(Sender(owner), test_contract_hash, 1000000.into());
 
     uniswap.swap_exact_tokens_for_cspr(
         Sender(owner),
@@ -959,10 +975,11 @@ fn swap_cspr_for_exact_tokens() {
     // add liquidity to cspr pair
     let pair: TestContract = deploy_pair_contract(&env, owner, Key::Hash(factory.contract_hash()), Key::Hash(flash_swapper.contract_hash()));
     let token = Key::Hash(token1.contract_hash());
-    let amount_token_desired: U256 = 400.into();
-    let amount_cspr_desired: U256 = 400.into();
-    let amount_token_min: U256 = 400.into();
-    let amount_cspr_min: U256 = 400.into();
+    
+    let amount_token_desired: U256 = U256::from(10000000);
+    let amount_cspr_desired: U256 = U256::from(10000000);
+    let amount_token_min: U256 = U256::from(100000);
+    let amount_cspr_min: U256 = U256::from(100000);
 
     let to = Key::Hash(token2.contract_hash());
 
@@ -970,6 +987,9 @@ fn swap_cspr_for_exact_tokens() {
         Ok(n) => n.as_millis() + (1000 * (30 * 60)), // current epoch time in milisecond + 30 minutes
         Err(_) => 0,
     };
+
+    let test_contract_hash = uniswap.test_contract_hash();
+    uniswap.store_cspr(Sender(owner), test_contract_hash, amount_cspr_desired);
 
     uniswap.add_liquidity_cspr(
         Sender(owner),
@@ -985,15 +1005,17 @@ fn swap_cspr_for_exact_tokens() {
         uniswap.test_contract_hash()
     );
 
-
     // calling swap now
-    let amount_in_max: U256 = 50.into();
-    let amount_out: U256 = 25.into();
-
+    let amount_in_max: U256 = 1000000.into();
+    let amount_out: U256 = 10000.into();
+    
     let path: Vec<Key> = vec![
         Key::Hash(wcspr.contract_hash()),
         Key::Hash(token1.contract_hash()),
     ];
+
+    let test_contract_hash = uniswap.test_contract_hash();
+    uniswap.store_cspr(Sender(owner), test_contract_hash, 1000000.into());
 
     uniswap.swap_cspr_for_exact_tokens(
         Sender(owner),
@@ -1001,8 +1023,6 @@ fn swap_cspr_for_exact_tokens() {
         amount_in_max,
         path,
         to,
-        deadline.into(),
-        Key::Hash(router_contract.contract_hash()),
+        deadline.into()
     );
 }
-*/

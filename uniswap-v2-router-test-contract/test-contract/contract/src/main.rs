@@ -461,7 +461,6 @@ fn swap_tokens_for_exact_cspr() {
     let amount_out: U256 = runtime::get_named_arg("amount_out");
     let amount_in_max: U256 = runtime::get_named_arg("amount_in_max");
     let path: Vec<Key> = runtime::get_named_arg("path");
-    //let to: Key = runtime::get_named_arg("to");
     let deadline: U256 = runtime::get_named_arg("deadline");
 
     let router_package_hash: ContractPackageHash = runtime::call_contract(router_address, "package_hash", runtime_args!{});
@@ -476,7 +475,7 @@ fn swap_tokens_for_exact_cspr() {
     });
 
     // create dummy contract purse
-    let to_purse: URef = system::create_purse();                        // create contract's purse 
+    let to_purse: URef = mappings::get_self_purse();                        // get self purse
 
     let args: RuntimeArgs = runtime_args! {
         "amount_out" => amount_out,
@@ -512,7 +511,7 @@ fn swap_exact_tokens_for_cspr() {
     });
 
     // create dummy contract purse
-    let to_purse: URef = system::create_purse();                        // create contract's purse 
+    let to_purse: URef = mappings::get_self_purse();                        // get self purse
 
     let args: RuntimeArgs = runtime_args! {
         "amount_in" => amount_in,
@@ -529,8 +528,7 @@ fn swap_exact_tokens_for_cspr() {
 
 #[no_mangle]
 fn swap_cspr_for_exact_tokens() {
-    let router_address: Key = runtime::get_named_arg("router_hash");
-    let router_address: ContractHash = ContractHash::from(router_address.into_hash().unwrap_or_revert());
+    let router_address: ContractHash = mappings::get_key(&mappings::router_key());
 
     let amount_out: U256 = runtime::get_named_arg("amount_out");
     let amount_in_max: U256 = runtime::get_named_arg("amount_in_max");
@@ -551,7 +549,7 @@ fn swap_cspr_for_exact_tokens() {
     });
 
     // create purse and send balance in it.
-    let caller_purse: URef = account::get_main_purse();
+    let caller_purse: URef = mappings::get_self_purse();
 
     let args: RuntimeArgs = runtime_args! {
         "amount_out" => amount_out,
@@ -892,7 +890,6 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("amount_out", CLType::U256),
             Parameter::new("amount_in_max", CLType::U256),
             Parameter::new("path", CLType::List(Box::new(CLType::Key))),
-            //Parameter::new("to", CLType::Key),
             Parameter::new("deadline", CLType::U256),
         ],
         CLType::List(Box::new(CLType::U256)),
@@ -906,7 +903,6 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("amount_in", CLType::U256),
             Parameter::new("amount_out_min", CLType::U256),
             Parameter::new("path", CLType::List(Box::new(CLType::Key))),
-            //Parameter::new("to", CLType::Key),
             Parameter::new("deadline", CLType::U256),
         ],
         CLType::List(Box::new(CLType::U256)),
@@ -921,12 +917,11 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("amount_in_max", CLType::U256),
             Parameter::new("path", CLType::List(Box::new(CLType::Key))),
             Parameter::new("to", CLType::Key),
-            Parameter::new("deadline", CLType::U256),
-            Parameter::new("router_hash", CLType::Key)
+            Parameter::new("deadline", CLType::U256)
         ],
         CLType::List(Box::new(CLType::U256)),
         EntryPointAccess::Public,
-        EntryPointType::Session,
+        EntryPointType::Contract,
     ));
 
     entry_points.add_entry_point(EntryPoint::new(

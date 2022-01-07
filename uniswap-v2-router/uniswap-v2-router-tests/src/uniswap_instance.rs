@@ -335,8 +335,7 @@ impl UniswapInstance {
         amount_in_max: U256,
         path: Vec<Key>,
         to: Key,
-        deadline: U256,
-        router: Key
+        deadline: U256
     ) {
         self.0.call_contract(
             sender,
@@ -346,8 +345,7 @@ impl UniswapInstance {
                 "amount_out" => amount_out,
                 "path" => path,
                 "to" => to,
-                "deadline" => deadline,
-                "router_hash" => router
+                "deadline" => deadline
             },
         );
     }
