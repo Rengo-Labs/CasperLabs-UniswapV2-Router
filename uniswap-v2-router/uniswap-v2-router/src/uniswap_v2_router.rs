@@ -1134,7 +1134,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             let to: Key = {
                 if i < path.len() - 2 {
                     let args: RuntimeArgs = runtime_args! {
-                        "factory" => factory,
+                        "factory" => Key::from(factory),
                         "token_a" => output,
                         "token_b" => path[i + 2]
                     };
