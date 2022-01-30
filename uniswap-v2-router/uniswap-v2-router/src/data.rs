@@ -8,7 +8,6 @@ pub const SELF_HASH: &str = "self_hash";
 pub const PACKAGE_HASH: &str = "package_hash";
 pub const LIBRARY_HASH: &str = "library_hash";
 
-
 pub fn wcspr() -> ContractHash { get_key(WCSPR).unwrap_or_revert() }
 pub fn set_wcspr(_wcspr: ContractHash) { set_key(WCSPR, _wcspr); }
 
