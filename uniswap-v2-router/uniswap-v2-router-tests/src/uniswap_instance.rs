@@ -225,7 +225,7 @@ impl UniswapInstance {
         sender: Sender,
         amount_in: U256,
         amount_out_min: U256,
-        path: Vec<Key>,
+        path: Vec<String>,
         to: Key,
         deadline: U256,
     ) {
@@ -247,7 +247,7 @@ impl UniswapInstance {
         sender: Sender,
         amount_out: U256,
         amount_in_max: U256,
-        path: Vec<Key>,
+        path: Vec<String>,
         to: Key,
         deadline: U256,
     ) {
@@ -269,7 +269,7 @@ impl UniswapInstance {
         sender: Sender,
         amount_out_min: U256,
         amount_in: U256,
-        path: Vec<Key>,
+        path: Vec<String>,
         to: Key,
         deadline: U256,
         router: Key
@@ -293,7 +293,7 @@ impl UniswapInstance {
         sender: Sender,
         amount_out: U256,
         amount_in_max: U256,
-        path: Vec<Key>,
+        path: Vec<String>,
         deadline: U256,
     ) {
         self.0.call_contract(
@@ -313,7 +313,7 @@ impl UniswapInstance {
         sender: Sender,
         amount_in: U256,
         amount_out_min: U256,
-        path: Vec<Key>,
+        path: Vec<String>,
         deadline: U256,
     ) {
         self.0.call_contract(
@@ -333,7 +333,7 @@ impl UniswapInstance {
         sender: Sender,
         amount_out: U256,
         amount_in_max: U256,
-        path: Vec<Key>,
+        path: Vec<String>,
         to: Key,
         deadline: U256
     ) {

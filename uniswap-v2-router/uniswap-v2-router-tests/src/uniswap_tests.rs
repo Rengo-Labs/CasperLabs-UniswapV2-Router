@@ -1,11 +1,10 @@
 use casper_engine_test_support::AccountHash;
-use casper_types::{runtime_args, ContractPackageHash, Key, RuntimeArgs, U256, U512};
+use casper_types::{runtime_args, ContractPackageHash, Key, RuntimeArgs, U256};
 use test_env::{Sender, TestContract, TestEnv};
 
 use crate::uniswap_instance::UniswapInstance;
 
 use more_asserts;
-use rand::Rng;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 const NAME: &str = "uniswap_router";
@@ -254,11 +253,9 @@ fn test_uniswap_deploy() {
 
 #[test]
 fn add_liquidity() {
-    let (env, uniswap, owner, router_contract, flash_swapper, _, token1, token2, token3, _, factory) =
+    let (env, uniswap, owner, _router_contract, flash_swapper, _, token1, token2, _token3, _, factory) =
         deploy_uniswap_router();
 
-    let router_package_hash: ContractPackageHash = router_contract.query_named_key(String::from("package_hash"));
-    let router_package_hash: Key = router_package_hash.into();
     let pair: TestContract = deploy_pair_contract(&env, owner, Key::Hash(factory.contract_hash()), Key::Hash(flash_swapper.contract_hash()));
 
     let token_a = Key::Hash(token1.contract_hash());
@@ -296,11 +293,8 @@ fn add_liquidity() {
 
 #[test]
 fn add_liquidity_cspr() {
-    let (env, uniswap, owner, router_contract, flash_swapper, _, token1, token2, _, _, factory) =
+    let (env, uniswap, owner, router_contract, flash_swapper, _, token1, _token2, _, _, factory) =
         deploy_uniswap_router();
-
-    let router_package_hash: ContractPackageHash = router_contract.query_named_key(String::from("package_hash"));
-    let router_package_hash: Key = router_package_hash.into();
     let pair: TestContract = deploy_pair_contract(&env, owner, Key::Hash(factory.contract_hash()), Key::Hash(flash_swapper.contract_hash()));
 
     let token = Key::Hash(token1.contract_hash());
@@ -342,12 +336,8 @@ fn add_liquidity_cspr() {
 
 #[test]
 fn remove_liquidity() {
-    let (env, uniswap, owner, router_contract, flash_swapper, _, token1, token2, _, _, factory) =
+    let (env, uniswap, owner, _router_contract, flash_swapper, _, token1, token2, _, _, factory) =
         deploy_uniswap_router();
-
-    let router_package_hash: ContractPackageHash = router_contract.query_named_key(String::from("package_hash"));
-    let router_package_hash: Key = router_package_hash.into();
-
 
     // First Add liquidity
     let pair: TestContract = deploy_pair_contract(&env, owner, Key::Hash(factory.contract_hash()), Key::Hash(flash_swapper.contract_hash()));
@@ -404,14 +394,8 @@ fn remove_liquidity() {
 
 #[test]
 fn remove_liquidity_cspr() {
-    let (env, uniswap, owner, router_contract, flash_swapper, _, token1, token2, _, _, factory) =
+    let (env, uniswap, owner, router_contract, flash_swapper, _, token1, _token2, _, _, factory) =
         deploy_uniswap_router();
-
-    let router_package_hash: ContractPackageHash = router_contract.query_named_key(String::from("package_hash"));
-    let router_package_hash: Key = router_package_hash.into();
-
-
-    let mut rng = rand::thread_rng();
 
     // Here we do need to first create the pair, because pair for token1 and wcspr isn't created anywhere.
     // First Add liquidity
@@ -445,7 +429,7 @@ fn remove_liquidity_cspr() {
         Key::Hash(router_contract.contract_hash()),
         uniswap.test_contract_hash(),
     );
-    let (amount_token, amount_cspr, liquidity): (U256, U256, U256) = uniswap.add_liquidity_cspr_result();
+    let (_amount_token, _amount_cspr, liquidity): (U256, U256, U256) = uniswap.add_liquidity_cspr_result();
 
 
     // Now Remove liquidity
@@ -557,8 +541,6 @@ fn remove_liquidity_cspr_with_permit() {
     let router_package_hash: ContractPackageHash = router_contract.query_named_key(String::from("package_hash"));
     let router_package_hash: Key = router_package_hash.into();
 
-    let mut rng = rand::thread_rng();
-
     // First Add liquidity
     let pair: TestContract = deploy_pair_contract(&env, owner, Key::Hash(factory.contract_hash()), Key::Hash(flash_swapper.contract_hash()));
 
@@ -644,18 +626,18 @@ fn remove_liquidity_cspr_with_permit() {
 
 #[test]
 fn swap_exact_tokens_for_tokens() {
-    let (env, uniswap, owner, router_contract, flash_swapper, _, token1, token2, token3, _, factory) =
+    let (env, uniswap, owner, _router_contract, flash_swapper, _, token1, token2, token3, _, factory) =
         deploy_uniswap_router();
-
-    let router_package_hash: ContractPackageHash = router_contract.query_named_key(String::from("package_hash"));
-    let router_package_hash: Key = router_package_hash.into();
 
     // first need to add liquidity
     let pair: TestContract = deploy_pair_contract(&env, owner, Key::Hash(factory.contract_hash()), Key::Hash(flash_swapper.contract_hash()));
 
     let token_a = Key::Hash(token1.contract_hash());
+    
     let token_b = Key::Hash(token2.contract_hash());
     let to = Key::Hash(token3.contract_hash());
+    // 293c45c3b70c74634d0d76e3e3fff90cd17ae3e3489ef9df7eb2ef60e29ae5da
+    // c08614884cb7012f4da241a455dc9e699661b79bb0177d2151b5fdb748255981
 
     let amount_a_desired: U256 = U256::from(10000000);
     let amount_b_desired: U256 = U256::from(10000000);
@@ -685,9 +667,9 @@ fn swap_exact_tokens_for_tokens() {
     // SWAP
     let amount_in: U256 = 1000000.into();
     let amount_out_min: U256 = 10000.into();
-    let path: Vec<Key> = vec![
-        Key::Hash(token1.contract_hash()),
-        Key::Hash(token2.contract_hash()),
+    let path: Vec<String> = vec![
+        token_a.to_formatted_string(),
+        token_b.to_formatted_string()
     ];
     let to: Key = Key::Hash(token3.contract_hash());
     let deadline: u128 = match SystemTime::now().duration_since(UNIX_EPOCH) {
@@ -709,11 +691,8 @@ fn swap_exact_tokens_for_tokens() {
 
 #[test]
 fn swap_tokens_for_exact_tokens() {
-    let (env, uniswap, owner, router_contract, flash_swapper, _, token1, token2, token3, _, factory) =
+    let (env, uniswap, owner, _router_contract, flash_swapper, _, token1, token2, token3, _, factory) =
         deploy_uniswap_router();
-
-    let router_package_hash: ContractPackageHash = router_contract.query_named_key(String::from("package_hash"));
-    let router_package_hash: Key = router_package_hash.into();
 
     // first need to add liquidity
     let pair: TestContract = deploy_pair_contract(&env, owner, Key::Hash(factory.contract_hash()), Key::Hash(flash_swapper.contract_hash()));
@@ -749,9 +728,9 @@ fn swap_tokens_for_exact_tokens() {
     // Swap
     let amount_in_max: U256 = 1000000.into();
     let amount_out: U256 = 10000.into();
-    let path: Vec<Key> = vec![
-        Key::Hash(token1.contract_hash()),
-        Key::Hash(token2.contract_hash()),
+    let path: Vec<String> = vec![
+        token_a.to_formatted_string(),
+        token_b.to_formatted_string()
     ];
     let to: Key = Key::Hash(token3.contract_hash());
     let deadline: u128 = match SystemTime::now().duration_since(UNIX_EPOCH) {
@@ -774,10 +753,6 @@ fn swap_tokens_for_exact_tokens() {
 fn swap_exact_cspr_for_tokens() {
     let (env, uniswap, owner, router_contract, flash_swapper, _, token1, token2, _, wcspr, factory) =
     deploy_uniswap_router();
-
-    let router_package_hash: ContractPackageHash = router_contract.query_named_key(String::from("package_hash"));
-    let router_package_hash: Key = router_package_hash.into();
-
 
     // add liquidity to cspr pair
     let pair: TestContract = deploy_pair_contract(&env, owner, Key::Hash(factory.contract_hash()), Key::Hash(flash_swapper.contract_hash()));
@@ -815,9 +790,9 @@ fn swap_exact_cspr_for_tokens() {
     // Swap
     let amount_in: U256 = 1000000.into();
     let amount_out_min: U256 = 10000.into();
-    let path: Vec<Key> = vec![
-        Key::Hash(wcspr.contract_hash()),
-        Key::Hash(token1.contract_hash()),
+    let path: Vec<String> = vec![
+        Key::Hash(wcspr.contract_hash()).to_formatted_string(),
+        Key::Hash(token1.contract_hash()).to_formatted_string()
     ];
     let to: Key = Key::Hash(token2.contract_hash());
 
@@ -840,11 +815,8 @@ fn swap_exact_cspr_for_tokens() {
 
 #[test]
 fn swap_tokens_for_exact_cspr() {
-    let (env, uniswap, owner, router_contract, flash_swapper, _, token1, token2, _, wcspr, factory) =
+    let (env, uniswap, owner, router_contract, flash_swapper, _, token1, _token2, _, wcspr, factory) =
     deploy_uniswap_router();
-
-    let router_package_hash: ContractPackageHash = router_contract.query_named_key(String::from("package_hash"));
-    let router_package_hash: Key = router_package_hash.into();
 
 
     // add liquidity to cspr pair
@@ -883,9 +855,9 @@ fn swap_tokens_for_exact_cspr() {
     let amount_in_max: U256 = 1000000.into();
     let amount_out: U256 = 10000.into();
 
-    let path: Vec<Key> = vec![
-        Key::Hash(token1.contract_hash()),
-        Key::Hash(wcspr.contract_hash()),
+    let path: Vec<String> = vec![
+        Key::Hash(token1.contract_hash()).to_formatted_string(),
+        Key::Hash(wcspr.contract_hash()).to_formatted_string()
     ];
 
     let test_contract_hash = uniswap.test_contract_hash();
@@ -903,11 +875,8 @@ fn swap_tokens_for_exact_cspr() {
 
 #[test]
 fn swap_exact_tokens_for_cspr() {
-    let (env, uniswap, owner, router_contract, flash_swapper, _, token1, token2, _, wcspr, factory) =
+    let (env, uniswap, owner, router_contract, flash_swapper, _, token1, _token2, _, wcspr, factory) =
     deploy_uniswap_router();
-
-    let router_package_hash: ContractPackageHash = router_contract.query_named_key(String::from("package_hash"));
-    let router_package_hash: Key = router_package_hash.into();
 
     // add liquidity to cspr pair
     let pair: TestContract = deploy_pair_contract(&env, owner, Key::Hash(factory.contract_hash()), Key::Hash(flash_swapper.contract_hash()));
@@ -917,8 +886,6 @@ fn swap_exact_tokens_for_cspr() {
     let amount_cspr_desired: U256 = U256::from(10000000);
     let amount_token_min: U256 = U256::from(100000);
     let amount_cspr_min: U256 = U256::from(100000);
-
-    let to = Key::Hash(token2.contract_hash());
 
     let deadline: u128 = match SystemTime::now().duration_since(UNIX_EPOCH) {
         Ok(n) => n.as_millis() + (1000 * (30 * 60)), // current epoch time in milisecond + 30 minutes
@@ -945,11 +912,13 @@ fn swap_exact_tokens_for_cspr() {
     // Swap
     let amount_in: U256 = 1000000.into();
     let amount_out_min: U256 = 10000.into();
-    
-    let path: Vec<Key> = vec![
-        Key::Hash(token1.contract_hash()),
-        Key::Hash(wcspr.contract_hash()),
+
+    let path: Vec<String> = vec![
+        Key::Hash(token1.contract_hash()).to_formatted_string(),  
+        Key::Hash(wcspr.contract_hash()).to_formatted_string()
     ];
+
+    
 
     let test_contract_hash = uniswap.test_contract_hash();
     uniswap.store_cspr(Sender(owner), test_contract_hash, 1000000.into());
@@ -968,9 +937,6 @@ fn swap_exact_tokens_for_cspr() {
 fn swap_cspr_for_exact_tokens() {
     let (env, uniswap, owner, router_contract, flash_swapper, _, token1, token2, _, wcspr, factory) =
     deploy_uniswap_router();
-
-    let router_package_hash: ContractPackageHash = router_contract.query_named_key(String::from("package_hash"));
-    let router_package_hash: Key = router_package_hash.into();
 
     // add liquidity to cspr pair
     let pair: TestContract = deploy_pair_contract(&env, owner, Key::Hash(factory.contract_hash()), Key::Hash(flash_swapper.contract_hash()));
@@ -1009,10 +975,11 @@ fn swap_cspr_for_exact_tokens() {
     let amount_in_max: U256 = 1000000.into();
     let amount_out: U256 = 10000.into();
     
-    let path: Vec<Key> = vec![
-        Key::Hash(wcspr.contract_hash()),
-        Key::Hash(token1.contract_hash()),
+    let path: Vec<String> = vec![
+        Key::Hash(wcspr.contract_hash()).to_formatted_string(), 
+        Key::Hash(token1.contract_hash()).to_formatted_string()    
     ];
+
 
     let test_contract_hash = uniswap.test_contract_hash();
     uniswap.store_cspr(Sender(owner), test_contract_hash, 1000000.into());

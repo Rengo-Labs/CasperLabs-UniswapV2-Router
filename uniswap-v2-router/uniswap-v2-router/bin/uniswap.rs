@@ -466,10 +466,10 @@ fn swap_exact_tokens_for_tokens() {
 
     let amount_in: U256 = runtime::get_named_arg("amount_in");
     let amount_out_min: U256 = runtime::get_named_arg("amount_out_min");
-    let path: Vec<Key> = runtime::get_named_arg("path");
+    let path: Vec<String> = runtime::get_named_arg("path");
     let to: Key = runtime::get_named_arg("to");
 
-    let amounts: Vec<U256> =
+    let amounts: Vec<U256> = Vec::new();
         Uniswap::default().swap_exact_tokens_for_tokens(amount_in, amount_out_min, path, to);
     runtime::ret(CLValue::from_t(amounts).unwrap_or_revert());
 }
@@ -486,7 +486,7 @@ fn swap_exact_tokens_for_tokens_js_client() {
 
     let amount_in: U256 = runtime::get_named_arg("amount_in");
     let amount_out_min: U256 = runtime::get_named_arg("amount_out_min");
-    let path: Vec<Key> = runtime::get_named_arg("path");
+    let path: Vec<String> = runtime::get_named_arg("path");
     let to: Key = runtime::get_named_arg("to");
 
     let _amounts: Vec<U256> =
@@ -505,7 +505,7 @@ fn swap_tokens_for_exact_tokens() {
 
     let amount_out: U256 = runtime::get_named_arg("amount_out");
     let amount_in_max: U256 = runtime::get_named_arg("amount_in_max");
-    let path: Vec<Key> = runtime::get_named_arg("path");
+    let path: Vec<String> = runtime::get_named_arg("path");
     let to: Key = runtime::get_named_arg("to");
 
     let amounts: Vec<U256> =
@@ -525,7 +525,7 @@ fn swap_tokens_for_exact_tokens_js_client() {
 
     let amount_out: U256 = runtime::get_named_arg("amount_out");
     let amount_in_max: U256 = runtime::get_named_arg("amount_in_max");
-    let path: Vec<Key> = runtime::get_named_arg("path");
+    let path: Vec<String> = runtime::get_named_arg("path");
     let to: Key = runtime::get_named_arg("to");
 
     let _amounts: Vec<U256> =
@@ -544,7 +544,7 @@ fn swap_exact_cspr_for_tokens() {
 
     let amount_out_min: U256 = runtime::get_named_arg("amount_out_min");
     let amount_in: U256 = runtime::get_named_arg("amount_in");
-    let path: Vec<Key> = runtime::get_named_arg("path");
+    let path: Vec<String> = runtime::get_named_arg("path");
     let to: Key = runtime::get_named_arg("to");
     let purse: URef = runtime::get_named_arg("purse");
 
@@ -565,7 +565,7 @@ fn swap_exact_cspr_for_tokens_js_client() {
 
     let amount_out_min: U256 = runtime::get_named_arg("amount_out_min");
     let amount_in: U256 = runtime::get_named_arg("amount_in");
-    let path: Vec<Key> = runtime::get_named_arg("path");
+    let path: Vec<String> = runtime::get_named_arg("path");
     let to: Key = runtime::get_named_arg("to");
     let purse: URef = runtime::get_named_arg("purse");
 
@@ -585,7 +585,7 @@ fn swap_tokens_for_exact_cspr() {
 
     let amount_out: U256 = runtime::get_named_arg("amount_out");
     let amount_in_max: U256 = runtime::get_named_arg("amount_in_max");
-    let path: Vec<Key> = runtime::get_named_arg("path");
+    let path: Vec<String> = runtime::get_named_arg("path");
     let to: URef = runtime::get_named_arg("to");
 
     let amounts: Vec<U256> =
@@ -605,7 +605,7 @@ fn swap_tokens_for_exact_cspr_js_client() {
 
     let amount_out: U256 = runtime::get_named_arg("amount_out");
     let amount_in_max: U256 = runtime::get_named_arg("amount_in_max");
-    let path: Vec<Key> = runtime::get_named_arg("path");
+    let path: Vec<String> = runtime::get_named_arg("path");
     let to: URef = runtime::get_named_arg("to");
 
     let _amounts: Vec<U256> =
@@ -624,7 +624,7 @@ fn swap_exact_tokens_for_cspr() {
 
     let amount_in: U256 = runtime::get_named_arg("amount_in");
     let amount_out_min: U256 = runtime::get_named_arg("amount_out_min");
-    let path: Vec<Key> = runtime::get_named_arg("path");
+    let path: Vec<String> = runtime::get_named_arg("path");
     let to: URef = runtime::get_named_arg("to");
 
     let amounts: Vec<U256> =
@@ -644,7 +644,7 @@ fn swap_exact_tokens_for_cspr_js_client() {
 
     let amount_in: U256 = runtime::get_named_arg("amount_in");
     let amount_out_min: U256 = runtime::get_named_arg("amount_out_min");
-    let path: Vec<Key> = runtime::get_named_arg("path");
+    let path: Vec<String> = runtime::get_named_arg("path");
     let to: URef = runtime::get_named_arg("to");
 
     let _amounts: Vec<U256> =
@@ -664,7 +664,7 @@ fn swap_cspr_for_exact_tokens() {
 
     let amount_out: U256 = runtime::get_named_arg("amount_out");
     let amount_in_max: U256 = runtime::get_named_arg("amount_in_max");
-    let path: Vec<Key> = runtime::get_named_arg("path");
+    let path: Vec<String> = runtime::get_named_arg("path");
     let to: Key = runtime::get_named_arg("to");
     let purse: URef = runtime::get_named_arg("purse");
 
@@ -682,7 +682,7 @@ fn swap_cspr_for_exact_tokens_js_client() {
 
     let amount_out: U256 = runtime::get_named_arg("amount_out");
     let amount_in_max: U256 = runtime::get_named_arg("amount_in_max");
-    let path: Vec<Key> = runtime::get_named_arg("path");
+    let path: Vec<String> = runtime::get_named_arg("path");
     let to: Key = runtime::get_named_arg("to");
     let purse: URef = runtime::get_named_arg("purse");
 
@@ -989,7 +989,7 @@ fn get_entry_points() -> EntryPoints {
         vec![
             Parameter::new("amount_in", CLType::U256),
             Parameter::new("amount_out_min", CLType::U256),
-            Parameter::new("path", CLType::List(Box::new(CLType::Key))),
+            Parameter::new("path", CLType::List(Box::new(String::cl_type()))),
             Parameter::new("to", CLType::Key),
             Parameter::new("deadline", CLType::U256),
         ],
@@ -1003,7 +1003,7 @@ fn get_entry_points() -> EntryPoints {
         vec![
             Parameter::new("amount_in", CLType::U256),
             Parameter::new("amount_out_min", CLType::U256),
-            Parameter::new("path", CLType::List(Box::new(CLType::Key))),
+            Parameter::new("path", CLType::List(Box::new(String::cl_type()))),
             Parameter::new("to", CLType::Key),
             Parameter::new("deadline", CLType::U256),
         ],
@@ -1017,7 +1017,7 @@ fn get_entry_points() -> EntryPoints {
         vec![
             Parameter::new("amount_out", CLType::U256),
             Parameter::new("amount_in_max", CLType::U256),
-            Parameter::new("path", CLType::List(Box::new(CLType::Key))),
+            Parameter::new("path", CLType::List(Box::new(String::cl_type()))),
             Parameter::new("to", CLType::Key),
             Parameter::new("deadline", CLType::U256),
         ],
@@ -1031,7 +1031,7 @@ fn get_entry_points() -> EntryPoints {
         vec![
             Parameter::new("amount_out", CLType::U256),
             Parameter::new("amount_in_max", CLType::U256),
-            Parameter::new("path", CLType::List(Box::new(CLType::Key))),
+            Parameter::new("path", CLType::List(Box::new(String::cl_type()))),
             Parameter::new("to", CLType::Key),
             Parameter::new("deadline", CLType::U256),
         ],
@@ -1045,7 +1045,7 @@ fn get_entry_points() -> EntryPoints {
         vec![
             Parameter::new("amount_out_min", CLType::U256),
             Parameter::new("amount_in", CLType::U256),
-            Parameter::new("path", CLType::List(Box::new(CLType::Key))),
+            Parameter::new("path", CLType::List(Box::new(String::cl_type()))),
             Parameter::new("to", CLType::Key),
             Parameter::new("deadline", CLType::U256),
             Parameter::new("purse", CLType::URef),
@@ -1060,7 +1060,7 @@ fn get_entry_points() -> EntryPoints {
         vec![
             Parameter::new("amount_out_min", CLType::U256),
             Parameter::new("amount_in", CLType::U256),
-            Parameter::new("path", CLType::List(Box::new(CLType::Key))),
+            Parameter::new("path", CLType::List(Box::new(String::cl_type()))),
             Parameter::new("to", CLType::Key),
             Parameter::new("deadline", CLType::U256),
             Parameter::new("purse", CLType::URef),
@@ -1075,7 +1075,7 @@ fn get_entry_points() -> EntryPoints {
         vec![
             Parameter::new("amount_out", CLType::U256),
             Parameter::new("amount_in_max", CLType::U256),
-            Parameter::new("path", CLType::List(Box::new(CLType::Key))),
+            Parameter::new("path", CLType::List(Box::new(String::cl_type()))),
             Parameter::new("to", CLType::URef),
             Parameter::new("deadline", CLType::U256),
         ],
@@ -1089,7 +1089,7 @@ fn get_entry_points() -> EntryPoints {
         vec![
             Parameter::new("amount_out", CLType::U256),
             Parameter::new("amount_in_max", CLType::U256),
-            Parameter::new("path", CLType::List(Box::new(CLType::Key))),
+            Parameter::new("path", CLType::List(Box::new(String::cl_type()))),
             Parameter::new("to", CLType::URef),
             Parameter::new("deadline", CLType::U256),
         ],
@@ -1103,7 +1103,7 @@ fn get_entry_points() -> EntryPoints {
         vec![
             Parameter::new("amount_in", CLType::U256),
             Parameter::new("amount_out_min", CLType::U256),
-            Parameter::new("path", CLType::List(Box::new(CLType::Key))),
+            Parameter::new("path", CLType::List(Box::new(String::cl_type()))),
             Parameter::new("to", CLType::URef),                         // purse to transfer cspr to
             Parameter::new("deadline", CLType::U256),
         ],
@@ -1117,7 +1117,7 @@ fn get_entry_points() -> EntryPoints {
         vec![
             Parameter::new("amount_in", CLType::U256),
             Parameter::new("amount_out_min", CLType::U256),
-            Parameter::new("path", CLType::List(Box::new(CLType::Key))),
+            Parameter::new("path", CLType::List(Box::new(String::cl_type()))),
             Parameter::new("to", CLType::URef),                         // purse to transfer cspr to
             Parameter::new("deadline", CLType::U256),
         ],
@@ -1131,7 +1131,7 @@ fn get_entry_points() -> EntryPoints {
         vec![
             Parameter::new("amount_out", CLType::U256),
             Parameter::new("amount_in_max", CLType::U256),
-            Parameter::new("path", CLType::List(Box::new(CLType::Key))),
+            Parameter::new("path", CLType::List(Box::new(String::cl_type()))),
             Parameter::new("to", CLType::Key),
             Parameter::new("deadline", CLType::U256),
             Parameter::new("purse", CLType::URef),
@@ -1146,7 +1146,7 @@ fn get_entry_points() -> EntryPoints {
         vec![
             Parameter::new("amount_out", CLType::U256),
             Parameter::new("amount_in_max", CLType::U256),
-            Parameter::new("path", CLType::List(Box::new(CLType::Key))),
+            Parameter::new("path", CLType::List(Box::new(String::cl_type()))),
             Parameter::new("to", CLType::Key),
             Parameter::new("deadline", CLType::U256),
             Parameter::new("purse", CLType::URef),

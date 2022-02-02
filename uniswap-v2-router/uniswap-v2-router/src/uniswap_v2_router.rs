@@ -465,11 +465,14 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         &mut self,
         amount_in: U256,
         amount_out_min: U256,
-        path: Vec<Key>,
+        _path: Vec<String>,
         to: Key,
     ) -> Vec<U256> {
         let factory: ContractHash = data::factory();
-
+        let mut path: Vec<Key> = Vec::new();
+        for i in 0..(_path.len()) {
+            path.push(Key::from_formatted_str(&_path[i]).unwrap());
+        }
         // call getAmountsOut from Library contract
         let uniswapv2_library_contract_hash = data::library_hash().to_formatted_string();
         let args: RuntimeArgs = runtime_args! {
@@ -520,11 +523,15 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         &mut self,
         amount_out: U256,
         amount_in_max: U256,
-        path: Vec<Key>,
+        _path: Vec<String>,
         to: Key,
     ) -> Vec<U256> {
         let factory: ContractHash = data::factory();
 
+        let mut path: Vec<Key> = Vec::new();
+        for i in 0..(_path.len()) {
+            path.push(Key::from_formatted_str(&_path[i]).unwrap());
+        }
         // call getAmountIn from Library contract
 
         let uniswapv2_library_contract_hash = data::library_hash().to_formatted_string();
@@ -577,13 +584,16 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         &mut self,
         amount_out_min: U256,
         amount_in: U256,
-        path: Vec<Key>,
+        _path: Vec<String>,
         to: Key,
         caller_purse: URef
     ) -> Vec<U256> {
         let wcspr: ContractHash = data::wcspr();
         let factory: ContractHash = data::factory();
-
+        let mut path: Vec<Key> = Vec::new();
+        for i in 0..(_path.len()) {
+            path.push(Key::from_formatted_str(&_path[i]).unwrap());
+        }
         if !(path[0] == Key::from(wcspr)) {
             runtime::revert(ApiError::User(ErrorCodes::Abort as u16));
         }
@@ -662,12 +672,16 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         &mut self,
         amount_out: U256,
         amount_in_max: U256,
-        path: Vec<Key>,
+        _path: Vec<String>,
         to: URef,                   // recipient of cspr, must be a purse
     ) -> Vec<U256> {
         let wcspr: ContractHash = data::wcspr();
         let factory: ContractHash = data::factory();
         let self_addr: Key = Key::from(data::package_hash());
+        let mut path: Vec<Key> = Vec::new();
+        for i in 0..(_path.len()) {
+            path.push(Key::from_formatted_str(&_path[i]).unwrap());
+        }
 
         if !(path[path.len() - 1] == Key::from(wcspr)) {
             runtime::revert(ApiError::User(ErrorCodes::Abort as u16));
@@ -743,12 +757,16 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         &mut self,
         amount_in: U256,
         amount_out_min: U256,
-        path: Vec<Key>,
+        _path: Vec<String>,
         to: URef,                           // recipient of cspr, must be a purse
     ) -> Vec<U256> {
         let wcspr: ContractHash = data::wcspr();
         let factory: ContractHash = data::factory();
         let self_addr: Key = Key::from(data::package_hash());
+        let mut path: Vec<Key> = Vec::new();
+        for i in 0..(_path.len()) {
+            path.push(Key::from_formatted_str(&_path[i]).unwrap());
+        }
 
         if !(path[path.len() - 1] == Key::from(wcspr)) {
             runtime::revert(ApiError::User(ErrorCodes::Abort as u16));
@@ -822,13 +840,16 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         &mut self,
         amount_out: U256,
         amount_in_max: U256,
-        path: Vec<Key>,
+        _path: Vec<String>,
         to: Key,
         caller_purse: URef
     ) -> Vec<U256> {
         let wcspr: ContractHash = data::wcspr();
         let factory: ContractHash = data::factory();
-
+        let mut path: Vec<Key> = Vec::new();
+        for i in 0..(_path.len()) {
+            path.push(Key::from_formatted_str(&_path[i]).unwrap());
+        }
         if !(path[0] == Key::from(wcspr)) {
             runtime::revert(ApiError::User(ErrorCodes::Abort as u16));
         }

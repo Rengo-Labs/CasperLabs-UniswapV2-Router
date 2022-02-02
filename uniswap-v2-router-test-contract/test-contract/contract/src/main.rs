@@ -364,11 +364,15 @@ fn swap_exact_tokens_for_tokens() {
 
     let amount_in: U256 = runtime::get_named_arg("amount_in");
     let amount_out_min: U256 = runtime::get_named_arg("amount_out_min");
-    let path: Vec<Key> = runtime::get_named_arg("path");
+    let _path: Vec<String> = runtime::get_named_arg("path");
     let to: Key = runtime::get_named_arg("to");
     let deadline: U256 = runtime::get_named_arg("deadline");
 
     let router_package_hash: ContractPackageHash = runtime::call_contract(router_address, "package_hash", runtime_args!{});
+    let mut path: Vec<Key> = Vec::new();
+    for i in 0..(_path.len()) {
+        path.push(Key::from_formatted_str(&_path[i]).unwrap());
+    }
 
     // give approval to input token
     let _ : () = runtime::call_contract(
@@ -382,7 +386,7 @@ fn swap_exact_tokens_for_tokens() {
     let args: RuntimeArgs = runtime_args! {
         "amount_in" => amount_in,
         "amount_out_min" => amount_out_min,
-        "path" => path,
+        "path" => _path,
         "to" => to,
         "deadline" => deadline
     };
@@ -398,11 +402,15 @@ fn swap_tokens_for_exact_tokens() {
 
     let amount_out: U256 = runtime::get_named_arg("amount_out");
     let amount_in_max: U256 = runtime::get_named_arg("amount_in_max");
-    let path: Vec<Key> = runtime::get_named_arg("path");
+    let _path: Vec<String> = runtime::get_named_arg("path");
     let to: Key = runtime::get_named_arg("to");
     let deadline: U256 = runtime::get_named_arg("deadline");
 
     let router_package_hash: ContractPackageHash = runtime::call_contract(router_address, "package_hash", runtime_args!{});
+    let mut path: Vec<Key> = Vec::new();
+    for i in 0..(_path.len()) {
+        path.push(Key::from_formatted_str(&_path[i]).unwrap());
+    }
 
     // give approval to input token
     let _ : () = runtime::call_contract(
@@ -416,7 +424,7 @@ fn swap_tokens_for_exact_tokens() {
     let args: RuntimeArgs = runtime_args! {
         "amount_out" => amount_out,
         "amount_in_max" => amount_in_max,
-        "path" => path,
+        "path" => _path,
         "to" => to,
         "deadline" => deadline
     };
@@ -433,9 +441,13 @@ fn swap_exact_cspr_for_tokens() {
 
     let amount_out_min: U256 = runtime::get_named_arg("amount_out_min");
     let amount_in: U256 = runtime::get_named_arg("amount_in");
-    let path: Vec<Key> = runtime::get_named_arg("path");
+    let _path: Vec<String> = runtime::get_named_arg("path");
     let to: Key = runtime::get_named_arg("to");
     let deadline: U256 = runtime::get_named_arg("deadline");
+    let mut path: Vec<Key> = Vec::new();
+    for i in 0..(_path.len()) {
+        path.push(Key::from_formatted_str(&_path[i]).unwrap());
+    }
 
     // should already be funded
     let purse: URef = mappings::get_self_purse();
@@ -443,7 +455,7 @@ fn swap_exact_cspr_for_tokens() {
     let args: RuntimeArgs = runtime_args! {
         "amount_out_min" => amount_out_min,
         "amount_in" => amount_in,
-        "path" => path,
+        "path" => _path,
         "to" => to,
         "deadline" => deadline,
         "purse" => purse
@@ -451,7 +463,7 @@ fn swap_exact_cspr_for_tokens() {
 
     let amounts: Vec<U256> =
         runtime::call_contract(router_address, "swap_exact_cspr_for_tokens", args);
-    //mappings::set_key(&mappings::swap_exact_cspr_for_tokens(), amounts);
+    mappings::set_key(&mappings::swap_exact_cspr_for_tokens(), amounts);
 }
 
 #[no_mangle]
@@ -460,10 +472,14 @@ fn swap_tokens_for_exact_cspr() {
 
     let amount_out: U256 = runtime::get_named_arg("amount_out");
     let amount_in_max: U256 = runtime::get_named_arg("amount_in_max");
-    let path: Vec<Key> = runtime::get_named_arg("path");
+    let _path: Vec<String> = runtime::get_named_arg("path");
     let deadline: U256 = runtime::get_named_arg("deadline");
-
     let router_package_hash: ContractPackageHash = runtime::call_contract(router_address, "package_hash", runtime_args!{});
+
+    let mut path: Vec<Key> = Vec::new();
+    for i in 0..(_path.len()) {
+        path.push(Key::from_formatted_str(&_path[i]).unwrap());
+    }
 
     // give approval to input token
     let _ : () = runtime::call_contract(
@@ -480,7 +496,7 @@ fn swap_tokens_for_exact_cspr() {
     let args: RuntimeArgs = runtime_args! {
         "amount_out" => amount_out,
         "amount_in_max" => amount_in_max,
-        "path" => path,
+        "path" => _path,
         "to" => to_purse,
         "deadline" => deadline
     };
@@ -496,10 +512,14 @@ fn swap_exact_tokens_for_cspr() {
 
     let amount_in: U256 = runtime::get_named_arg("amount_in");
     let amount_out_min: U256 = runtime::get_named_arg("amount_out_min");
-    let path: Vec<Key> = runtime::get_named_arg("path");
+    let _path: Vec<String> = runtime::get_named_arg("path");
     let deadline: U256 = runtime::get_named_arg("deadline");
-
     let router_package_hash: ContractPackageHash = runtime::call_contract(router_address, "package_hash", runtime_args!{});
+
+    let mut path: Vec<Key> = Vec::new();
+    for i in 0..(_path.len()) {
+        path.push(Key::from_formatted_str(&_path[i]).unwrap());
+    }
 
     // give approval to input token
     let _ : () = runtime::call_contract(
@@ -516,7 +536,7 @@ fn swap_exact_tokens_for_cspr() {
     let args: RuntimeArgs = runtime_args! {
         "amount_in" => amount_in,
         "amount_out_min" => amount_out_min,
-        "path" => path,
+        "path" => _path,
         "to" => to_purse,
         "deadline" => deadline
     };
@@ -532,12 +552,15 @@ fn swap_cspr_for_exact_tokens() {
 
     let amount_out: U256 = runtime::get_named_arg("amount_out");
     let amount_in_max: U256 = runtime::get_named_arg("amount_in_max");
-    let path: Vec<Key> = runtime::get_named_arg("path");
+    let _path: Vec<String> = runtime::get_named_arg("path");
     let to: Key = runtime::get_named_arg("to");
     let deadline: U256 = runtime::get_named_arg("deadline");
-
-
     let router_package_hash: ContractPackageHash = runtime::call_contract(router_address, "package_hash", runtime_args!{});
+    
+    let mut path: Vec<Key> = Vec::new();
+    for i in 0..(_path.len()) {
+        path.push(Key::from_formatted_str(&_path[i]).unwrap());
+    }
 
     // give approval to input token
     let _ : () = runtime::call_contract(
@@ -554,7 +577,7 @@ fn swap_cspr_for_exact_tokens() {
     let args: RuntimeArgs = runtime_args! {
         "amount_out" => amount_out,
         "amount_in_max" => amount_in_max,
-        "path" => path,
+        "path" => _path,
         "to" => to,
         "deadline" => deadline,
         "purse" => caller_purse
@@ -562,7 +585,7 @@ fn swap_cspr_for_exact_tokens() {
 
     let amounts: Vec<U256> =
         runtime::call_contract(router_address, "swap_cspr_for_exact_tokens", args);
-    //mappings::set_key(&mappings::swap_cspr_for_exact_tokens(), amounts);
+    mappings::set_key(&mappings::swap_cspr_for_exact_tokens(), amounts);
 }
 
 
@@ -582,7 +605,7 @@ fn get_reserves() {
         "token_b" => token_b
     };
 
-    let (reserve_1, reserve_2): (U128, U128) = runtime::call_contract(library_address, "get_reserves", args);
+    let (_reserve_1, _reserve_2): (U128, U128) = runtime::call_contract(library_address, "get_reserves", args);
 }
 
 #[no_mangle]
@@ -600,7 +623,7 @@ fn quote() {
         "reserve_b" => reserve_b
     };
 
-    let quote: U256 = runtime::call_contract(library_address, "quote", args);
+    let _quote: U256 = runtime::call_contract(library_address, "quote", args);
 }
 
 
@@ -619,7 +642,7 @@ fn get_amount_out() {
         "reserve_out" => reserve_out
     };
 
-    let amount_out: U256 = runtime::call_contract(library_address, "get_amount_out", args);
+    let _amount_out: U256 = runtime::call_contract(library_address, "get_amount_out", args);
 }
 
 
@@ -638,7 +661,7 @@ fn get_amount_in() {
         "reserve_out" => reserve_out
     };
 
-    let amount_in: U256 = runtime::call_contract(library_address, "get_amount_in", args);
+    let _amount_in: U256 = runtime::call_contract(library_address, "get_amount_in", args);
 }
 
 
@@ -656,7 +679,7 @@ fn get_amounts_out() {
         "amount_in" => amount_in,
         "path" => path
     };
-    let amounts: Vec<U256> = runtime::call_contract(library_address, "get_amounts_out", args);
+    let _amounts: Vec<U256> = runtime::call_contract(library_address, "get_amounts_out", args);
 }
 
 #[no_mangle]
@@ -673,7 +696,7 @@ fn get_amounts_in() {
         "path" => path
     };
 
-    let amounts: Vec<U256> = runtime::call_contract(library_address, "get_amounts_in", args);
+    let _amounts: Vec<U256> = runtime::call_contract(library_address, "get_amounts_in", args);
 }
 
 #[no_mangle]
@@ -846,11 +869,11 @@ fn get_entry_points() -> EntryPoints {
         vec![
             Parameter::new("amount_in", CLType::U256),
             Parameter::new("amount_out_min", CLType::U256),
-            Parameter::new("path", CLType::List(Box::new(CLType::Key))),
+            Parameter::new("path", CLType::List(Box::new(String::cl_type()))),
             Parameter::new("to", CLType::Key),
             Parameter::new("deadline", CLType::U256),
         ],
-        CLType::List(Box::new(CLType::U256)),
+        <()>::cl_type(),
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
@@ -860,7 +883,7 @@ fn get_entry_points() -> EntryPoints {
         vec![
             Parameter::new("amount_out", CLType::U256),
             Parameter::new("amount_in_max", CLType::U256),
-            Parameter::new("path", CLType::List(Box::new(CLType::Key))),
+            Parameter::new("path", CLType::List(Box::new(String::cl_type()))),
             Parameter::new("to", CLType::Key),
             Parameter::new("deadline", CLType::U256),
         ],
@@ -874,7 +897,7 @@ fn get_entry_points() -> EntryPoints {
         vec![
             Parameter::new("amount_out_min", CLType::U256),
             Parameter::new("amount_in", CLType::U256),
-            Parameter::new("path", CLType::List(Box::new(CLType::Key))),
+            Parameter::new("path", CLType::List(Box::new(String::cl_type()))),
             Parameter::new("to", CLType::Key),
             Parameter::new("deadline", CLType::U256),
             Parameter::new("router_hash", CLType::Key),
@@ -889,7 +912,7 @@ fn get_entry_points() -> EntryPoints {
         vec![
             Parameter::new("amount_out", CLType::U256),
             Parameter::new("amount_in_max", CLType::U256),
-            Parameter::new("path", CLType::List(Box::new(CLType::Key))),
+            Parameter::new("path", CLType::List(Box::new(String::cl_type()))),
             Parameter::new("deadline", CLType::U256),
         ],
         CLType::List(Box::new(CLType::U256)),
@@ -902,7 +925,7 @@ fn get_entry_points() -> EntryPoints {
         vec![
             Parameter::new("amount_in", CLType::U256),
             Parameter::new("amount_out_min", CLType::U256),
-            Parameter::new("path", CLType::List(Box::new(CLType::Key))),
+            Parameter::new("path", CLType::List(Box::new(String::cl_type()))),
             Parameter::new("deadline", CLType::U256),
         ],
         CLType::List(Box::new(CLType::U256)),
@@ -915,7 +938,7 @@ fn get_entry_points() -> EntryPoints {
         vec![
             Parameter::new("amount_out", CLType::U256),
             Parameter::new("amount_in_max", CLType::U256),
-            Parameter::new("path", CLType::List(Box::new(CLType::Key))),
+            Parameter::new("path", CLType::List(Box::new(String::cl_type()))),
             Parameter::new("to", CLType::Key),
             Parameter::new("deadline", CLType::U256)
         ],

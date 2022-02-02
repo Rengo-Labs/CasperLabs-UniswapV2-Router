@@ -10,8 +10,8 @@ pub mod error{
 		InsufficientAmount,
 		InsufficientInputAmount,
 		InsufficientOutputAmount,
+		InvalidPath,
 		InsufficientLiquidity,
-		InvalidPath
 	}
 
 	impl From<ErrorCode> for ApiError {
