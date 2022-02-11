@@ -12,6 +12,45 @@ use contract_utils::{ContractContext, ContractStorage};
 use crate::config::*;
 use crate::data::{self};
 use crate::transfer_helper::transfer_helper;
+use crate::alloc::string::ToString;
+use alloc::collections::BTreeMap;
+use casper_contract::contract_api::storage;
+
+
+pub enum ROUTEREvent {
+    AddReserves {
+        user: Key,
+        reserve0: U256,
+        reserve1: U256,
+        pair_contract_hash: ContractHash,
+    },
+    RemoveReserves {
+        user: Key,
+        reserve0: U256,
+        reserve1: U256,
+        pair_contract_hash: ContractHash,
+    },
+}
+
+impl ROUTEREvent {
+    pub fn type_name(&self) -> String {
+        match self {
+            ROUTEREvent::AddReserves {
+                user: _,
+                reserve0: _,
+                reserve1: _,
+                pair_contract_hash: _,
+            } => "addreserves",
+            ROUTEREvent::RemoveReserves {
+                user: _,
+                reserve0: _,
+                reserve1: _,
+                pair_contract_hash: _,
+            } => "removereserves",
+        }
+        .to_string()
+    }
+}
 
 pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
     // Will be called by constructor
@@ -107,6 +146,12 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             uniswapv2_contract_methods::PAIR_MINT,
             args,
         );
+        self.emit(&ROUTEREvent::AddReserves {
+            user:to,
+            reserve0: amount_a,
+            reserve1: amount_b,
+            pair_contract_hash:pair
+        });
         (amount_a, amount_b, liquidity)
     }
 
@@ -213,7 +258,12 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             uniswapv2_contract_methods::PAIR_MINT,
             args,
         );
-
+        self.emit(&ROUTEREvent::AddReserves {
+            user:to,
+            reserve0: amount_token,
+            reserve1: amount_cspr,
+            pair_contract_hash:pair
+        });
         // No need to transfer the leftover cspr, because we are already taking the exact amount out from the caller purse
         (amount_token, amount_cspr, liquidity)
     }
@@ -294,6 +344,12 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         if amount_a < amount_a_min || amount_b < amount_b_min {
             runtime::revert(ApiError::User(ErrorCodes::Abort as u16));
         }
+        self.emit(&ROUTEREvent::RemoveReserves {
+            user:to,
+            reserve0: amount_a,
+            reserve1: amount_b,
+            pair_contract_hash:pair
+        });
         (amount_a, amount_b)
     }
 
@@ -337,7 +393,6 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         {
             runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
         }
-
         (amount_token, amount_cspr)
     }
 
@@ -1213,5 +1268,42 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
     ) -> T {
         let contract_hash = ContractHash::from_formatted_str(contract_hash_str);
         runtime::call_contract(contract_hash.unwrap_or_default(), method, args)
+    }
+    fn emit(&mut self, router_event: &ROUTEREvent) {
+        let mut events = Vec::new();
+        match router_event {
+           
+            ROUTEREvent::AddReserves {
+                user,
+                reserve0,
+                reserve1,
+                pair_contract_hash,
+            } => {
+                let mut event = BTreeMap::new();
+                event.insert("event_type", router_event.type_name());
+                event.insert("user", user.to_string());
+                event.insert("reserve0", reserve0.to_string());
+                event.insert("reserve1", reserve1.to_string());
+                event.insert("pair_contract_hash", pair_contract_hash.to_string());
+                events.push(event);
+            }
+            ROUTEREvent::RemoveReserves {
+                user,
+                reserve0,
+                reserve1,
+                pair_contract_hash,
+            } => {
+                let mut event = BTreeMap::new();
+                event.insert("event_type", router_event.type_name());
+                event.insert("user", user.to_string());
+                event.insert("reserve0", reserve0.to_string());
+                event.insert("reserve1", reserve1.to_string());
+                event.insert("pair_contract_hash", pair_contract_hash.to_string());
+                events.push(event);
+            }
+        };
+        for event in events {
+            let _: URef = storage::new_uref(event);
+        }
     }
 }
