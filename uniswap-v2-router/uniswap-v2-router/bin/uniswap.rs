@@ -469,8 +469,7 @@ fn swap_exact_tokens_for_tokens() {
     let path: Vec<String> = runtime::get_named_arg("path");
     let to: Key = runtime::get_named_arg("to");
 
-    let amounts: Vec<U256> = Vec::new();
-        Uniswap::default().swap_exact_tokens_for_tokens(amount_in, amount_out_min, path, to);
+    let amounts: Vec<U256> = Uniswap::default().swap_exact_tokens_for_tokens(amount_in, amount_out_min, path, to);
     runtime::ret(CLValue::from_t(amounts).unwrap_or_revert());
 }
 
