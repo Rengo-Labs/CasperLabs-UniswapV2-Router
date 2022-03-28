@@ -8,7 +8,12 @@ use renvm_sig::keccak256;
 pub struct UniswapInstance(TestContract);
 
 impl UniswapInstance {
-    pub fn new(env: &TestEnv, router_address: Key, library_address: Key, sender: Sender) -> UniswapInstance {
+    pub fn new(
+        env: &TestEnv,
+        router_address: Key,
+        library_address: Key,
+        sender: Sender,
+    ) -> UniswapInstance {
         UniswapInstance(TestContract::new(
             env,
             "contract.wasm",
@@ -53,7 +58,7 @@ impl UniswapInstance {
         amount_b_min: U256,
         to: Key,
         deadline: U256,
-        pair: Option<Key>
+        pair: Option<Key>,
     ) {
         self.0.call_contract(
             sender,
@@ -84,7 +89,7 @@ impl UniswapInstance {
         deadline: U256,
         pair: Option<Key>,
         router: Key,
-        test_contract_hash: Key
+        test_contract_hash: Key,
     ) {
         self.0.call_contract(
             sender,
@@ -114,7 +119,7 @@ impl UniswapInstance {
         amount_b_min: U256,
         to: Key,
         deadline: U256,
-        pair: Key
+        pair: Key,
     ) {
         self.0.call_contract(
             sender,
@@ -272,7 +277,7 @@ impl UniswapInstance {
         path: Vec<String>,
         to: Key,
         deadline: U256,
-        router: Key
+        router: Key,
     ) {
         self.0.call_contract(
             sender,
@@ -335,7 +340,7 @@ impl UniswapInstance {
         amount_in_max: U256,
         path: Vec<String>,
         to: Key,
-        deadline: U256
+        deadline: U256,
     ) {
         self.0.call_contract(
             sender,

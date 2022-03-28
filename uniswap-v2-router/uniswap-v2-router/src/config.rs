@@ -1,18 +1,17 @@
 #[repr(u16)]
 pub enum ErrorCodes {
-        
     /// 65,536 for (UniswapV2: AMOUNT_A_DESIRED_IS_ZERO)
     Zero = 0,
     /// 65,537 for (UniswapV2: AMOUNT_B_DESIRED_IS_ZERO)
     One,
     /// 65,537 for (UniswapV2: AMOUNT_TOKEN_IS_ZERO)
     Two,
-    
+
     Abort = 35,
     TimedOut,
     TransferFailed,
     ZeroAddr,
-    InvalidArguments
+    InvalidArguments,
 }
 
 pub mod uniswapv2_contract_methods {
