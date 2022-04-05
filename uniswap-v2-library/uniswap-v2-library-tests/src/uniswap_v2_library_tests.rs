@@ -1,9 +1,9 @@
-use casper_engine_test_support::AccountHash;
 use casper_types::{
-    contracts::ContractHash, runtime_args, ContractPackageHash, Key, RuntimeArgs, U256,
+    account::AccountHash, contracts::ContractHash, runtime_args, ContractPackageHash, Key,
+    RuntimeArgs, U256,
 };
 use std::time::{SystemTime, UNIX_EPOCH};
-use test_env::{Sender, TestContract, TestEnv};
+use test_env::{TestContract, TestEnv};
 
 use crate::uniswap_v2_library_instance::LibraryInstance;
 
@@ -23,7 +23,7 @@ fn deploy_dummy_tokens(
         &env,
         "erc20-token.wasm",
         "token1_contract",
-        Sender(token1_owner),
+        token1_owner,
         runtime_args! {
             "initial_supply" => init_total_supply,
             "name" => "token1",
@@ -41,7 +41,7 @@ fn deploy_dummy_tokens(
         &env,
         "erc20-token.wasm",
         "token2_contract",
-        Sender(token2_owner),
+        token2_owner,
         runtime_args! {
             "initial_supply" => init_total_supply,
             "name" => "token2",
@@ -59,7 +59,7 @@ fn deploy_dummy_tokens(
         &env,
         "erc20-token.wasm",
         "token3_contract",
-        Sender(token3_owner),
+        token3_owner,
         runtime_args! {
             "initial_supply" => init_total_supply,
             "name" => "token3",
@@ -91,7 +91,7 @@ fn deploy_library() -> (
         &env,
         "factory.wasm",
         "factory",
-        Sender(owner),
+        owner,
         runtime_args! {
             "fee_to_setter" => Key::Hash(token3.contract_hash())
             // contract_name is passed seperately, so we don't need to pass it here.
@@ -104,7 +104,7 @@ fn deploy_library() -> (
         &env,
         "wcspr-token.wasm",
         "wcspr",
-        Sender(owner),
+        owner,
         runtime_args! {
             "name" => "wcspr",
             "symbol" => "ERC",
@@ -117,7 +117,7 @@ fn deploy_library() -> (
         &env,
         "wcspr-token.wasm",
         "dai",
-        Sender(owner),
+        owner,
         runtime_args! {
             "name" => "dai",
             "symbol" => "dai",
@@ -130,7 +130,7 @@ fn deploy_library() -> (
         &env,
         "flash-swapper.wasm",
         "flash_swapper",
-        Sender(owner),
+        owner,
         runtime_args! {
             "uniswap_v2_factory" => Key::Hash(factory_contract.contract_hash()),
             "wcspr" => Key::Hash(wcspr.contract_hash()),
@@ -144,7 +144,7 @@ fn deploy_library() -> (
         &env,
         "pair-token.wasm",
         "pair",
-        Sender(owner),
+        owner,
         runtime_args! {
             "name" => "erc20",
             "symbol" => "ERC",
@@ -160,7 +160,7 @@ fn deploy_library() -> (
         &env,
         "uniswap-v2-library.wasm",
         "library",
-        Sender(owner),
+        owner,
         runtime_args! {},
     );
 
@@ -169,7 +169,7 @@ fn deploy_library() -> (
         &env,
         "uniswap-v2-router.wasm",
         "Uniswap Router",
-        Sender(owner),
+        owner,
         runtime_args! {
             "factory" => Key::Hash(factory_contract.contract_hash()),
             "wcspr" => Key::Hash(wcspr.contract_hash()),
@@ -182,14 +182,14 @@ fn deploy_library() -> (
         &env,
         Key::Hash(router_contract.contract_hash()),
         Key::Hash(library_contract.contract_hash()),
-        Sender(owner),
+        owner,
     );
 
     // insert router to the factory's white-list
     let router_package_hash: ContractPackageHash =
         router_contract.query_named_key("package_hash".to_string());
     factory_contract.call_contract(
-        Sender(owner),
+        owner,
         "set_white_list",
         runtime_args! {"white_list" => Key::from(router_package_hash)},
     );
@@ -221,21 +221,21 @@ fn test_library_deploy() {
 fn quote() {
     let (_, owner, test_contract, _, _, _, _) = deploy_library();
 
-    test_contract.quote(Sender(owner), 100.into(), 200.into(), 300.into());
+    test_contract.quote(owner, 100.into(), 200.into(), 300.into());
 }
 
 #[test]
 fn test_uniswap_get_amount_out() {
     let (_, owner, test_contract, _, _, _, _) = deploy_library();
 
-    test_contract.get_amount_out(Sender(owner), 100.into(), 200.into(), 300.into());
+    test_contract.get_amount_out(owner, 100.into(), 200.into(), 300.into());
 }
 
 #[test]
 fn test_uniswap_get_amount_in() {
     let (_, owner, test_contract, _, _, _, _) = deploy_library();
 
-    test_contract.get_amount_in(Sender(owner), 100.into(), 200.into(), 300.into());
+    test_contract.get_amount_in(owner, 100.into(), 200.into(), 300.into());
 }
 
 #[test]
@@ -264,7 +264,7 @@ fn test_uniswap_get_reserves() {
 
     // Minting to test contract
     token1.call_contract(
-        Sender(owner),
+        owner,
         "mint",
         runtime_args! {
             "to" => Key::from(test_contract.package_hash_result()),
@@ -272,7 +272,7 @@ fn test_uniswap_get_reserves() {
         },
     );
     token2.call_contract(
-        Sender(owner),
+        owner,
         "mint",
         runtime_args! {
             "to" => Key::from(test_contract.package_hash_result()),
@@ -280,21 +280,11 @@ fn test_uniswap_get_reserves() {
         },
     );
 
-    test_contract.proxy_approve(
-        Sender(owner),
-        &token1,
-        router_package_hash,
-        amount_a_desired,
-    );
-    test_contract.proxy_approve(
-        Sender(owner),
-        &token2,
-        router_package_hash,
-        amount_b_desired,
-    );
+    test_contract.proxy_approve(owner, &token1, router_package_hash, amount_a_desired);
+    test_contract.proxy_approve(owner, &token2, router_package_hash, amount_b_desired);
 
     test_contract.add_liquidity(
-        Sender(owner),
+        owner,
         token_a,
         token_b,
         amount_a_desired,
@@ -307,7 +297,7 @@ fn test_uniswap_get_reserves() {
     );
 
     test_contract.get_reserves(
-        Sender(owner),
+        owner,
         Key::Hash(factory.contract_hash()),
         Key::Hash(token1.contract_hash()),
         Key::Hash(token2.contract_hash()),
@@ -340,7 +330,7 @@ fn test_uniswap_get_amounts_out() {
 
     // Minting to library
     token1.call_contract(
-        Sender(owner),
+        owner,
         "mint",
         runtime_args! {
             "to" => Key::from(test_contract.package_hash_result()),
@@ -348,7 +338,7 @@ fn test_uniswap_get_amounts_out() {
         },
     );
     token2.call_contract(
-        Sender(owner),
+        owner,
         "mint",
         runtime_args! {
             "to" => Key::from(test_contract.package_hash_result()),
@@ -356,21 +346,11 @@ fn test_uniswap_get_amounts_out() {
         },
     );
 
-    test_contract.proxy_approve(
-        Sender(owner),
-        &token1,
-        router_package_hash,
-        amount_a_desired,
-    );
-    test_contract.proxy_approve(
-        Sender(owner),
-        &token2,
-        router_package_hash,
-        amount_b_desired,
-    );
+    test_contract.proxy_approve(owner, &token1, router_package_hash, amount_a_desired);
+    test_contract.proxy_approve(owner, &token2, router_package_hash, amount_b_desired);
 
     test_contract.add_liquidity(
-        Sender(owner),
+        owner,
         token_a,
         token_b,
         amount_a_desired,
@@ -386,12 +366,7 @@ fn test_uniswap_get_amounts_out() {
     path.push(Key::Hash(token1.contract_hash()));
     path.push(Key::Hash(token2.contract_hash()));
 
-    test_contract.get_amounts_out(
-        Sender(owner),
-        Key::Hash(factory.contract_hash()),
-        100.into(),
-        path,
-    );
+    test_contract.get_amounts_out(owner, Key::Hash(factory.contract_hash()), 100.into(), path);
 }
 
 #[test]
@@ -420,7 +395,7 @@ fn test_uniswap_get_amounts_in() {
 
     // Minting to library
     token1.call_contract(
-        Sender(owner),
+        owner,
         "mint",
         runtime_args! {
             "to" => Key::from(test_contract.package_hash_result()),
@@ -428,7 +403,7 @@ fn test_uniswap_get_amounts_in() {
         },
     );
     token2.call_contract(
-        Sender(owner),
+        owner,
         "mint",
         runtime_args! {
             "to" => Key::from(test_contract.package_hash_result()),
@@ -436,21 +411,11 @@ fn test_uniswap_get_amounts_in() {
         },
     );
 
-    test_contract.proxy_approve(
-        Sender(owner),
-        &token1,
-        router_package_hash,
-        amount_a_desired,
-    );
-    test_contract.proxy_approve(
-        Sender(owner),
-        &token2,
-        router_package_hash,
-        amount_b_desired,
-    );
+    test_contract.proxy_approve(owner, &token1, router_package_hash, amount_a_desired);
+    test_contract.proxy_approve(owner, &token2, router_package_hash, amount_b_desired);
 
     test_contract.add_liquidity(
-        Sender(owner),
+        owner,
         token_a,
         token_b,
         amount_a_desired,
@@ -466,10 +431,5 @@ fn test_uniswap_get_amounts_in() {
     path.push(Key::Hash(token1.contract_hash()));
     path.push(Key::Hash(token2.contract_hash()));
 
-    test_contract.get_amounts_in(
-        Sender(owner),
-        Key::Hash(factory.contract_hash()),
-        100.into(),
-        path,
-    );
+    test_contract.get_amounts_in(owner, Key::Hash(factory.contract_hash()), 100.into(), path);
 }

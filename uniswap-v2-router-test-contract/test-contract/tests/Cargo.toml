@@ -8,8 +8,8 @@ edition = "2018"
 [dependencies]
 
 [dev-dependencies]
-casper-contract = "1.3.2"
-casper-types = "1.3.2"
+casper-contract = "1.4.3"
+casper-types = "1.4.4"
 casper-engine-test-support = "1.3.2"
 
 [[bin]]

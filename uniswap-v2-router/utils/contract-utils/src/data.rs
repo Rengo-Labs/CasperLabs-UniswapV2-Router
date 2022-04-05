@@ -86,6 +86,16 @@ pub fn keys_to_str(key_a: &Key, key_b: &Key) -> String {
     hex::encode(bytes)
 }
 
+pub fn key_and_value_to_str<T: CLTyped + ToBytes>(key: &Key, value: &T) -> String {
+    let mut bytes_a = key.to_bytes().unwrap_or_revert();
+    let mut bytes_b = value.to_bytes().unwrap_or_revert();
+
+    bytes_a.append(&mut bytes_b);
+
+    let bytes = runtime::blake2b(bytes_a);
+    hex::encode(bytes)
+}
+
 pub fn get_key<T: FromBytes + CLTyped>(name: &str) -> Option<T> {
     match runtime::get_key(name) {
         None => None,

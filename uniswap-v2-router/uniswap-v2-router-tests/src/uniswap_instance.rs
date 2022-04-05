@@ -1,5 +1,6 @@
+use casper_types::account::AccountHash;
 use casper_types::{runtime_args, ContractHash, ContractPackageHash, Key, RuntimeArgs, U256, U512};
-use test_env::{Sender, TestContract, TestEnv};
+use test_env::{TestContract, TestEnv};
 
 use cryptoxide::ed25519;
 use renvm_sig::hash_message;
@@ -8,7 +9,12 @@ use renvm_sig::keccak256;
 pub struct UniswapInstance(TestContract);
 
 impl UniswapInstance {
-    pub fn new(env: &TestEnv, router_address: Key, library_address: Key, sender: Sender) -> UniswapInstance {
+    pub fn new(
+        env: &TestEnv,
+        router_address: Key,
+        library_address: Key,
+        sender: AccountHash,
+    ) -> UniswapInstance {
         UniswapInstance(TestContract::new(
             env,
             "contract.wasm",
@@ -24,7 +30,7 @@ impl UniswapInstance {
 
     pub fn constructor(
         &self,
-        sender: Sender,
+        sender: AccountHash,
         name: &str,
         symbol: &str,
         decimals: u8,
@@ -44,7 +50,7 @@ impl UniswapInstance {
 
     pub fn add_liquidity(
         &self,
-        sender: Sender,
+        sender: AccountHash,
         token_a: Key,
         token_b: Key,
         amount_a_desired: U256,
@@ -53,7 +59,7 @@ impl UniswapInstance {
         amount_b_min: U256,
         to: Key,
         deadline: U256,
-        pair: Option<Key>
+        pair: Option<Key>,
     ) {
         self.0.call_contract(
             sender,
@@ -74,7 +80,7 @@ impl UniswapInstance {
 
     pub fn add_liquidity_cspr(
         &self,
-        sender: Sender,
+        sender: AccountHash,
         token: Key,
         amount_token_desired: U256,
         amount_cspr_desired: U256,
@@ -84,7 +90,7 @@ impl UniswapInstance {
         deadline: U256,
         pair: Option<Key>,
         router: Key,
-        test_contract_hash: Key
+        test_contract_hash: Key,
     ) {
         self.0.call_contract(
             sender,
@@ -106,7 +112,7 @@ impl UniswapInstance {
 
     pub fn remove_liquidity(
         &self,
-        sender: Sender,
+        sender: AccountHash,
         token_a: Key,
         token_b: Key,
         liquidity: U256,
@@ -114,7 +120,7 @@ impl UniswapInstance {
         amount_b_min: U256,
         to: Key,
         deadline: U256,
-        pair: Key
+        pair: Key,
     ) {
         self.0.call_contract(
             sender,
@@ -134,7 +140,7 @@ impl UniswapInstance {
 
     pub fn remove_liquidity_cspr(
         &self,
-        sender: Sender,
+        sender: AccountHash,
         token: Key,
         liquidity: U256,
         amount_token_min: U256,
@@ -160,7 +166,7 @@ impl UniswapInstance {
 
     pub fn remove_liquidity_with_permit(
         &self,
-        sender: Sender,
+        sender: AccountHash,
         token_a: Key,
         token_b: Key,
         liquidity: U256,
@@ -192,7 +198,7 @@ impl UniswapInstance {
 
     pub fn remove_liquidity_cspr_with_permit(
         &self,
-        sender: Sender,
+        sender: AccountHash,
         token: Key,
         liquidity: U256,
         amount_token_min: U256,
@@ -222,7 +228,7 @@ impl UniswapInstance {
 
     pub fn swap_exact_tokens_for_tokens(
         &self,
-        sender: Sender,
+        sender: AccountHash,
         amount_in: U256,
         amount_out_min: U256,
         path: Vec<String>,
@@ -244,7 +250,7 @@ impl UniswapInstance {
 
     pub fn swap_tokens_for_exact_tokens(
         &self,
-        sender: Sender,
+        sender: AccountHash,
         amount_out: U256,
         amount_in_max: U256,
         path: Vec<String>,
@@ -266,13 +272,13 @@ impl UniswapInstance {
 
     pub fn swap_exact_cspr_for_tokens(
         &self,
-        sender: Sender,
+        sender: AccountHash,
         amount_out_min: U256,
         amount_in: U256,
         path: Vec<String>,
         to: Key,
         deadline: U256,
-        router: Key
+        router: Key,
     ) {
         self.0.call_contract(
             sender,
@@ -290,7 +296,7 @@ impl UniswapInstance {
 
     pub fn swap_tokens_for_exact_cspr(
         &self,
-        sender: Sender,
+        sender: AccountHash,
         amount_out: U256,
         amount_in_max: U256,
         path: Vec<String>,
@@ -310,7 +316,7 @@ impl UniswapInstance {
 
     pub fn swap_exact_tokens_for_cspr(
         &self,
-        sender: Sender,
+        sender: AccountHash,
         amount_in: U256,
         amount_out_min: U256,
         path: Vec<String>,
@@ -330,12 +336,12 @@ impl UniswapInstance {
 
     pub fn swap_cspr_for_exact_tokens(
         &self,
-        sender: Sender,
+        sender: AccountHash,
         amount_out: U256,
         amount_in_max: U256,
         path: Vec<String>,
         to: Key,
-        deadline: U256
+        deadline: U256,
     ) {
         self.0.call_contract(
             sender,
@@ -350,7 +356,7 @@ impl UniswapInstance {
         );
     }
 
-    pub fn store_cspr(&self, sender: Sender, test_contract_hash: Key, amount: U256) {
+    pub fn store_cspr(&self, sender: AccountHash, test_contract_hash: Key, amount: U256) {
         self.0.call_contract(
             sender,
             "store_cspr",
@@ -361,7 +367,7 @@ impl UniswapInstance {
         );
     }
 
-    pub fn approve(&self, token: &TestContract, sender: Sender, spender: Key, amount: U256) {
+    pub fn approve(&self, token: &TestContract, sender: AccountHash, spender: Key, amount: U256) {
         token.call_contract(
             sender,
             "approve",

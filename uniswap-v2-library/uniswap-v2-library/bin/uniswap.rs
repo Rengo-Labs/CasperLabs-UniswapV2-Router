@@ -4,7 +4,7 @@
 
 extern crate alloc;
 use crate::vec::Vec;
-use alloc::{collections::BTreeSet, format, prelude::v1::Box, vec};
+use alloc::{boxed::Box, collections::BTreeSet, format, vec};
 use casper_contract::{
     contract_api::{runtime, storage},
     unwrap_or_revert::UnwrapOrRevert,
