@@ -67,13 +67,15 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
         token_a: ContractPackageHash,
         token_b: ContractPackageHash,
     ) -> (U128, U128) {
-        let (token_0, _): (ContractPackageHash, ContractPackageHash) = self.sort_tokens(token_a, token_b);
+        let (token_0, _): (ContractPackageHash, ContractPackageHash) =
+            self.sort_tokens(token_a, token_b);
 
         let pair: Key = self.pair_for(Key::from(factory), Key::from(token_a), Key::from(token_b));
-        let pair: ContractPackageHash = ContractPackageHash::from(pair.into_hash().unwrap_or_default());
+        let pair: ContractPackageHash =
+            ContractPackageHash::from(pair.into_hash().unwrap_or_default());
 
         let (reserve_0, reserve_1, _): (U128, U128, u64) =
-            runtime::call_versioned_contract(pair,None, "get_reserves", runtime_args! {});
+            runtime::call_versioned_contract(pair, None, "get_reserves", runtime_args! {});
         let (reserve_a, reserve_b): (U128, U128);
         if token_a == token_0 {
             reserve_a = reserve_0;
@@ -193,6 +195,6 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
         args: RuntimeArgs,
     ) -> T {
         let package_hash = ContractPackageHash::from_formatted_str(package_hash_str);
-        runtime::call_versioned_contract(package_hash.unwrap_or_default(),None, method, args)
+        runtime::call_versioned_contract(package_hash.unwrap_or_default(), None, method, args)
     }
 }

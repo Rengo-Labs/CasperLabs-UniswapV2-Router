@@ -64,12 +64,14 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         library_hash: ContractPackageHash,
         contract_hash: Key,
         package_hash: ContractPackageHash,
+        self_purse: URef,
     ) {
         data::set_factory(factory);
         data::set_wcspr(wcspr);
         data::set_library_hash(library_hash);
         data::set_self_hash(contract_hash);
         data::set_package_hash(package_hash);
+        data::set_self_purse(self_purse);
     }
 
     fn add_liquidity(
@@ -171,7 +173,6 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         amount_cspr_min: U256,
         to: Key,
         pair: Option<Key>,
-        caller_purse: URef,
     ) -> (U256, U256, U256) {
         let wcspr: ContractPackageHash = data::wcspr();
         let factory: ContractPackageHash = data::factory();
@@ -221,20 +222,30 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
         }
 
-        let self_purse = system::create_purse(); // create new temporary purse and transfer cspr from caller purse to this
-        let _: () = system::transfer_from_purse_to_purse(
-            caller_purse,
+        let self_purse = data::self_purse();
+        let self_purse_balance: U512 = system::get_purse_balance(self_purse).unwrap_or_revert();
+        let total_cspr_deposited: U512 = data::total_cspr_deposited();
+
+        // checks cspr has been deposited in this transaction
+        let deposit_diff: U512 = self_purse_balance - total_cspr_deposited;
+        if deposit_diff != U512::from(amount_cspr.as_u128()) {
+            runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
+        }
+
+        // get wcspr's purse, and deposit cspr to it
+        let wcspr_purse: URef =
+            runtime::call_versioned_contract(wcspr, None, "self_purse", runtime_args! {});
+        system::transfer_from_purse_to_purse(
             self_purse,
-            U512::from(amount_cspr.as_u128()),
+            wcspr_purse,
+            amount_cspr.as_u128().into(),
             None,
         )
         .unwrap_or_revert();
 
         // this call will submit cspr to the wcspr contract and in return get wcspr tokens which will be sent to pair
-
         let args: RuntimeArgs = runtime_args! {
             "amount" => U512::from(amount_cspr.as_u128()),
-            "purse" => self_purse
         };
         let result: Result<(), u32> = Self::call_versioned_contract(
             &wcspr.to_formatted_string(),
@@ -679,7 +690,6 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         amount_in: U256,
         _path: Vec<String>,
         to: Key,
-        caller_purse: URef,
     ) -> Vec<U256> {
         let wcspr: ContractPackageHash = data::wcspr();
         let factory: ContractPackageHash = data::factory();
@@ -708,18 +718,31 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             runtime::revert(ApiError::User(ErrorCodes::Abort as u16));
         }
 
-        let self_purse = system::create_purse(); // create new temporary purse and transfer cspr from caller purse to this
-        let _: () = system::transfer_from_purse_to_purse(
-            caller_purse,
+        let amount_cspr = amounts[0];
+        let self_purse = data::self_purse();
+        let self_purse_balance: U512 = system::get_purse_balance(self_purse).unwrap_or_revert();
+        let total_cspr_deposited: U512 = data::total_cspr_deposited();
+
+        // checks cspr has been deposited in this transaction
+        let deposit_diff: U512 = self_purse_balance - total_cspr_deposited;
+        if deposit_diff != U512::from(amount_cspr.as_u128()) {
+            runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
+        }
+
+        // get wcspr's purse, and deposit cspr to it
+        let wcspr_purse: URef =
+            runtime::call_versioned_contract(wcspr, None, "self_purse", runtime_args! {});
+        system::transfer_from_purse_to_purse(
             self_purse,
-            U512::from(amounts[0].as_u128()),
+            wcspr_purse,
+            amount_cspr.as_u128().into(),
             None,
         )
         .unwrap_or_revert();
 
+        // this call will submit cspr to the wcspr contract and in return get wcspr tokens which will be sent to pair
         let args: RuntimeArgs = runtime_args! {
-            "amount" => U512::from(amounts[0].as_u128()),
-            "purse" => self_purse,
+            "amount" => U512::from(amount_cspr.as_u128()),
         };
         let result: Result<(), u32> = Self::call_versioned_contract(
             &wcspr.to_formatted_string(),
@@ -952,7 +975,6 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         amount_in_max: U256,
         _path: Vec<String>,
         to: Key,
-        caller_purse: URef,
     ) -> Vec<U256> {
         let wcspr: ContractPackageHash = data::wcspr();
         let factory: ContractPackageHash = data::factory();
@@ -981,19 +1003,31 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             runtime::revert(ApiError::User(ErrorCodes::Abort as u16));
         }
 
-        let self_purse = system::create_purse(); // create new temporary purse and transfer cspr from caller purse to this
-        let _: () = system::transfer_from_purse_to_purse(
-            caller_purse,
+        let amount_cspr = amounts[0];
+        let self_purse = data::self_purse();
+        let self_purse_balance: U512 = system::get_purse_balance(self_purse).unwrap_or_revert();
+        let total_cspr_deposited: U512 = data::total_cspr_deposited();
+
+        // checks cspr has been deposited in this transaction
+        let deposit_diff: U512 = self_purse_balance - total_cspr_deposited;
+        if deposit_diff != U512::from(amount_cspr.as_u128()) {
+            runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
+        }
+
+        // get wcspr's purse, and deposit cspr to it
+        let wcspr_purse: URef =
+            runtime::call_versioned_contract(wcspr, None, "self_purse", runtime_args! {});
+        system::transfer_from_purse_to_purse(
             self_purse,
-            U512::from(amounts[0].as_u128()),
+            wcspr_purse,
+            amount_cspr.as_u128().into(),
             None,
         )
         .unwrap_or_revert();
 
-        // call deposit method from wcspr
+        // this call will submit cspr to the wcspr contract and in return get wcspr tokens which will be sent to pair
         let args: RuntimeArgs = runtime_args! {
-            "amount" => U512::from(amounts[0].as_u128()),
-            "purse" => self_purse
+            "amount" => U512::from(amount_cspr.as_u128()),
         };
         let result: Result<(), u32> = Self::call_versioned_contract(
             &wcspr.to_formatted_string(),
@@ -1131,6 +1165,10 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
 
     fn get_package_hash(&mut self) -> ContractPackageHash {
         data::package_hash()
+    }
+
+    fn get_self_purse(&self) -> URef {
+        data::self_purse()
     }
 
     // *************************************** Helper methods ****************************************

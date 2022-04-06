@@ -20,7 +20,7 @@ impl LibraryInstance {
         LibraryInstance(TestContract::new(
             env,
             "contract.wasm",
-            "LibraryTest",
+            "library_test_contract",
             sender,
             runtime_args! {
                 "router_address" => router_address,

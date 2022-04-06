@@ -183,7 +183,7 @@ fn deploy_uniswap_router() -> (
             "decimals" => decimals,
             "initial_supply" => init_total_supply,
             "factory_hash" => Key::Hash(factory_contract.package_hash()),
-            "callee_contract_hash" => Key::Hash(flash_swapper.package_hash())
+            "callee_package_hash" => Key::Hash(flash_swapper.package_hash())
         },
     );
 
@@ -265,10 +265,10 @@ fn deploy_uniswap_router() -> (
     )
 }
 
-// #[test]
-// fn test_uniswap_deploy() {
-//     let (_, _, _, _, _, _, _, _, _, _, _) = deploy_uniswap_router();
-// }
+#[test]
+fn test_uniswap_deploy() {
+    let (_, _, _, _, _, _, _, _, _, _, _) = deploy_uniswap_router();
+}
 
 // #[test]
 // fn add_liquidity() {
@@ -674,7 +674,7 @@ fn deploy_uniswap_router() -> (
 //     let pair: TestContract = deploy_pair_contract(&env, owner, Key::Hash(factory.package_hash()), Key::Hash(flash_swapper.package_hash()));
 
 //     let token_a = Key::Hash(token1.package_hash());
-    
+
 //     let token_b = Key::Hash(token2.package_hash());
 //     let to = Key::Hash(token3.package_hash());
 //     // 293c45c3b70c74634d0d76e3e3fff90cd17ae3e3489ef9df7eb2ef60e29ae5da
@@ -969,7 +969,7 @@ fn deploy_uniswap_router() -> (
 //     let amount_out_min: U256 = 10000.into();
 
 //     let path: Vec<String> = vec![
-//         Key::Hash(token1.package_hash()).to_formatted_string(),  
+//         Key::Hash(token1.package_hash()).to_formatted_string(),
 //         Key::Hash(wcspr.package_hash()).to_formatted_string()
 //     ];
 
@@ -987,7 +987,7 @@ fn deploy_uniswap_router() -> (
 //     // add liquidity to cspr pair
 //     let pair: TestContract = deploy_pair_contract(&env, owner, Key::Hash(factory.package_hash()), Key::Hash(flash_swapper.package_hash()));
 //     let token = Key::Hash(token1.package_hash());
-    
+
 //     let amount_token_desired: U256 = U256::from(10000000);
 //     let amount_cspr_desired: U256 = U256::from(10000000);
 //     let amount_token_min: U256 = U256::from(100000);
@@ -1022,8 +1022,8 @@ fn deploy_uniswap_router() -> (
 //     let amount_out: U256 = 10000.into();
 
 //     let path: Vec<String> = vec![
-//         Key::Hash(wcspr.package_hash()).to_formatted_string(), 
-//         Key::Hash(token1.package_hash()).to_formatted_string()    
+//         Key::Hash(wcspr.package_hash()).to_formatted_string(),
+//         Key::Hash(token1.package_hash()).to_formatted_string()
 //     ];
 
 //     let test_contract_hash = uniswap.test_contract_hash();

@@ -4,7 +4,7 @@
 extern crate alloc;
 use alloc::{boxed::Box, collections::BTreeSet, format, string::String, vec, vec::Vec};
 use casper_contract::{
-    contract_api::{runtime, storage},
+    contract_api::{runtime, storage, system},
     unwrap_or_revert::UnwrapOrRevert,
 };
 use casper_types::{
@@ -35,9 +35,12 @@ impl Uniswap {
         library_hash: Key,
         contract_hash: ContractHash,
         package_hash: ContractPackageHash,
+        self_purse: URef,
     ) {
-        let _factory: ContractPackageHash = ContractPackageHash::from(factory.into_hash().unwrap_or_default());
-        let _wcspr: ContractPackageHash = ContractPackageHash::from(wcspr.into_hash().unwrap_or_default());
+        let _factory: ContractPackageHash =
+            ContractPackageHash::from(factory.into_hash().unwrap_or_default());
+        let _wcspr: ContractPackageHash =
+            ContractPackageHash::from(wcspr.into_hash().unwrap_or_default());
         let _library_hash: ContractPackageHash =
             ContractPackageHash::from(library_hash.into_hash().unwrap_or_default());
         UniswapV2Router::init(
@@ -47,6 +50,7 @@ impl Uniswap {
             _library_hash,
             Key::from(contract_hash),
             package_hash,
+            self_purse,
         );
     }
 }
@@ -59,7 +63,16 @@ fn constructor() {
     let library_hash: Key = runtime::get_named_arg("library_hash");
     let contract_hash: ContractHash = runtime::get_named_arg("contract_hash");
     let package_hash: ContractPackageHash = runtime::get_named_arg("package_hash");
-    Uniswap::default().constructor(factory, wcspr, library_hash, contract_hash, package_hash);
+    let self_purse: URef = runtime::get_named_arg("self_purse");
+
+    Uniswap::default().constructor(
+        factory,
+        wcspr,
+        library_hash,
+        contract_hash,
+        package_hash,
+        self_purse,
+    );
 }
 
 #[no_mangle]
@@ -148,7 +161,6 @@ fn add_liquidity_cspr() {
     let amount_cspr_min: U256 = runtime::get_named_arg("amount_cspr_min");
     let to: Key = runtime::get_named_arg("to");
     let pair: Option<Key> = runtime::get_named_arg("pair");
-    let purse: URef = runtime::get_named_arg("purse");
 
     let _token = ContractPackageHash::from(token.into_hash().unwrap_or_default());
     let (amount_token, amount_cspr, liquidity): (U256, U256, U256) = Uniswap::default()
@@ -160,7 +172,6 @@ fn add_liquidity_cspr() {
             amount_cspr_min,
             to,
             pair,
-            purse,
         );
     runtime::ret(CLValue::from_t((amount_token, amount_cspr, liquidity)).unwrap_or_revert());
 }
@@ -182,7 +193,6 @@ fn add_liquidity_cspr_js_client() {
     let amount_cspr_min: U256 = runtime::get_named_arg("amount_cspr_min");
     let to: Key = runtime::get_named_arg("to");
     let pair: Option<Key> = runtime::get_named_arg("pair");
-    let purse: URef = runtime::get_named_arg("purse");
 
     let _token = ContractPackageHash::from(token.into_hash().unwrap_or_default());
     let (_amount_token, _amount_cspr, _liquidity): (U256, U256, U256) = Uniswap::default()
@@ -194,7 +204,6 @@ fn add_liquidity_cspr_js_client() {
             amount_cspr_min,
             to,
             pair,
-            purse,
         );
 }
 
@@ -283,7 +292,7 @@ fn remove_liquidity_cspr() {
         amount_token_min,
         amount_cspr_min,
         to,
-        to_purse
+        to_purse,
     );
     runtime::ret(CLValue::from_t((amount_token, amount_cspr)).unwrap_or_revert());
 }
@@ -415,7 +424,7 @@ fn remove_liquidity_cspr_with_permit() {
             public_key,
             signature,
             deadline,
-            to_purse
+            to_purse,
         );
     runtime::ret(CLValue::from_t((amount_token, amount_cspr)).unwrap_or_revert());
 }
@@ -450,7 +459,7 @@ fn remove_liquidity_cspr_with_permit_js_client() {
             public_key,
             signature,
             deadline,
-            to_purse
+            to_purse,
         );
 }
 
@@ -469,7 +478,8 @@ fn swap_exact_tokens_for_tokens() {
     let path: Vec<String> = runtime::get_named_arg("path");
     let to: Key = runtime::get_named_arg("to");
 
-    let amounts: Vec<U256> = Uniswap::default().swap_exact_tokens_for_tokens(amount_in, amount_out_min, path, to);
+    let amounts: Vec<U256> =
+        Uniswap::default().swap_exact_tokens_for_tokens(amount_in, amount_out_min, path, to);
     runtime::ret(CLValue::from_t(amounts).unwrap_or_revert());
 }
 
@@ -545,10 +555,9 @@ fn swap_exact_cspr_for_tokens() {
     let amount_in: U256 = runtime::get_named_arg("amount_in");
     let path: Vec<String> = runtime::get_named_arg("path");
     let to: Key = runtime::get_named_arg("to");
-    let purse: URef = runtime::get_named_arg("purse");
 
     let amounts: Vec<U256> =
-        Uniswap::default().swap_exact_cspr_for_tokens(amount_out_min, amount_in, path, to, purse);
+        Uniswap::default().swap_exact_cspr_for_tokens(amount_out_min, amount_in, path, to);
     runtime::ret(CLValue::from_t(amounts).unwrap_or_revert());
 }
 
@@ -566,10 +575,9 @@ fn swap_exact_cspr_for_tokens_js_client() {
     let amount_in: U256 = runtime::get_named_arg("amount_in");
     let path: Vec<String> = runtime::get_named_arg("path");
     let to: Key = runtime::get_named_arg("to");
-    let purse: URef = runtime::get_named_arg("purse");
 
     let _amounts: Vec<U256> =
-        Uniswap::default().swap_exact_cspr_for_tokens(amount_out_min, amount_in, path, to, purse);
+        Uniswap::default().swap_exact_cspr_for_tokens(amount_out_min, amount_in, path, to);
 }
 
 #[no_mangle]
@@ -665,10 +673,9 @@ fn swap_cspr_for_exact_tokens() {
     let amount_in_max: U256 = runtime::get_named_arg("amount_in_max");
     let path: Vec<String> = runtime::get_named_arg("path");
     let to: Key = runtime::get_named_arg("to");
-    let purse: URef = runtime::get_named_arg("purse");
 
     let amounts: Vec<U256> =
-        Uniswap::default().swap_cspr_for_exact_tokens(amount_out, amount_in_max, path, to, purse);
+        Uniswap::default().swap_cspr_for_exact_tokens(amount_out, amount_in_max, path, to);
     runtime::ret(CLValue::from_t(amounts).unwrap_or_revert());
 }
 
@@ -683,10 +690,9 @@ fn swap_cspr_for_exact_tokens_js_client() {
     let amount_in_max: U256 = runtime::get_named_arg("amount_in_max");
     let path: Vec<String> = runtime::get_named_arg("path");
     let to: Key = runtime::get_named_arg("to");
-    let purse: URef = runtime::get_named_arg("purse");
 
     let _amounts: Vec<U256> =
-        Uniswap::default().swap_cspr_for_exact_tokens(amount_out, amount_in_max, path, to, purse);
+        Uniswap::default().swap_cspr_for_exact_tokens(amount_out, amount_in_max, path, to);
 }
 
 #[no_mangle]
@@ -728,9 +734,9 @@ fn get_amounts_out() {
     let amount_in: U256 = runtime::get_named_arg("amount_in");
     let path: Vec<Key> = runtime::get_named_arg("path");
 
-    let amounts: Vec<U256> = Uniswap::get_amounts_out(amount_in, path); 
+    let amounts: Vec<U256> = Uniswap::get_amounts_out(amount_in, path);
     runtime::ret(CLValue::from_t(amounts).unwrap_or_revert())
-}   
+}
 
 #[no_mangle]
 // performs chained getAmountIn calculations on any number of pairs
@@ -748,6 +754,11 @@ fn package_hash() {
     runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
 }
 
+#[no_mangle]
+fn self_purse() {
+    let ret: URef = Uniswap::default().get_self_purse();
+    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
+}
 
 fn get_entry_points() -> EntryPoints {
     let mut entry_points = EntryPoints::new();
@@ -760,6 +771,7 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("library_hash", CLType::Key),
             Parameter::new("contract_hash", ContractHash::cl_type()),
             Parameter::new("package_hash", ContractPackageHash::cl_type()),
+            Parameter::new("self_purse", CLType::URef),
         ],
         <()>::cl_type(),
         EntryPointAccess::Groups(vec![Group::new("constructor")]),
@@ -816,7 +828,6 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("to", Key::cl_type()),
             Parameter::new("deadline", CLType::U256),
             Parameter::new("pair", CLType::Option(Box::new(CLType::Key))),
-            Parameter::new("purse", CLType::URef),
         ],
         CLType::Tuple3([
             Box::new(CLType::U256),
@@ -837,7 +848,6 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("to", Key::cl_type()),
             Parameter::new("deadline", CLType::U256),
             Parameter::new("pair", CLType::Option(Box::new(CLType::Key))),
-            Parameter::new("purse", CLType::URef),
         ],
         <()>::cl_type(),
         EntryPointAccess::Public,
@@ -957,7 +967,7 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("approve_max", CLType::Bool),
             Parameter::new("public_key", CLType::String),
             Parameter::new("signature", CLType::String),
-            Parameter::new("to_purse", CLType::URef)
+            Parameter::new("to_purse", CLType::URef),
         ],
         CLType::Tuple2([Box::new(CLType::U256), Box::new(CLType::U256)]),
         EntryPointAccess::Public,
@@ -976,7 +986,7 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("approve_max", CLType::Bool),
             Parameter::new("public_key", CLType::String),
             Parameter::new("signature", CLType::String),
-            Parameter::new("to_purse", CLType::URef)
+            Parameter::new("to_purse", CLType::URef),
         ],
         <()>::cl_type(),
         EntryPointAccess::Public,
@@ -1047,7 +1057,6 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("path", CLType::List(Box::new(String::cl_type()))),
             Parameter::new("to", CLType::Key),
             Parameter::new("deadline", CLType::U256),
-            Parameter::new("purse", CLType::URef),
         ],
         CLType::List(Box::new(CLType::U256)),
         EntryPointAccess::Public,
@@ -1062,7 +1071,6 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("path", CLType::List(Box::new(String::cl_type()))),
             Parameter::new("to", CLType::Key),
             Parameter::new("deadline", CLType::U256),
-            Parameter::new("purse", CLType::URef),
         ],
         <()>::cl_type(),
         EntryPointAccess::Public,
@@ -1103,7 +1111,7 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("amount_in", CLType::U256),
             Parameter::new("amount_out_min", CLType::U256),
             Parameter::new("path", CLType::List(Box::new(String::cl_type()))),
-            Parameter::new("to", CLType::URef),                         // purse to transfer cspr to
+            Parameter::new("to", CLType::URef), // purse to transfer cspr to
             Parameter::new("deadline", CLType::U256),
         ],
         CLType::List(Box::new(CLType::U256)),
@@ -1117,7 +1125,7 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("amount_in", CLType::U256),
             Parameter::new("amount_out_min", CLType::U256),
             Parameter::new("path", CLType::List(Box::new(String::cl_type()))),
-            Parameter::new("to", CLType::URef),                         // purse to transfer cspr to
+            Parameter::new("to", CLType::URef), // purse to transfer cspr to
             Parameter::new("deadline", CLType::U256),
         ],
         <()>::cl_type(),
@@ -1133,7 +1141,6 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("path", CLType::List(Box::new(String::cl_type()))),
             Parameter::new("to", CLType::Key),
             Parameter::new("deadline", CLType::U256),
-            Parameter::new("purse", CLType::URef),
         ],
         CLType::List(Box::new(CLType::U256)),
         EntryPointAccess::Public,
@@ -1148,7 +1155,6 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("path", CLType::List(Box::new(String::cl_type()))),
             Parameter::new("to", CLType::Key),
             Parameter::new("deadline", CLType::U256),
-            Parameter::new("purse", CLType::URef),
         ],
         <()>::cl_type(),
         EntryPointAccess::Public,
@@ -1221,19 +1227,24 @@ fn get_entry_points() -> EntryPoints {
         EntryPointType::Contract,
     ));
 
+    entry_points.add_entry_point(EntryPoint::new(
+        "self_purse",
+        vec![],
+        CLType::URef,
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
     entry_points
 }
 
 // All session code must have a `call` entrypoint.
 #[no_mangle]
 fn call() {
-
     // Store contract in the account's named keys. Contract name must be same for all new versions of the contracts
     let contract_name: alloc::string::String = runtime::get_named_arg("contract_name");
-    
+
     // If this is the first deployment
     if !runtime::has_key(&format!("{}_package_hash", contract_name)) {
-    
         // Build new package with initial a first version of the contract.
         let (package_hash, access_token) = storage::create_contract_package_at_hash();
         let (contract_hash, _): (ContractHash, _) =
@@ -1242,6 +1253,7 @@ fn call() {
         let factory: Key = runtime::get_named_arg("factory");
         let wcspr: Key = runtime::get_named_arg("wcspr");
         let library_hash: Key = runtime::get_named_arg("library");
+        let self_purse: URef = system::create_purse();
 
         // Prepare constructor args
         let constructor_args = runtime_args! {
@@ -1250,6 +1262,7 @@ fn call() {
             "library_hash" =>  library_hash,
             "contract_hash" => contract_hash,
             "package_hash" => package_hash,
+            "self_purse" => self_purse
         };
 
         // Add the constructor group to the package hash with a single URef.
@@ -1269,7 +1282,6 @@ fn call() {
         storage::remove_contract_user_group_urefs(package_hash, "constructor", urefs)
             .unwrap_or_revert();
 
-    
         runtime::put_key(
             &format!("{}_package_hash", contract_name),
             package_hash.into(),
@@ -1290,17 +1302,19 @@ fn call() {
             &format!("{}_package_access_token", contract_name),
             access_token.into(),
         );
-    }
-    else {          // this is a contract upgrade
+        runtime::put_key(&format!("{}_self_purse", contract_name), self_purse.into());
+    } else {
+        // this is a contract upgrade
 
-        let package_hash: ContractPackageHash = runtime::get_key(&format!("{}_package_hash", contract_name))
-                                                            .unwrap_or_revert()
-                                                            .into_hash()
-                                                            .unwrap()
-                                                            .into();
+        let package_hash: ContractPackageHash =
+            runtime::get_key(&format!("{}_package_hash", contract_name))
+                .unwrap_or_revert()
+                .into_hash()
+                .unwrap()
+                .into();
 
         let (contract_hash, _): (ContractHash, _) =
-        storage::add_contract_version(package_hash, get_entry_points(), Default::default());
+            storage::add_contract_version(package_hash, get_entry_points(), Default::default());
 
         // update contract hash
         runtime::put_key(

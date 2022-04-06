@@ -11,7 +11,7 @@ use casper_contract::{
 use casper_types::{
     contracts::{ContractHash, ContractPackageHash},
     runtime_args, CLType, CLTyped, EntryPoint, EntryPointAccess, EntryPointType, EntryPoints,
-    Group, Key, Parameter, RuntimeArgs, URef, U128, U256, U512,
+    Group, Key, Parameter, RuntimeArgs, URef, U128, U256, U512, ApiError
 };
 
 pub mod mappings;
@@ -27,11 +27,11 @@ fn constructor() {
     mappings::set_key(&mappings::self_package_key(), package_hash);
     mappings::set_key(
         &mappings::router_key(),
-        ContractHash::from(router_address.into_hash().unwrap_or_default()),
+        ContractPackageHash::from(router_address.into_hash().unwrap_or_default()),
     );
     mappings::set_key(
         &mappings::library_key(),
-        ContractHash::from(library_address.into_hash().unwrap_or_default()),
+        ContractPackageHash::from(library_address.into_hash().unwrap_or_default()),
     );
 
     let purse: URef = runtime::get_named_arg("purse");
@@ -68,7 +68,7 @@ fn store_cspr_helper() {
 
 #[no_mangle]
 fn add_liquidity() {
-    let router_address: ContractHash = mappings::get_key(&mappings::router_key());
+    let router_address: ContractPackageHash = mappings::get_key(&mappings::router_key());
 
     let token_a: Key = runtime::get_named_arg("token_a");
     let token_b: Key = runtime::get_named_arg("token_b");
@@ -81,11 +81,12 @@ fn add_liquidity() {
     let pair: Option<Key> = runtime::get_named_arg("pair");
 
     let router_package_hash: ContractPackageHash =
-        runtime::call_contract(router_address, "package_hash", runtime_args! {});
+        runtime::call_versioned_contract(router_address, None, "package_hash", runtime_args! {});
 
     // approve the router to spend tokens
-    let _: () = runtime::call_contract(
-        ContractHash::from(token_a.into_hash().unwrap_or_revert()),
+    let _: () = runtime::call_versioned_contract(
+        ContractPackageHash::from(token_a.into_hash().unwrap_or_revert()),
+        None,
         "approve",
         runtime_args! {
             "spender" => Key::from(router_package_hash),
@@ -93,8 +94,9 @@ fn add_liquidity() {
         },
     );
 
-    let _: () = runtime::call_contract(
-        ContractHash::from(token_b.into_hash().unwrap_or_revert()),
+    let _: () = runtime::call_versioned_contract(
+        ContractPackageHash::from(token_b.into_hash().unwrap_or_revert()),
+        None,
         "approve",
         runtime_args! {
             "spender" => Key::from(router_package_hash),
@@ -115,7 +117,7 @@ fn add_liquidity() {
     };
 
     let (amount_a, amount_b, liquidity): (U256, U256, U256) =
-        runtime::call_contract(router_address, "add_liquidity", args);
+        runtime::call_versioned_contract(router_address, None, "add_liquidity", args);
     mappings::set_key(
         &mappings::add_liquidity_key(),
         (amount_a, amount_b, liquidity),
@@ -136,8 +138,8 @@ fn transfer_cspr() {
 #[no_mangle]
 fn add_liquidity_cspr() {
     let router_address: Key = runtime::get_named_arg("router_hash");
-    let router_address: ContractHash =
-        ContractHash::from(router_address.into_hash().unwrap_or_revert());
+    let router_address: ContractPackageHash =
+        ContractPackageHash::from(router_address.into_hash().unwrap_or_revert());
 
     let self_hash: Key = runtime::get_named_arg("self_hash");
     let self_hash: ContractHash = ContractHash::from(self_hash.into_hash().unwrap_or_revert());
@@ -152,11 +154,12 @@ fn add_liquidity_cspr() {
     let pair: Option<Key> = runtime::get_named_arg("pair");
 
     let router_package_hash: ContractPackageHash =
-        runtime::call_contract(router_address, "package_hash", runtime_args! {});
+        runtime::call_versioned_contract(router_address, None, "package_hash", runtime_args! {});
 
     // Approve contract
-    let _: () = runtime::call_contract(
-        ContractHash::from(token.into_hash().unwrap_or_revert()),
+    let _: () = runtime::call_versioned_contract(
+        ContractPackageHash::from(token.into_hash().unwrap_or_revert()),
+        None,
         "approve",
         runtime_args! {
             "spender" => Key::from(router_package_hash),
@@ -180,7 +183,7 @@ fn add_liquidity_cspr() {
     };
 
     let (amount_token, amount_cspr, liquidity): (U256, U256, U256) =
-        runtime::call_contract(router_address, "add_liquidity_cspr", args);
+        runtime::call_versioned_contract(router_address, None, "add_liquidity_cspr", args);
 
     // this entry points context is session therefore it can't access contract keys. Therefore to set the keys, it calls new entrypoint method.
     let _: () = runtime::call_contract(
@@ -204,7 +207,7 @@ fn set_liquidity_cspr_keys() {
 
 #[no_mangle]
 fn remove_liquidity() {
-    let router_address: ContractHash = mappings::get_key(&mappings::router_key());
+    let router_address: ContractPackageHash = mappings::get_key(&mappings::router_key());
 
     let token_a: Key = runtime::get_named_arg("token_a");
     let token_b: Key = runtime::get_named_arg("token_b");
@@ -216,10 +219,11 @@ fn remove_liquidity() {
 
     let pair_contract: Key = runtime::get_named_arg("pair");
     let router_package_hash: ContractPackageHash =
-        runtime::call_contract(router_address, "package_hash", runtime_args! {});
+        runtime::call_versioned_contract(router_address, None, "package_hash", runtime_args! {});
 
-    let _: () = runtime::call_contract(
-        ContractHash::from(pair_contract.into_hash().unwrap_or_revert()),
+    let _: () = runtime::call_versioned_contract(
+        ContractPackageHash::from(pair_contract.into_hash().unwrap_or_revert()),
+        None,
         "approve",
         runtime_args! {
             "spender" => Key::from(router_package_hash),
@@ -238,13 +242,13 @@ fn remove_liquidity() {
     };
 
     let (amount_a, amount_b): (U256, U256) =
-        runtime::call_contract(router_address, "remove_liquidity", args);
+        runtime::call_versioned_contract(router_address, None, "remove_liquidity", args);
     mappings::set_key(&mappings::remove_liquidity_key(), (amount_a, amount_b));
 }
 
 #[no_mangle]
 fn remove_liquidity_cspr() {
-    let router_address: ContractHash = mappings::get_key(&mappings::router_key());
+    let router_address: ContractPackageHash = mappings::get_key(&mappings::router_key());
 
     let token: Key = runtime::get_named_arg("token");
     let liquidity: U256 = runtime::get_named_arg("liquidity");
@@ -255,10 +259,11 @@ fn remove_liquidity_cspr() {
 
     let pair_contract: Key = runtime::get_named_arg("pair");
     let router_package_hash: ContractPackageHash =
-        runtime::call_contract(router_address, "package_hash", runtime_args! {});
+        runtime::call_versioned_contract(router_address, None, "package_hash", runtime_args! {});
 
-    let _: () = runtime::call_contract(
-        ContractHash::from(pair_contract.into_hash().unwrap_or_revert()),
+    let _: () = runtime::call_versioned_contract(
+        ContractPackageHash::from(pair_contract.into_hash().unwrap_or_revert()),
+        None,
         "approve",
         runtime_args! {
             "spender" => Key::from(router_package_hash),
@@ -280,7 +285,7 @@ fn remove_liquidity_cspr() {
     };
 
     let (amount_token, amount_cspr): (U256, U256) =
-        runtime::call_contract(router_address, "remove_liquidity_cspr", args);
+        runtime::call_versioned_contract(router_address, None, "remove_liquidity_cspr", args);
 
     mappings::set_key(
         &mappings::remove_liquidity_cspr_key(),
@@ -290,7 +295,7 @@ fn remove_liquidity_cspr() {
 
 #[no_mangle]
 fn remove_liquidity_with_permit() {
-    let router_address: ContractHash = mappings::get_key(&mappings::router_key());
+    let router_address: ContractPackageHash = mappings::get_key(&mappings::router_key());
 
     let token_a: Key = runtime::get_named_arg("token_a");
     let token_b: Key = runtime::get_named_arg("token_b");
@@ -316,8 +321,12 @@ fn remove_liquidity_with_permit() {
         "signature" => signature
     };
 
-    let (amount_a, amount_b): (U256, U256) =
-        runtime::call_contract(router_address, "remove_liquidity_with_permit", args);
+    let (amount_a, amount_b): (U256, U256) = runtime::call_versioned_contract(
+        router_address,
+        None,
+        "remove_liquidity_with_permit",
+        args,
+    );
     mappings::set_key(
         &mappings::remove_liquidity_with_permit_key(),
         (amount_a, amount_b),
@@ -326,7 +335,7 @@ fn remove_liquidity_with_permit() {
 
 #[no_mangle]
 fn remove_liquidity_cspr_with_permit() {
-    let router_address: ContractHash = mappings::get_key(&mappings::router_key());
+    let router_address: ContractPackageHash = mappings::get_key(&mappings::router_key());
 
     let token: Key = runtime::get_named_arg("token");
     let liquidity: U256 = runtime::get_named_arg("liquidity");
@@ -354,8 +363,12 @@ fn remove_liquidity_cspr_with_permit() {
         "to_purse" => self_purse
     };
 
-    let (amount_a, amount_b): (U256, U256) =
-        runtime::call_contract(router_address, "remove_liquidity_cspr_with_permit", args);
+    let (amount_a, amount_b): (U256, U256) = runtime::call_versioned_contract(
+        router_address,
+        None,
+        "remove_liquidity_cspr_with_permit",
+        args,
+    );
     mappings::set_key(
         &mappings::remove_liquidity_cspr_with_permit_key(),
         (amount_a, amount_b),
@@ -364,7 +377,7 @@ fn remove_liquidity_cspr_with_permit() {
 
 #[no_mangle]
 fn swap_exact_tokens_for_tokens() {
-    let router_address: ContractHash = mappings::get_key(&mappings::router_key());
+    let router_address: ContractPackageHash = mappings::get_key(&mappings::router_key());
 
     let amount_in: U256 = runtime::get_named_arg("amount_in");
     let amount_out_min: U256 = runtime::get_named_arg("amount_out_min");
@@ -373,15 +386,16 @@ fn swap_exact_tokens_for_tokens() {
     let deadline: U256 = runtime::get_named_arg("deadline");
 
     let router_package_hash: ContractPackageHash =
-        runtime::call_contract(router_address, "package_hash", runtime_args! {});
+        runtime::call_versioned_contract(router_address, None, "package_hash", runtime_args! {});
     let mut path: Vec<Key> = Vec::new();
     for i in 0..(_path.len()) {
         path.push(Key::from_formatted_str(&_path[i]).unwrap());
     }
 
     // give approval to input token
-    let _: () = runtime::call_contract(
-        ContractHash::from(path[0].into_hash().unwrap_or_revert()),
+    let _: () = runtime::call_versioned_contract(
+        ContractPackageHash::from(path[0].into_hash().unwrap_or_revert()),
+        None,
         "approve",
         runtime_args! {
             "spender" => Key::from(router_package_hash),
@@ -397,14 +411,18 @@ fn swap_exact_tokens_for_tokens() {
         "deadline" => deadline
     };
 
-    let amounts: Vec<U256> =
-        runtime::call_contract(router_address, "swap_exact_tokens_for_tokens", args);
+    let amounts: Vec<U256> = runtime::call_versioned_contract(
+        router_address,
+        None,
+        "swap_exact_tokens_for_tokens",
+        args,
+    );
     mappings::set_key(&mappings::swap_exact_tokens_for_tokens(), amounts);
 }
 
 #[no_mangle]
 fn swap_tokens_for_exact_tokens() {
-    let router_address: ContractHash = mappings::get_key(&mappings::router_key());
+    let router_address: ContractPackageHash = mappings::get_key(&mappings::router_key());
 
     let amount_out: U256 = runtime::get_named_arg("amount_out");
     let amount_in_max: U256 = runtime::get_named_arg("amount_in_max");
@@ -413,15 +431,16 @@ fn swap_tokens_for_exact_tokens() {
     let deadline: U256 = runtime::get_named_arg("deadline");
 
     let router_package_hash: ContractPackageHash =
-        runtime::call_contract(router_address, "package_hash", runtime_args! {});
+        runtime::call_versioned_contract(router_address, None, "package_hash", runtime_args! {});
     let mut path: Vec<Key> = Vec::new();
     for i in 0..(_path.len()) {
         path.push(Key::from_formatted_str(&_path[i]).unwrap());
     }
 
     // give approval to input token
-    let _: () = runtime::call_contract(
-        ContractHash::from(path[0].into_hash().unwrap_or_revert()),
+    let _: () = runtime::call_versioned_contract(
+        ContractPackageHash::from(path[0].into_hash().unwrap_or_revert()),
+        None,
         "approve",
         runtime_args! {
             "spender" => Key::from(router_package_hash),
@@ -437,16 +456,20 @@ fn swap_tokens_for_exact_tokens() {
         "deadline" => deadline
     };
 
-    let amounts: Vec<U256> =
-        runtime::call_contract(router_address, "swap_tokens_for_exact_tokens", args);
+    let amounts: Vec<U256> = runtime::call_versioned_contract(
+        router_address,
+        None,
+        "swap_tokens_for_exact_tokens",
+        args,
+    );
     mappings::set_key(&mappings::swap_tokens_for_exact_tokens(), amounts);
 }
 
 #[no_mangle]
 fn swap_exact_cspr_for_tokens() {
     let router_address: Key = runtime::get_named_arg("router_hash");
-    let router_address: ContractHash =
-        ContractHash::from(router_address.into_hash().unwrap_or_revert());
+    let router_address: ContractPackageHash =
+        ContractPackageHash::from(router_address.into_hash().unwrap_or_revert());
 
     let amount_out_min: U256 = runtime::get_named_arg("amount_out_min");
     let amount_in: U256 = runtime::get_named_arg("amount_in");
@@ -471,20 +494,20 @@ fn swap_exact_cspr_for_tokens() {
     };
 
     let amounts: Vec<U256> =
-        runtime::call_contract(router_address, "swap_exact_cspr_for_tokens", args);
+        runtime::call_versioned_contract(router_address, None, "swap_exact_cspr_for_tokens", args);
     mappings::set_key(&mappings::swap_exact_cspr_for_tokens(), amounts);
 }
 
 #[no_mangle]
 fn swap_tokens_for_exact_cspr() {
-    let router_address: ContractHash = mappings::get_key(&mappings::router_key());
+    let router_address: ContractPackageHash = mappings::get_key(&mappings::router_key());
 
     let amount_out: U256 = runtime::get_named_arg("amount_out");
     let amount_in_max: U256 = runtime::get_named_arg("amount_in_max");
     let _path: Vec<String> = runtime::get_named_arg("path");
     let deadline: U256 = runtime::get_named_arg("deadline");
     let router_package_hash: ContractPackageHash =
-        runtime::call_contract(router_address, "package_hash", runtime_args! {});
+        runtime::call_versioned_contract(router_address, None, "package_hash", runtime_args! {});
 
     let mut path: Vec<Key> = Vec::new();
     for i in 0..(_path.len()) {
@@ -492,8 +515,9 @@ fn swap_tokens_for_exact_cspr() {
     }
 
     // give approval to input token
-    let _: () = runtime::call_contract(
-        ContractHash::from(path[0].into_hash().unwrap_or_revert()),
+    let _: () = runtime::call_versioned_contract(
+        ContractPackageHash::from(path[0].into_hash().unwrap_or_revert()),
+        None,
         "approve",
         runtime_args! {
             "spender" => Key::from(router_package_hash),
@@ -513,20 +537,20 @@ fn swap_tokens_for_exact_cspr() {
     };
 
     let amounts: Vec<U256> =
-        runtime::call_contract(router_address, "swap_tokens_for_exact_cspr", args);
+        runtime::call_versioned_contract(router_address, None, "swap_tokens_for_exact_cspr", args);
     mappings::set_key(&mappings::swap_tokens_for_exact_cspr(), amounts);
 }
 
 #[no_mangle]
 fn swap_exact_tokens_for_cspr() {
-    let router_address: ContractHash = mappings::get_key(&mappings::router_key());
+    let router_address: ContractPackageHash = mappings::get_key(&mappings::router_key());
 
     let amount_in: U256 = runtime::get_named_arg("amount_in");
     let amount_out_min: U256 = runtime::get_named_arg("amount_out_min");
     let _path: Vec<String> = runtime::get_named_arg("path");
     let deadline: U256 = runtime::get_named_arg("deadline");
     let router_package_hash: ContractPackageHash =
-        runtime::call_contract(router_address, "package_hash", runtime_args! {});
+        runtime::call_versioned_contract(router_address, None, "package_hash", runtime_args! {});
 
     let mut path: Vec<Key> = Vec::new();
     for i in 0..(_path.len()) {
@@ -534,8 +558,9 @@ fn swap_exact_tokens_for_cspr() {
     }
 
     // give approval to input token
-    let _: () = runtime::call_contract(
-        ContractHash::from(path[0].into_hash().unwrap_or_revert()),
+    let _: () = runtime::call_versioned_contract(
+        ContractPackageHash::from(path[0].into_hash().unwrap_or_revert()),
+        None,
         "approve",
         runtime_args! {
             "spender" => Key::from(router_package_hash),
@@ -555,13 +580,13 @@ fn swap_exact_tokens_for_cspr() {
     };
 
     let amounts: Vec<U256> =
-        runtime::call_contract(router_address, "swap_exact_tokens_for_cspr", args);
+        runtime::call_versioned_contract(router_address, None, "swap_exact_tokens_for_cspr", args);
     mappings::set_key(&mappings::swap_exact_tokens_for_cspr(), amounts);
 }
 
 #[no_mangle]
 fn swap_cspr_for_exact_tokens() {
-    let router_address: ContractHash = mappings::get_key(&mappings::router_key());
+    let router_address: ContractPackageHash = mappings::get_key(&mappings::router_key());
 
     let amount_out: U256 = runtime::get_named_arg("amount_out");
     let amount_in_max: U256 = runtime::get_named_arg("amount_in_max");
@@ -569,7 +594,7 @@ fn swap_cspr_for_exact_tokens() {
     let to: Key = runtime::get_named_arg("to");
     let deadline: U256 = runtime::get_named_arg("deadline");
     let router_package_hash: ContractPackageHash =
-        runtime::call_contract(router_address, "package_hash", runtime_args! {});
+        runtime::call_versioned_contract(router_address, None, "package_hash", runtime_args! {});
 
     let mut path: Vec<Key> = Vec::new();
     for i in 0..(_path.len()) {
@@ -577,8 +602,9 @@ fn swap_cspr_for_exact_tokens() {
     }
 
     // give approval to input token
-    let _: () = runtime::call_contract(
-        ContractHash::from(path[0].into_hash().unwrap_or_revert()),
+    let _: () = runtime::call_versioned_contract(
+        ContractPackageHash::from(path[0].into_hash().unwrap_or_revert()),
+        None,
         "approve",
         runtime_args! {
             "spender" => Key::from(router_package_hash),
@@ -599,13 +625,13 @@ fn swap_cspr_for_exact_tokens() {
     };
 
     let amounts: Vec<U256> =
-        runtime::call_contract(router_address, "swap_cspr_for_exact_tokens", args);
+        runtime::call_versioned_contract(router_address, None, "swap_cspr_for_exact_tokens", args);
     mappings::set_key(&mappings::swap_cspr_for_exact_tokens(), amounts);
 }
 
 #[no_mangle]
 fn get_reserves() {
-    let library_address: ContractHash = mappings::get_key(&mappings::library_key());
+    let library_address: ContractPackageHash = mappings::get_key(&mappings::library_key());
 
     let factory: Key = runtime::get_named_arg("factory");
     let token_a: Key = runtime::get_named_arg("token_a");
@@ -618,12 +644,12 @@ fn get_reserves() {
     };
 
     let (_reserve_1, _reserve_2): (U128, U128) =
-        runtime::call_contract(library_address, "get_reserves", args);
+        runtime::call_versioned_contract(library_address, None, "get_reserves", args);
 }
 
 #[no_mangle]
 fn quote() {
-    let library_address: ContractHash = mappings::get_key(&mappings::library_key());
+    let library_address: ContractPackageHash = mappings::get_key(&mappings::library_key());
 
     let amount_a: U256 = runtime::get_named_arg("amount_a");
     let reserve_a: U128 = runtime::get_named_arg("reserve_a");
@@ -635,12 +661,12 @@ fn quote() {
         "reserve_b" => reserve_b
     };
 
-    let _quote: U256 = runtime::call_contract(library_address, "quote", args);
+    let _quote: U256 = runtime::call_versioned_contract(library_address, None, "quote", args);
 }
 
 #[no_mangle]
 fn get_amount_out() {
-    let library_address: ContractHash = mappings::get_key(&mappings::library_key());
+    let library_address: ContractPackageHash = mappings::get_key(&mappings::library_key());
 
     let amount_in: U256 = runtime::get_named_arg("amount_in");
     let reserve_in: U256 = runtime::get_named_arg("reserve_in");
@@ -652,12 +678,13 @@ fn get_amount_out() {
         "reserve_out" => reserve_out
     };
 
-    let _amount_out: U256 = runtime::call_contract(library_address, "get_amount_out", args);
+    let _amount_out: U256 =
+        runtime::call_versioned_contract(library_address, None, "get_amount_out", args);
 }
 
 #[no_mangle]
 fn get_amount_in() {
-    let library_address: ContractHash = mappings::get_key(&mappings::library_key());
+    let library_address: ContractPackageHash = mappings::get_key(&mappings::library_key());
 
     let amount_out: U256 = runtime::get_named_arg("amount_out");
     let reserve_in: U256 = runtime::get_named_arg("reserve_in");
@@ -669,12 +696,13 @@ fn get_amount_in() {
         "reserve_out" => reserve_out
     };
 
-    let _amount_in: U256 = runtime::call_contract(library_address, "get_amount_in", args);
+    let _amount_in: U256 =
+        runtime::call_versioned_contract(library_address, None, "get_amount_in", args);
 }
 
 #[no_mangle]
 fn get_amounts_out() {
-    let library_address: ContractHash = mappings::get_key(&mappings::library_key());
+    let library_address: ContractPackageHash = mappings::get_key(&mappings::library_key());
 
     let factory: Key = runtime::get_named_arg("factory");
     let amount_in: U256 = runtime::get_named_arg("amount_in");
@@ -685,12 +713,13 @@ fn get_amounts_out() {
         "amount_in" => amount_in,
         "path" => path
     };
-    let _amounts: Vec<U256> = runtime::call_contract(library_address, "get_amounts_out", args);
+    let _amounts: Vec<U256> =
+        runtime::call_versioned_contract(library_address, None, "get_amounts_out", args);
 }
 
 #[no_mangle]
 fn get_amounts_in() {
-    let library_address: ContractHash = mappings::get_key(&mappings::library_key());
+    let library_address: ContractPackageHash = mappings::get_key(&mappings::library_key());
 
     let factory: Key = runtime::get_named_arg("factory");
     let amount_out: U256 = runtime::get_named_arg("amount_out");
@@ -702,7 +731,8 @@ fn get_amounts_in() {
         "path" => path
     };
 
-    let _amounts: Vec<U256> = runtime::call_contract(library_address, "get_amounts_in", args);
+    let _amounts: Vec<U256> =
+        runtime::call_versioned_contract(library_address, None, "get_amounts_in", args);
 }
 
 #[no_mangle]
@@ -716,7 +746,8 @@ fn approve() {
         "amount" => amount
     };
 
-    let () = runtime::call_contract(token.into_hash().unwrap().into(), "approve", args);
+    let () =
+        runtime::call_versioned_contract(token.into_hash().unwrap().into(), None, "approve", args);
 }
 
 fn get_entry_points() -> EntryPoints {

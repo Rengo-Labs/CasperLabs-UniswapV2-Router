@@ -93,7 +93,7 @@ fn deploy_library() -> (
         "factory",
         owner,
         runtime_args! {
-            "fee_to_setter" => Key::Hash(token3.contract_hash())
+            "fee_to_setter" => Key::Hash(token3.package_hash())
             // contract_name is passed seperately, so we don't need to pass it here.
         },
     );
@@ -178,7 +178,7 @@ fn deploy_library() -> (
     );
 
     // deploy Test contract
-    let test_contract: LibraryInstance= LibraryInstance::new(
+    let test_contract: LibraryInstance = LibraryInstance::new(
         &env,
         Key::Hash(router_contract.package_hash()),
         Key::Hash(library_contract.package_hash()),
@@ -205,19 +205,19 @@ fn deploy_library() -> (
     )
 }
 
-// //#[test]
-// fn test_library_deploy() {
-//     let (_, owner, _, library_contract, _, _, _) = deploy_library();
-//     println!("Owner: {}", owner);
-//     let self_hash: ContractHash = library_contract.query_named_key("self_hash".to_string());
-//     let zero_addr: Key = Key::from_formatted_str(
-//         "hash-0000000000000000000000000000000000000000000000000000000000000000",
-//     )
-//     .unwrap();
-//     assert_ne!(Key::from(self_hash), zero_addr);
-// }
+#[test]
+fn test_library_deploy() {
+    let (_, owner, _, library_contract, _, _, _) = deploy_library();
+    println!("Owner: {}", owner);
+    let self_hash: ContractHash = library_contract.query_named_key("self_hash".to_string());
+    let zero_addr: Key = Key::from_formatted_str(
+        "hash-0000000000000000000000000000000000000000000000000000000000000000",
+    )
+    .unwrap();
+    assert_ne!(Key::from(self_hash), zero_addr);
+}
 
-// //#[test]
+// #[test]
 // fn quote() {
 //     let (_, owner, test_contract, _, _, _, _) = deploy_library();
 
