@@ -70,6 +70,7 @@ pub fn deploy(
         .with_address(*deployer)
         .with_authorization_keys(&[*deployer])
         .with_deploy_hash(rng.gen());
+
     deploy_builder = match source {
         DeploySource::Code(path) => deploy_builder.with_session_code(path, args),
         DeploySource::ByContractHash { hash, method } => {

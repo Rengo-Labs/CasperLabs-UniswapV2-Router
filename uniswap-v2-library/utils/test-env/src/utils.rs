@@ -27,7 +27,6 @@ pub fn query<T: FromBytes + CLTyped>(
 }
 
 pub fn fund_account(account: &AccountHash) -> ExecuteRequest {
-    let mut rng = rand::thread_rng();
     let deploy_item = DeployItemBuilder::new()
         .with_address(*DEFAULT_ACCOUNT_ADDR)
         .with_authorization_keys(&[*DEFAULT_ACCOUNT_ADDR])
@@ -37,7 +36,7 @@ pub fn fund_account(account: &AccountHash) -> ExecuteRequest {
             mint::ARG_TARGET => *account,
             mint::ARG_ID => <Option::<u64>>::None
         })
-        .with_deploy_hash(rng.gen())
+        .with_deploy_hash([1; 32])
         .build();
 
     ExecuteRequestBuilder::from_deploy_item(deploy_item).build()
@@ -70,6 +69,7 @@ pub fn deploy(
         .with_address(*deployer)
         .with_authorization_keys(&[*deployer])
         .with_deploy_hash(rng.gen());
+
     deploy_builder = match source {
         DeploySource::Code(path) => deploy_builder.with_session_code(path, args),
         DeploySource::ByContractHash { hash, method } => {
