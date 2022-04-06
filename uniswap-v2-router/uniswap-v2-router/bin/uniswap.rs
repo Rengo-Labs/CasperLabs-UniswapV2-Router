@@ -36,10 +36,10 @@ impl Uniswap {
         contract_hash: ContractHash,
         package_hash: ContractPackageHash,
     ) {
-        let _factory: ContractHash = ContractHash::from(factory.into_hash().unwrap_or_default());
-        let _wcspr: ContractHash = ContractHash::from(wcspr.into_hash().unwrap_or_default());
-        let _library_hash: ContractHash =
-            ContractHash::from(library_hash.into_hash().unwrap_or_default());
+        let _factory: ContractPackageHash = ContractPackageHash::from(factory.into_hash().unwrap_or_default());
+        let _wcspr: ContractPackageHash = ContractPackageHash::from(wcspr.into_hash().unwrap_or_default());
+        let _library_hash: ContractPackageHash =
+            ContractPackageHash::from(library_hash.into_hash().unwrap_or_default());
         UniswapV2Router::init(
             self,
             _factory,
@@ -81,8 +81,8 @@ fn add_liquidity() {
     let to: Key = runtime::get_named_arg("to");
     let pair: Option<Key> = runtime::get_named_arg("pair");
 
-    let _token_a = ContractHash::from(token_a.into_hash().unwrap_or_default());
-    let _token_b = ContractHash::from(token_b.into_hash().unwrap_or_default());
+    let _token_a = ContractPackageHash::from(token_a.into_hash().unwrap_or_default());
+    let _token_b = ContractPackageHash::from(token_b.into_hash().unwrap_or_default());
 
     let (amount_a, amount_b, liquidity): (U256, U256, U256) = Uniswap::default().add_liquidity(
         _token_a,
@@ -116,8 +116,8 @@ fn add_liquidity_js_client() {
     let to: Key = runtime::get_named_arg("to");
     let pair: Option<Key> = runtime::get_named_arg("pair");
 
-    let _token_a = ContractHash::from(token_a.into_hash().unwrap_or_default());
-    let _token_b = ContractHash::from(token_b.into_hash().unwrap_or_default());
+    let _token_a = ContractPackageHash::from(token_a.into_hash().unwrap_or_default());
+    let _token_b = ContractPackageHash::from(token_b.into_hash().unwrap_or_default());
 
     let (_amount_a, _amount_b, _liquidity): (U256, U256, U256) = Uniswap::default().add_liquidity(
         _token_a,
@@ -150,7 +150,7 @@ fn add_liquidity_cspr() {
     let pair: Option<Key> = runtime::get_named_arg("pair");
     let purse: URef = runtime::get_named_arg("purse");
 
-    let _token = ContractHash::from(token.into_hash().unwrap_or_default());
+    let _token = ContractPackageHash::from(token.into_hash().unwrap_or_default());
     let (amount_token, amount_cspr, liquidity): (U256, U256, U256) = Uniswap::default()
         .add_liquidity_cspr(
             _token,
@@ -184,7 +184,7 @@ fn add_liquidity_cspr_js_client() {
     let pair: Option<Key> = runtime::get_named_arg("pair");
     let purse: URef = runtime::get_named_arg("purse");
 
-    let _token = ContractHash::from(token.into_hash().unwrap_or_default());
+    let _token = ContractPackageHash::from(token.into_hash().unwrap_or_default());
     let (_amount_token, _amount_cspr, _liquidity): (U256, U256, U256) = Uniswap::default()
         .add_liquidity_cspr(
             _token,
@@ -215,8 +215,8 @@ fn remove_liquidity() {
     let amount_b_min: U256 = runtime::get_named_arg("amount_b_min");
     let to: Key = runtime::get_named_arg("to");
 
-    let _token_a = ContractHash::from(token_a.into_hash().unwrap_or_default());
-    let _token_b = ContractHash::from(token_b.into_hash().unwrap_or_default());
+    let _token_a = ContractPackageHash::from(token_a.into_hash().unwrap_or_default());
+    let _token_b = ContractPackageHash::from(token_b.into_hash().unwrap_or_default());
 
     let (amount_a, amount_b): (U256, U256) = Uniswap::default().remove_liquidity(
         _token_a,
@@ -246,8 +246,8 @@ fn remove_liquidity_js_client() {
     let amount_b_min: U256 = runtime::get_named_arg("amount_b_min");
     let to: Key = runtime::get_named_arg("to");
 
-    let _token_a = ContractHash::from(token_a.into_hash().unwrap_or_default());
-    let _token_b = ContractHash::from(token_b.into_hash().unwrap_or_default());
+    let _token_a = ContractPackageHash::from(token_a.into_hash().unwrap_or_default());
+    let _token_b = ContractPackageHash::from(token_b.into_hash().unwrap_or_default());
 
     let (_amount_a, _amount_b): (U256, U256) = Uniswap::default().remove_liquidity(
         _token_a,
@@ -276,7 +276,7 @@ fn remove_liquidity_cspr() {
     let to: Key = runtime::get_named_arg("to");
     let to_purse: URef = runtime::get_named_arg("to_purse");
 
-    let _token = ContractHash::from(token.into_hash().unwrap_or_default());
+    let _token = ContractPackageHash::from(token.into_hash().unwrap_or_default());
     let (amount_token, amount_cspr): (U256, U256) = Uniswap::default().remove_liquidity_cspr(
         _token,
         liquidity,
@@ -305,7 +305,7 @@ fn remove_liquidity_cspr_js_client() {
     let to: Key = runtime::get_named_arg("to");
     let to_purse: URef = runtime::get_named_arg("to_purse");
 
-    let _token = ContractHash::from(token.into_hash().unwrap_or_default());
+    let _token = ContractPackageHash::from(token.into_hash().unwrap_or_default());
     let (_amount_token, _amount_cspr): (U256, U256) = Uniswap::default().remove_liquidity_cspr(
         _token,
         liquidity,
@@ -333,8 +333,8 @@ fn remove_liquidity_with_permit() {
     let signature: String = runtime::get_named_arg("signature");
     let deadline: U256 = runtime::get_named_arg("deadline");
 
-    let _token_a = ContractHash::from(token_a.into_hash().unwrap_or_default());
-    let _token_b = ContractHash::from(token_b.into_hash().unwrap_or_default());
+    let _token_a = ContractPackageHash::from(token_a.into_hash().unwrap_or_default());
+    let _token_b = ContractPackageHash::from(token_b.into_hash().unwrap_or_default());
 
     let (amount_a, amount_b): (U256, U256) = Uniswap::default().remove_liquidity_with_permit(
         _token_a,
@@ -368,8 +368,8 @@ fn remove_liquidity_with_permit_js_client() {
     let signature: String = runtime::get_named_arg("signature");
     let deadline: U256 = runtime::get_named_arg("deadline");
 
-    let _token_a = ContractHash::from(token_a.into_hash().unwrap_or_default());
-    let _token_b = ContractHash::from(token_b.into_hash().unwrap_or_default());
+    let _token_a = ContractPackageHash::from(token_a.into_hash().unwrap_or_default());
+    let _token_b = ContractPackageHash::from(token_b.into_hash().unwrap_or_default());
 
     let (_amount_a, _amount_b): (U256, U256) = Uniswap::default().remove_liquidity_with_permit(
         _token_a,
@@ -388,7 +388,7 @@ fn remove_liquidity_with_permit_js_client() {
 #[no_mangle]
 /// Remove cspr from liquidity pool with permit.
 ///
-/// Parameters-> token:ContractHash, liquidity:U256, amount_token_min:U256, amount_cspr_min:U256, to:Key, approve_max:bool,
+/// Parameters-> token:ContractPackageHash, liquidity:U256, amount_token_min:U256, amount_cspr_min:U256, to:Key, approve_max:bool,
 /// deadline:U256, public_key:String, signature: String, to_purse: URef
 
 fn remove_liquidity_cspr_with_permit() {
@@ -403,7 +403,7 @@ fn remove_liquidity_cspr_with_permit() {
     let deadline: U256 = runtime::get_named_arg("deadline");
     let to_purse: URef = runtime::get_named_arg("to_purse");
 
-    let _token = ContractHash::from(token.into_hash().unwrap_or_default());
+    let _token = ContractPackageHash::from(token.into_hash().unwrap_or_default());
     let (amount_token, amount_cspr): (U256, U256) = Uniswap::default()
         .remove_liquidity_cspr_with_permit(
             _token,
@@ -423,7 +423,7 @@ fn remove_liquidity_cspr_with_permit() {
 #[no_mangle]
 /// Remove cspr from liquidity pool with permit.
 ///
-/// Parameters-> token:ContractHash, liquidity:U256, amount_token_min:U256, amount_cspr_min:U256, to:Key, approve_max:bool,
+/// Parameters-> token:ContractPackageHash, liquidity:U256, amount_token_min:U256, amount_cspr_min:U256, to:Key, approve_max:bool,
 /// deadline:U256, public_key:String, signature: String
 
 fn remove_liquidity_cspr_with_permit_js_client() {
@@ -438,7 +438,7 @@ fn remove_liquidity_cspr_with_permit_js_client() {
     let deadline: U256 = runtime::get_named_arg("deadline");
     let to_purse: URef = runtime::get_named_arg("to_purse");
 
-    let _token = ContractHash::from(token.into_hash().unwrap_or_default());
+    let _token = ContractPackageHash::from(token.into_hash().unwrap_or_default());
     let (_amount_token, _amount_cspr): (U256, U256) = Uniswap::default()
         .remove_liquidity_cspr_with_permit(
             _token,

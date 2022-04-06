@@ -3,7 +3,7 @@ uniswap_router_directory = .
 
 erc20_contract = ${uniswap_core_directory}/erc20/
 factory_contract = ${uniswap_core_directory}/factory/
-flash_swapper_contract = ${uniswap_core_directory}/flash-swapper/
+flash_swapper_contract = ${uniswap_core_directory}/flashswapper/
 pair_contract = ${uniswap_core_directory}/pair/
 wcspr_contract = ${uniswap_core_directory}/wcspr/
 library_contract = ${uniswap_router_directory}/uniswap-v2-library/
@@ -90,4 +90,4 @@ test:
 	cd ${library_contract} && make test
 
 	# Test Router
-	cd ${router_contract} && make test
+	# cd ${router_contract} && make test
