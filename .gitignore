@@ -1,6 +1,7 @@
 target
 *.wasm
 .history
+*.lock
 
 uniswap-v2-library/target
 uniswap-v2-library/.history
