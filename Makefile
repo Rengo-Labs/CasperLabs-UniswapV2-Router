@@ -90,4 +90,4 @@ test:
 	cd ${library_contract} && make test
 
 	# Test Router
-	# cd ${router_contract} && make test
+	cd ${router_contract} && make test

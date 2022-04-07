@@ -72,6 +72,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         data::set_self_hash(contract_hash);
         data::set_package_hash(package_hash);
         data::set_self_purse(self_purse);
+        data::set_total_cspr_deposited(0.into());
     }
 
     fn add_liquidity(
@@ -104,7 +105,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             pair,
         );
 
-        // call pair_for from library contract
+        // // call pair_for from library contract
         let uniswapv2_library_contract_hash = data::library_hash().to_formatted_string();
         let args: RuntimeArgs = runtime_args! {
             "factory" => Key::from(factory),
@@ -187,7 +188,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             pair,
         );
 
-        // call pair_for from library contract
+        // // call pair_for from library contract
         let uniswapv2_library_contract_hash = data::library_hash().to_formatted_string();
         let args: RuntimeArgs = runtime_args! {
             "factory" => Key::from(factory),
@@ -226,7 +227,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         let self_purse_balance: U512 = system::get_purse_balance(self_purse).unwrap_or_revert();
         let total_cspr_deposited: U512 = data::total_cspr_deposited();
 
-        // checks cspr has been deposited in this transaction
+        // // checks cspr has been deposited in this transaction
         let deposit_diff: U512 = self_purse_balance - total_cspr_deposited;
         if deposit_diff != U512::from(amount_cspr.as_u128()) {
             runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
@@ -235,63 +236,64 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         // get wcspr's purse, and deposit cspr to it
         let wcspr_purse: URef =
             runtime::call_versioned_contract(wcspr, None, "self_purse", runtime_args! {});
-        system::transfer_from_purse_to_purse(
-            self_purse,
-            wcspr_purse,
-            amount_cspr.as_u128().into(),
-            None,
-        )
-        .unwrap_or_revert();
+        // system::transfer_from_purse_to_purse(
+        //     self_purse,
+        //     wcspr_purse,
+        //     amount_cspr.as_u128().into(),
+        //     None,
+        // )
+        // .unwrap_or_revert();
 
-        // this call will submit cspr to the wcspr contract and in return get wcspr tokens which will be sent to pair
-        let args: RuntimeArgs = runtime_args! {
-            "amount" => U512::from(amount_cspr.as_u128()),
-        };
-        let result: Result<(), u32> = Self::call_versioned_contract(
-            &wcspr.to_formatted_string(),
-            uniswapv2_contract_methods::WCSPR_DEPOSIT,
-            args,
-        );
-        if result.is_err()
-        // transfer_from failed
-        {
-            runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
-        }
+        // // this call will submit cspr to the wcspr contract and in return get wcspr tokens which will be sent to pair
+        // let args: RuntimeArgs = runtime_args! {
+        //     "amount" => U512::from(amount_cspr.as_u128()),
+        // };
+        // let result: Result<(), u32> = Self::call_versioned_contract(
+        //     &wcspr.to_formatted_string(),
+        //     uniswapv2_contract_methods::WCSPR_DEPOSIT,
+        //     args,
+        // );
+        // if result.is_err()
+        // // transfer_from failed
+        // {
+        //     runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
+        // }
 
-        // call transfer method from wcspr
-        let args: RuntimeArgs = runtime_args! {
-            "recipient" => Key::from(pair_package_hash),
-            "amount" => amount_cspr
-        };
-        let result: Result<(), u32> = Self::call_versioned_contract(
-            &wcspr.to_formatted_string(),
-            uniswapv2_contract_methods::WCSPR_TRANSFER,
-            args,
-        );
-        if result.is_err()
-        // transfer_from failed
-        {
-            runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
-        }
+        // // call transfer method from wcspr
+        // let args: RuntimeArgs = runtime_args! {
+        //     "recipient" => Key::from(pair_package_hash),
+        //     "amount" => amount_cspr
+        // };
+        // let result: Result<(), u32> = Self::call_versioned_contract(
+        //     &wcspr.to_formatted_string(),
+        //     uniswapv2_contract_methods::WCSPR_TRANSFER,
+        //     args,
+        // );
+        // if result.is_err()
+        // // transfer_from failed
+        // {
+        //     runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
+        // }
 
-        // call mint function from pair contract
-        let args: RuntimeArgs = runtime_args! {
-            "to" => to,
-        };
+        // // call mint function from pair contract
+        // let args: RuntimeArgs = runtime_args! {
+        //     "to" => to,
+        // };
 
-        let liquidity: U256 = Self::call_versioned_contract(
-            &pair.to_formatted_string(),
-            uniswapv2_contract_methods::PAIR_MINT,
-            args,
-        );
-        self.emit(&ROUTEREvent::AddReserves {
-            user: to,
-            reserve0: amount_token,
-            reserve1: amount_cspr,
-            pair_contract_hash: pair,
-        });
+        // let liquidity: U256 = Self::call_versioned_contract(
+        //     &pair.to_formatted_string(),
+        //     uniswapv2_contract_methods::PAIR_MINT,
+        //     args,
+        // );
+        // self.emit(&ROUTEREvent::AddReserves {
+        //     user: to,
+        //     reserve0: amount_token,
+        //     reserve1: amount_cspr,
+        //     pair_contract_hash: pair,
+        // });
         // No need to transfer the leftover cspr, because we are already taking the exact amount out from the caller purse
-        (amount_token, amount_cspr, liquidity)
+        (0.into(),0.into(),0.into())
+        // (amount_token, amount_cspr, liquidity)
     }
 
     fn remove_liquidity(

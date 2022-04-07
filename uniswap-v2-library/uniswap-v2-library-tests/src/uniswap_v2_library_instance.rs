@@ -203,7 +203,7 @@ impl LibraryInstance {
             sender,
             "approve",
             runtime_args! {
-                "token" => Key::Hash(token.contract_hash()),
+                "token" => Key::Hash(token.package_hash()),
                 "spender" => spender,
                 "amount" => amount
             },

@@ -3,7 +3,9 @@ pub mod transfer_helper {
     extern crate alloc;
 
     use casper_contract::contract_api::runtime;
-    use casper_types::{contracts::ContractHash, runtime_args, Key, RuntimeArgs, U256};
+    use casper_types::{
+        contracts::ContractHash, runtime_args, ContractPackageHash, Key, RuntimeArgs, U256,
+    };
 
     pub fn safe_transfer(token: Key, to: Key, value: U256) -> Result<(), u32> {
         // Token must be approved for router to spend.
@@ -12,8 +14,9 @@ pub mod transfer_helper {
             "amount" => value
         };
 
-        let result: Result<(), u32> = runtime::call_contract(
-            ContractHash::from(token.into_hash().unwrap_or_default()),
+        let result: Result<(), u32> = runtime::call_versioned_contract(
+            ContractPackageHash::from(token.into_hash().unwrap_or_default()),
+            None,
             "transfer",
             args,
         );
@@ -28,8 +31,9 @@ pub mod transfer_helper {
             "amount" => value
         };
 
-        let result: Result<(), u32> = runtime::call_contract(
-            ContractHash::from(token.into_hash().unwrap_or_default()),
+        let result: Result<(), u32> = runtime::call_versioned_contract(
+            ContractPackageHash::from(token.into_hash().unwrap_or_default()),
+            None,
             "transfer_from",
             args,
         );

@@ -84,6 +84,7 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
             reserve_a = reserve_1;
             reserve_b = reserve_0;
         }
+        // (0.into(),0.into())
         (reserve_a, reserve_b)
     }
 
