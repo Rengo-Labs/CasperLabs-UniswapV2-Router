@@ -89,10 +89,10 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         let factory: ContractPackageHash = data::factory();
 
         if amount_a_desired <= 0.into() {
-            runtime::revert(ApiError::User(ErrorCodes::Zero as u16));
+            runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterAmountADesiredIsZero as u16));
         }
         if amount_b_desired <= 0.into() {
-            runtime::revert(ApiError::User(ErrorCodes::One as u16));
+            runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterAmountBDesiredIsZero as u16));
         }
 
         let (amount_a, amount_b): (U256, U256) = Self::_add_liquidity(
@@ -131,7 +131,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         if result.is_err()
         // transfer_from failed
         {
-            runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
+            runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTransferFailed1 as u16));
         }
 
         let result: Result<(), u32> = transfer_helper::safe_transfer_from(
@@ -143,7 +143,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         if result.is_err()
         // transfer_from failed
         {
-            runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
+            runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTransferFailed2 as u16));
         }
 
         // call mint function from IUniswapV2Pair contract
@@ -207,7 +207,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             runtime::call_versioned_contract(pair, None, "package_hash", runtime_args! {});
 
         if amount_token <= 0.into() {
-            runtime::revert(ApiError::User(ErrorCodes::Two as u16));
+            runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterAmountTokenIsZero as u16));
         }
 
         // call safe_transfer_from from TransferHelper
@@ -220,22 +220,22 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         if result.is_err()
         // transfer_from failed
         {
-            runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
+            runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTransferFailed3 as u16));
         }
 
         let self_purse = data::self_purse();
         let self_purse_balance: U512 = system::get_purse_balance(self_purse).unwrap_or_revert();
         let total_cspr_deposited: U512 = data::total_cspr_deposited();
 
-        // // checks cspr has been deposited in this transaction
+        // checks cspr has been deposited in this transaction
         let deposit_diff: U512 = self_purse_balance - total_cspr_deposited;
         if deposit_diff != U512::from(amount_cspr.as_u128()) {
-            runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
+            runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTransferFailed4 as u16));
         }
 
         // get wcspr's purse, and deposit cspr to it
-        let wcspr_purse: URef =
-            runtime::call_versioned_contract(wcspr, None, "self_purse", runtime_args! {});
+        // let wcspr_purse: URef =
+        //     runtime::call_versioned_contract(wcspr, None, "self_purse", runtime_args! {});
         // system::transfer_from_purse_to_purse(
         //     self_purse,
         //     wcspr_purse,
@@ -256,7 +256,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         // if result.is_err()
         // // transfer_from failed
         // {
-        //     runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
+        //     runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTransferFailed5 as u16));
         // }
 
         // // call transfer method from wcspr
@@ -272,7 +272,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         // if result.is_err()
         // // transfer_from failed
         // {
-        //     runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
+        //     runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTransferFailed6 as u16));
         // }
 
         // // call mint function from pair contract
@@ -337,7 +337,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             args,
         );
         if result.is_err() {
-            runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
+            runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTransferFailed7 as u16));
         }
 
         // call burn from IUniSwapV2Pair
@@ -369,7 +369,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         };
 
         if amount_a < amount_a_min || amount_b < amount_b_min {
-            runtime::revert(ApiError::User(ErrorCodes::Abort as u16));
+            runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterAbort1 as u16));
         }
         self.emit(&ROUTEREvent::RemoveReserves {
             user: to,
@@ -408,7 +408,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         if result.is_err()
         // transfer failed
         {
-            runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
+            runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTransferFailed8 as u16));
         }
 
         // call withdraw and transfer cspr to 'to'
@@ -425,7 +425,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         if result.is_err()
         // wcspr_withdraw failed
         {
-            runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
+            runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTransferFailed9 as u16));
         }
         (amount_token, amount_cspr)
     }
@@ -464,7 +464,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
 
         if pair == zero_addr {
             // pair does not exist
-            runtime::revert(ApiError::User(ErrorCodes::Abort as u16));
+            runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterAbort2 as u16));
         }
 
         let pair: ContractPackageHash =
@@ -526,7 +526,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         .unwrap();
 
         if pair == zero_addr {
-            runtime::revert(ApiError::User(ErrorCodes::Abort as u16));
+            runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterAbort3 as u16));
         }
 
         let pair: ContractPackageHash =
@@ -587,7 +587,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         );
 
         if amounts[amounts.len() - 1] < amount_out_min {
-            runtime::revert(ApiError::User(ErrorCodes::Abort as u16));
+            runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterAbort4 as u16));
         }
 
         // get pair
@@ -615,7 +615,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         if result.is_err()
         // transfer_from failed
         {
-            runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
+            runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTransferFailed10 as u16));
         }
 
         Self::_swap(&amounts, &path, to);
@@ -650,7 +650,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         );
 
         if amounts[0] > amount_in_max {
-            runtime::revert(ApiError::User(ErrorCodes::Abort as u16));
+            runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterAbort5 as u16));
         }
 
         // Get pair
@@ -679,7 +679,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         if result.is_err()
         // transfer_from failed
         {
-            runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
+            runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTransferFailed11 as u16));
         }
 
         Self::_swap(&amounts, &path, to);
@@ -700,7 +700,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             path.push(Key::from_formatted_str(&_path[i]).unwrap());
         }
         if !(path[0] == Key::from(wcspr)) {
-            runtime::revert(ApiError::User(ErrorCodes::Abort as u16));
+            runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterAbort6 as u16));
         }
 
         // call get_amounts_out
@@ -717,7 +717,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         );
 
         if amounts[amounts.len() - 1] < amount_out_min {
-            runtime::revert(ApiError::User(ErrorCodes::Abort as u16));
+            runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterAbort7 as u16));
         }
 
         let amount_cspr = amounts[0];
@@ -728,7 +728,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         // checks cspr has been deposited in this transaction
         let deposit_diff: U512 = self_purse_balance - total_cspr_deposited;
         if deposit_diff != U512::from(amount_cspr.as_u128()) {
-            runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
+            runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTransferFailed12 as u16));
         }
 
         // get wcspr's purse, and deposit cspr to it
@@ -754,7 +754,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         if result.is_err()
         // transfer_from failed
         {
-            runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
+            runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTransferFailed13 as u16));
         }
 
         // call transfer method from IWETH
@@ -788,7 +788,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         if result.is_err()
         // transfer_from failed
         {
-            runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
+            runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTransferFailed14 as u16));
         }
 
         Self::_swap(&amounts, &path, to);
@@ -812,7 +812,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         }
 
         if !(path[path.len() - 1] == Key::from(wcspr)) {
-            runtime::revert(ApiError::User(ErrorCodes::Abort as u16));
+            runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterAbort8 as u16));
         }
 
         // call getAmountIn from Library contract
@@ -829,7 +829,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         );
 
         if amounts[0] > amount_in_max {
-            runtime::revert(ApiError::User(ErrorCodes::Abort as u16));
+            runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterAbort9 as u16));
         }
 
         // call safeTransferFrom from TransferHelper
@@ -861,7 +861,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         if result.is_err()
         // transfer_from failed
         {
-            runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
+            runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTransferFailed15 as u16));
         }
 
         Self::_swap(&amounts, &path, self_addr);
@@ -879,7 +879,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         if result.is_err()
         // transfer_from failed
         {
-            runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
+            runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTransferFailed16 as u16));
         }
 
         amounts
@@ -901,7 +901,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         }
 
         if !(path[path.len() - 1] == Key::from(wcspr)) {
-            runtime::revert(ApiError::User(ErrorCodes::Abort as u16));
+            runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterAbort10 as u16));
         }
 
         // call get_amounts_out
@@ -918,7 +918,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         );
 
         if amounts[amounts.len() - 1] < amount_out_min {
-            runtime::revert(ApiError::User(ErrorCodes::Abort as u16));
+            runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterAbort11 as u16));
         }
 
         // call safeTransferFrom from TransferHelper
@@ -947,7 +947,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         if result.is_err()
         // transfer_from failed
         {
-            runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
+            runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTransferFailed17 as u16));
         }
 
         Self::_swap(&amounts, &path, self_addr);
@@ -965,7 +965,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         if result.is_err()
         // transfer_from failed
         {
-            runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
+            runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTransferFailed18 as u16));
         }
 
         amounts
@@ -985,7 +985,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             path.push(Key::from_formatted_str(&_path[i]).unwrap());
         }
         if !(path[0] == Key::from(wcspr)) {
-            runtime::revert(ApiError::User(ErrorCodes::Abort as u16));
+            runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterAbort12 as u16));
         }
 
         // call get_amounts_out
@@ -1002,7 +1002,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         );
 
         if amounts[0] > amount_in_max {
-            runtime::revert(ApiError::User(ErrorCodes::Abort as u16));
+            runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterAbort13 as u16));
         }
 
         let amount_cspr = amounts[0];
@@ -1013,7 +1013,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         // checks cspr has been deposited in this transaction
         let deposit_diff: U512 = self_purse_balance - total_cspr_deposited;
         if deposit_diff != U512::from(amount_cspr.as_u128()) {
-            runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
+            runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTransferFailed19 as u16));
         }
 
         // get wcspr's purse, and deposit cspr to it
@@ -1039,7 +1039,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         if result.is_err()
         // transfer_from failed
         {
-            runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
+            runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTransferFailed20 as u16));
         }
 
         // call transfer method from wcspr
@@ -1072,7 +1072,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         if result.is_err()
         // transfer_from failed
         {
-            runtime::revert(ApiError::User(ErrorCodes::TransferFailed as u16));
+            runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTransferFailed21 as u16));
         }
 
         Self::_swap(&amounts, &path, to);
@@ -1204,7 +1204,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         if pair_received.is_none() {
             if pair == zero_addr {
                 // if pair is none and it doesnot already exist, revert
-                runtime::revert(ApiError::User(ErrorCodes::ZeroAddr as u16));
+                runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterZeroAddr as u16));
             } else {
                 pair_already_exist = true;
             }
@@ -1274,7 +1274,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
                 );
 
                 if amount_a_optimal > amount_a_desired {
-                    runtime::revert(ApiError::User(ErrorCodes::InvalidArguments as u16));
+                    runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterInvalidArguments as u16));
                 }
 
                 if amount_a_optimal >= amount_a_min {

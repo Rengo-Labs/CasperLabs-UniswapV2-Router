@@ -82,7 +82,7 @@ fn constructor() {
 fn add_liquidity() {
     let deadline: U256 = runtime::get_named_arg("deadline");
     if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::TimedOut as u16));
+        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut1 as u16));
     }
 
     let token_a: Key = runtime::get_named_arg("token_a");
@@ -117,7 +117,7 @@ fn add_liquidity() {
 fn add_liquidity_js_client() {
     let deadline: U256 = runtime::get_named_arg("deadline");
     if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::TimedOut as u16));
+        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut2 as u16));
     }
 
     let token_a: Key = runtime::get_named_arg("token_a");
@@ -151,7 +151,7 @@ fn add_liquidity_js_client() {
 fn add_liquidity_cspr() {
     let deadline: U256 = runtime::get_named_arg("deadline");
     if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::TimedOut as u16));
+        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut3 as u16));
     }
 
     let token: Key = runtime::get_named_arg("token");
@@ -183,7 +183,7 @@ fn add_liquidity_cspr() {
 fn add_liquidity_cspr_js_client() {
     let deadline: U256 = runtime::get_named_arg("deadline");
     if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::TimedOut as u16));
+        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut4 as u16));
     }
 
     let token: Key = runtime::get_named_arg("token");
@@ -214,7 +214,7 @@ fn add_liquidity_cspr_js_client() {
 fn remove_liquidity() {
     let deadline: U256 = runtime::get_named_arg("deadline");
     if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::TimedOut as u16));
+        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut5 as u16));
     }
 
     let token_a: Key = runtime::get_named_arg("token_a");
@@ -245,7 +245,7 @@ fn remove_liquidity() {
 fn remove_liquidity_js_client() {
     let deadline: U256 = runtime::get_named_arg("deadline");
     if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::TimedOut as u16));
+        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut6 as u16));
     }
 
     let token_a: Key = runtime::get_named_arg("token_a");
@@ -275,7 +275,7 @@ fn remove_liquidity_js_client() {
 fn remove_liquidity_cspr() {
     let deadline: U256 = runtime::get_named_arg("deadline");
     if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::TimedOut as u16));
+        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut7 as u16));
     }
 
     let token: Key = runtime::get_named_arg("token");
@@ -304,7 +304,7 @@ fn remove_liquidity_cspr() {
 fn remove_liquidity_cspr_js_client() {
     let deadline: U256 = runtime::get_named_arg("deadline");
     if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::TimedOut as u16));
+        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut8 as u16));
     }
 
     let token: Key = runtime::get_named_arg("token");
@@ -470,7 +470,7 @@ fn remove_liquidity_cspr_with_permit_js_client() {
 fn swap_exact_tokens_for_tokens() {
     let deadline: U256 = runtime::get_named_arg("deadline");
     if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::TimedOut as u16));
+        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut9 as u16));
     }
 
     let amount_in: U256 = runtime::get_named_arg("amount_in");
@@ -490,7 +490,7 @@ fn swap_exact_tokens_for_tokens() {
 fn swap_exact_tokens_for_tokens_js_client() {
     let deadline: U256 = runtime::get_named_arg("deadline");
     if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::TimedOut as u16));
+        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut10 as u16));
     }
 
     let amount_in: U256 = runtime::get_named_arg("amount_in");
@@ -509,7 +509,7 @@ fn swap_exact_tokens_for_tokens_js_client() {
 fn swap_tokens_for_exact_tokens() {
     let deadline: U256 = runtime::get_named_arg("deadline");
     if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::TimedOut as u16));
+        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut11 as u16));
     }
 
     let amount_out: U256 = runtime::get_named_arg("amount_out");
@@ -529,7 +529,7 @@ fn swap_tokens_for_exact_tokens() {
 fn swap_tokens_for_exact_tokens_js_client() {
     let deadline: U256 = runtime::get_named_arg("deadline");
     if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::TimedOut as u16));
+        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut12 as u16));
     }
 
     let amount_out: U256 = runtime::get_named_arg("amount_out");
@@ -548,7 +548,7 @@ fn swap_tokens_for_exact_tokens_js_client() {
 fn swap_exact_cspr_for_tokens() {
     let deadline: U256 = runtime::get_named_arg("deadline");
     if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::TimedOut as u16));
+        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut13 as u16));
     }
 
     let amount_out_min: U256 = runtime::get_named_arg("amount_out_min");
@@ -568,7 +568,7 @@ fn swap_exact_cspr_for_tokens() {
 fn swap_exact_cspr_for_tokens_js_client() {
     let deadline: U256 = runtime::get_named_arg("deadline");
     if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::TimedOut as u16));
+        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut14 as u16));
     }
 
     let amount_out_min: U256 = runtime::get_named_arg("amount_out_min");
@@ -587,7 +587,7 @@ fn swap_exact_cspr_for_tokens_js_client() {
 fn swap_tokens_for_exact_cspr() {
     let deadline: U256 = runtime::get_named_arg("deadline");
     if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::TimedOut as u16));
+        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut15 as u16));
     }
 
     let amount_out: U256 = runtime::get_named_arg("amount_out");
@@ -607,7 +607,7 @@ fn swap_tokens_for_exact_cspr() {
 fn swap_tokens_for_exact_cspr_js_client() {
     let deadline: U256 = runtime::get_named_arg("deadline");
     if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::TimedOut as u16));
+        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut16 as u16));
     }
 
     let amount_out: U256 = runtime::get_named_arg("amount_out");
@@ -626,7 +626,7 @@ fn swap_tokens_for_exact_cspr_js_client() {
 fn swap_exact_tokens_for_cspr() {
     let deadline: U256 = runtime::get_named_arg("deadline");
     if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::TimedOut as u16));
+        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut17 as u16));
     }
 
     let amount_in: U256 = runtime::get_named_arg("amount_in");
@@ -646,7 +646,7 @@ fn swap_exact_tokens_for_cspr() {
 fn swap_exact_tokens_for_cspr_js_client() {
     let deadline: U256 = runtime::get_named_arg("deadline");
     if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::TimedOut as u16));
+        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut18 as u16));
     }
 
     let amount_in: U256 = runtime::get_named_arg("amount_in");
@@ -666,7 +666,7 @@ fn swap_exact_tokens_for_cspr_js_client() {
 fn swap_cspr_for_exact_tokens() {
     let deadline: U256 = runtime::get_named_arg("deadline");
     if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::TimedOut as u16));
+        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut19 as u16));
     }
 
     let amount_out: U256 = runtime::get_named_arg("amount_out");
@@ -683,7 +683,7 @@ fn swap_cspr_for_exact_tokens() {
 fn swap_cspr_for_exact_tokens_js_client() {
     let deadline: U256 = runtime::get_named_arg("deadline");
     if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::TimedOut as u16));
+        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut20 as u16));
     }
 
     let amount_out: U256 = runtime::get_named_arg("amount_out");

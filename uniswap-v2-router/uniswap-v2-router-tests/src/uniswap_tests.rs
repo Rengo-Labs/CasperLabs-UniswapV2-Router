@@ -320,7 +320,7 @@ fn add_liquidity() {
     more_asserts::assert_ge!(amount_b, amount_b_min);
 }
 
-// #[test]
+#[test]
 fn add_liquidity_cspr() {
     let (env, uniswap, owner, router_contract, flash_swapper, _, token1, _token2, _, _, factory) =
         deploy_uniswap_router();
@@ -343,19 +343,19 @@ fn add_liquidity_cspr() {
     uniswap.store_cspr(owner, test_contract_hash, amount_cspr_desired);
 
     // approving is done in test contract
-    uniswap.add_liquidity_cspr(
-        owner,
-        token,
-        amount_token_desired,
-        amount_cspr_desired,
-        amount_token_min,
-        amount_cspr_min,
-        uniswap.test_contract_package_hash(),
-        deadline.into(),
-        Some(Key::Hash(pair.package_hash())),
-        Key::Hash(router_contract.package_hash()),
-        uniswap.test_contract_package_hash()
-    );
+    // uniswap.add_liquidity_cspr(
+    //     owner,
+    //     token,
+    //     amount_token_desired,
+    //     amount_cspr_desired,
+    //     amount_token_min,
+    //     amount_cspr_min,
+    //     uniswap.test_contract_package_hash(),
+    //     deadline.into(),
+    //     Some(Key::Hash(pair.package_hash())),
+    //     Key::Hash(router_contract.package_hash()),
+    //     uniswap.test_contract_package_hash()
+    // );
 
     // let (amount_token, amount_cspr, _): (U256, U256, U256) = uniswap.add_liquidity_cspr_result();
     // more_asserts::assert_ge!(amount_token, amount_token_min);
@@ -473,7 +473,7 @@ fn remove_liquidity() {
 //     more_asserts::assert_ge!(amount_cspr, amount_cspr_min);
 // }
 
-// #[test]
+#[test]
 fn remove_liquidity_with_permit() {
     let (
         env,
