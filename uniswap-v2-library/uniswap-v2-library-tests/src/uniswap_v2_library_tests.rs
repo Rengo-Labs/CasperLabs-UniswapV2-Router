@@ -205,7 +205,7 @@ fn deploy_library() -> (
     )
 }
 
-// #[test]
+#[test]
 fn test_library_deploy() {
     let (_, owner, _, library_contract, _, _, _) = deploy_library();
     println!("Owner: {}", owner);
@@ -238,7 +238,7 @@ fn test_uniswap_get_amount_in() {
     test_contract.get_amount_in(owner, 100.into(), 200.into(), 300.into());
 }
 
-// #[test]
+#[test]
 fn test_uniswap_get_reserves() {
     let (env, owner, test_contract, _, factory, pair, router_contract) = deploy_library();
     let (token1, token2, token3) = deploy_dummy_tokens(&env, Some(owner));
@@ -280,18 +280,18 @@ fn test_uniswap_get_reserves() {
         },
     );
 
-    test_contract.proxy_approve(
-        owner,
-        &token1,
-        router_package_hash,
-        amount_a_desired,
-    );
-    test_contract.proxy_approve(
-        owner,
-        &token2,
-        router_package_hash,
-        amount_b_desired,
-    );
+    // test_contract.proxy_approve(
+    //     owner,
+    //     &token1,
+    //     router_package_hash,
+    //     amount_a_desired,
+    // );
+    // test_contract.proxy_approve(
+    //     owner,
+    //     &token2,
+    //     router_package_hash,
+    //     amount_b_desired,
+    // );
 
     test_contract.add_liquidity(
         owner,
@@ -306,12 +306,12 @@ fn test_uniswap_get_reserves() {
         Some(Key::Hash(pair.package_hash())),
     );
 
-    // test_contract.get_reserves(
-    //     owner,
-    //     Key::Hash(factory.package_hash()),
-    //     Key::Hash(token1.package_hash()),
-    //     Key::Hash(token2.package_hash()),
-    // );
+    test_contract.get_reserves(
+        owner,
+        Key::Hash(factory.package_hash()),
+        Key::Hash(token1.package_hash()),
+        Key::Hash(token2.package_hash()),
+    );
 }
 
 #[test]
@@ -362,8 +362,8 @@ fn test_uniswap_get_amounts_out() {
         },
     );
 
-    test_contract.proxy_approve(owner, &token1, router_package_hash, amount_a_desired);
-    test_contract.proxy_approve(owner, &token2, router_package_hash, amount_b_desired);
+    // test_contract.proxy_approve(owner, &token1, router_package_hash, amount_a_desired);
+    // test_contract.proxy_approve(owner, &token2, router_package_hash, amount_b_desired);
 
     test_contract.add_liquidity(
         owner,
@@ -382,12 +382,12 @@ fn test_uniswap_get_amounts_out() {
     path.push(Key::Hash(token1.package_hash()));
     path.push(Key::Hash(token2.package_hash()));
 
-    // test_contract.get_amounts_out(
-    //     owner,
-    //     Key::Hash(factory.package_hash()),
-    //     100.into(),
-    //     path,
-    // );
+    test_contract.get_amounts_out(
+        owner,
+        Key::Hash(factory.package_hash()),
+        100.into(),
+        path,
+    );
 }
 
 #[test]
@@ -432,18 +432,18 @@ fn test_uniswap_get_amounts_in() {
         },
     );
 
-    test_contract.proxy_approve(
-        owner,
-        &token1,
-        router_package_hash,
-        amount_a_desired,
-    );
-    test_contract.proxy_approve(
-        owner,
-        &token2,
-        router_package_hash,
-        amount_b_desired,
-    );
+    // test_contract.proxy_approve(
+    //     owner,
+    //     &token1,
+    //     router_package_hash,
+    //     amount_a_desired,
+    // );
+    // test_contract.proxy_approve(
+    //     owner,
+    //     &token2,
+    //     router_package_hash,
+    //     amount_b_desired,
+    // );
 
     test_contract.add_liquidity(
         owner,
@@ -462,10 +462,10 @@ fn test_uniswap_get_amounts_in() {
     path.push(Key::Hash(token1.package_hash()));
     path.push(Key::Hash(token2.package_hash()));
 
-    // test_contract.get_amounts_in(
-    //     owner,
-    //     Key::Hash(factory.package_hash()),
-    //     100.into(),
-    //     path,
-    // );
+    test_contract.get_amounts_in(
+        owner,
+        Key::Hash(factory.package_hash()),
+        100.into(),
+        path,
+    );
 }
