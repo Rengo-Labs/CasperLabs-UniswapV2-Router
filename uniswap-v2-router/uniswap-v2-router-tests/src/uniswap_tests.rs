@@ -302,8 +302,8 @@ fn add_liquidity() {
     let amount_b_min: U256 = U256::from(100000);
 
     let deadline: u128 = match SystemTime::now().duration_since(UNIX_EPOCH) {
-        Ok(n) => n.as_millis() + (1000 * (30 * 60)), // current epoch time in milisecond + 30 minutes
         Err(_) => 0,
+        Ok(n) => n.as_millis() + (1000 * (30 * 60)), // current epoch time in milisecond + 30 minutes
     };
 
     // approvals of tokens are done in test contract, calling test contract's add_liquidity method
