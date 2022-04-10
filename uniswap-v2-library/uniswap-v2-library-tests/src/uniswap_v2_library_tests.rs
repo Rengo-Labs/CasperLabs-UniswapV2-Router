@@ -316,13 +316,7 @@ fn test_uniswap_get_reserves() {
 
 #[test]
 fn test_uniswap_get_amounts_out() {
-    let (
-        env,
-        owner,
-        test_contract,
-        _,
-        factory, pair, router_contract
-    ) = deploy_library();
+    let (env, owner, test_contract, _, factory, pair, router_contract) = deploy_library();
     let (token1, token2, token3) = deploy_dummy_tokens(&env, Some(owner));
 
     // // need to create pair and liquidity for this test
@@ -382,12 +376,7 @@ fn test_uniswap_get_amounts_out() {
     path.push(Key::Hash(token1.package_hash()));
     path.push(Key::Hash(token2.package_hash()));
 
-    test_contract.get_amounts_out(
-        owner,
-        Key::Hash(factory.package_hash()),
-        100.into(),
-        path,
-    );
+    test_contract.get_amounts_out(owner, Key::Hash(factory.package_hash()), 100.into(), path);
 }
 
 #[test]
@@ -462,10 +451,5 @@ fn test_uniswap_get_amounts_in() {
     path.push(Key::Hash(token1.package_hash()));
     path.push(Key::Hash(token2.package_hash()));
 
-    test_contract.get_amounts_in(
-        owner,
-        Key::Hash(factory.package_hash()),
-        100.into(),
-        path,
-    );
+    test_contract.get_amounts_in(owner, Key::Hash(factory.package_hash()), 100.into(), path);
 }

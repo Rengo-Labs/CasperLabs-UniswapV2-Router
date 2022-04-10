@@ -286,7 +286,12 @@ fn add_liquidity() {
         factory,
     ) = deploy_uniswap_router();
 
-    let pair: TestContract = deploy_pair_contract(&env, owner, Key::Hash(factory.package_hash()), Key::Hash(flash_swapper.package_hash()));
+    let pair: TestContract = deploy_pair_contract(
+        &env,
+        owner,
+        Key::Hash(factory.package_hash()),
+        Key::Hash(flash_swapper.package_hash()),
+    );
 
     let token_a = Key::Hash(token1.package_hash());
     let token_b = Key::Hash(token2.package_hash());
@@ -312,7 +317,7 @@ fn add_liquidity() {
         amount_b_min,
         uniswap.test_contract_package_hash(),
         deadline.into(),
-        Some(Key::Hash(pair.package_hash()))
+        Some(Key::Hash(pair.package_hash())),
     );
     let (amount_a, amount_b, _): (U256, U256, U256) = uniswap.add_liquidity_result();
 
@@ -324,7 +329,12 @@ fn add_liquidity() {
 fn add_liquidity_cspr() {
     let (env, uniswap, owner, router_contract, flash_swapper, _, token1, _token2, _, _, factory) =
         deploy_uniswap_router();
-    let pair: TestContract = deploy_pair_contract(&env, owner, Key::Hash(factory.package_hash()), Key::Hash(flash_swapper.package_hash()));
+    let pair: TestContract = deploy_pair_contract(
+        &env,
+        owner,
+        Key::Hash(factory.package_hash()),
+        Key::Hash(flash_swapper.package_hash()),
+    );
 
     let token = Key::Hash(token1.package_hash());
 
@@ -368,7 +378,12 @@ fn remove_liquidity() {
         deploy_uniswap_router();
 
     // First Add liquidity
-    let pair: TestContract = deploy_pair_contract(&env, owner, Key::Hash(factory.package_hash()), Key::Hash(flash_swapper.package_hash()));
+    let pair: TestContract = deploy_pair_contract(
+        &env,
+        owner,
+        Key::Hash(factory.package_hash()),
+        Key::Hash(flash_swapper.package_hash()),
+    );
 
     let token_a = Key::Hash(token1.package_hash());
     let token_b = Key::Hash(token2.package_hash());
@@ -394,7 +409,7 @@ fn remove_liquidity() {
         amount_b_min,
         uniswap.test_contract_package_hash(),
         deadline.into(),
-        Some(Key::Hash(pair.package_hash()))
+        Some(Key::Hash(pair.package_hash())),
     );
     let (_, _, liquidity): (U256, U256, U256) = uniswap.add_liquidity_result();
 
@@ -408,7 +423,7 @@ fn remove_liquidity() {
         amount_b_min,
         uniswap.test_contract_package_hash(),
         deadline.into(),
-        Key::Hash(pair.package_hash())
+        Key::Hash(pair.package_hash()),
     );
 
     let (amount_a, amount_b): (U256, U256) = uniswap.remove_liquidity_result();
@@ -494,7 +509,12 @@ fn remove_liquidity_with_permit() {
     let router_package_hash: Key = router_package_hash.into();
 
     // First need to add liquidity
-    let pair: TestContract = deploy_pair_contract(&env, owner, Key::Hash(factory.package_hash()), Key::Hash(flash_swapper.package_hash()));
+    let pair: TestContract = deploy_pair_contract(
+        &env,
+        owner,
+        Key::Hash(factory.package_hash()),
+        Key::Hash(flash_swapper.package_hash()),
+    );
 
     let token_a = Key::Hash(token1.package_hash());
     let token_b = Key::Hash(token2.package_hash());
@@ -520,7 +540,7 @@ fn remove_liquidity_with_permit() {
         amount_b_min,
         uniswap.test_contract_package_hash(),
         deadline.into(),
-        Some(Key::Hash(pair.package_hash()))
+        Some(Key::Hash(pair.package_hash())),
     );
     let (_, _, liquidity): (U256, U256, U256) = uniswap.add_liquidity_result();
 
@@ -671,7 +691,12 @@ fn swap_exact_tokens_for_tokens() {
     ) = deploy_uniswap_router();
 
     // first need to add liquidity
-    let pair: TestContract = deploy_pair_contract(&env, owner, Key::Hash(factory.package_hash()), Key::Hash(flash_swapper.package_hash()));
+    let pair: TestContract = deploy_pair_contract(
+        &env,
+        owner,
+        Key::Hash(factory.package_hash()),
+        Key::Hash(flash_swapper.package_hash()),
+    );
 
     let token_a = Key::Hash(token1.package_hash());
 
@@ -700,16 +725,13 @@ fn swap_exact_tokens_for_tokens() {
         amount_b_min,
         to,
         deadline.into(),
-        Some(Key::Hash(pair.package_hash()))
+        Some(Key::Hash(pair.package_hash())),
     );
 
     // SWAP
     let amount_in: U256 = 100000.into();
     let amount_out_min: U256 = 1000.into();
-    let path: Vec<String> = vec![
-        token_a.to_formatted_string(),
-        token_b.to_formatted_string()
-    ];
+    let path: Vec<String> = vec![token_a.to_formatted_string(), token_b.to_formatted_string()];
     let to: Key = Key::Hash(token3.package_hash());
     let deadline: u128 = match SystemTime::now().duration_since(UNIX_EPOCH) {
         Ok(n) => n.as_millis() + (1000 * (30 * 60)), // current epoch time in milisecond + 30 minutes
@@ -744,7 +766,12 @@ fn swap_tokens_for_exact_tokens() {
     ) = deploy_uniswap_router();
 
     // first need to add liquidity
-    let pair: TestContract = deploy_pair_contract(&env, owner, Key::Hash(factory.package_hash()), Key::Hash(flash_swapper.package_hash()));
+    let pair: TestContract = deploy_pair_contract(
+        &env,
+        owner,
+        Key::Hash(factory.package_hash()),
+        Key::Hash(flash_swapper.package_hash()),
+    );
 
     let token_a = Key::Hash(token1.package_hash());
     let token_b = Key::Hash(token2.package_hash());
@@ -770,16 +797,13 @@ fn swap_tokens_for_exact_tokens() {
         amount_b_min,
         to,
         deadline.into(),
-        Some(Key::Hash(pair.package_hash()))
+        Some(Key::Hash(pair.package_hash())),
     );
 
     // Swap
     let amount_in_max: U256 = 1000000.into();
     let amount_out: U256 = 10000.into();
-    let path: Vec<String> = vec![
-        token_a.to_formatted_string(),
-        token_b.to_formatted_string()
-    ];
+    let path: Vec<String> = vec![token_a.to_formatted_string(), token_b.to_formatted_string()];
     let to: Key = Key::Hash(token3.package_hash());
     let deadline: u128 = match SystemTime::now().duration_since(UNIX_EPOCH) {
         Ok(n) => n.as_millis() + (1000 * (30 * 60)), // current epoch time in milisecond + 30 minutes
