@@ -6,8 +6,9 @@ use cryptoxide::ed25519;
 use renvm_sig::hash_message;
 use renvm_sig::keccak256;
 
-pub struct UniswapInstance(TestContract);
+pub const PURSE_PROXY_WASM_SRC: &str = "purse-proxy.wasm";
 
+pub struct UniswapInstance(TestContract);
 impl UniswapInstance {
     pub fn new(
         env: &TestEnv,
@@ -473,4 +474,43 @@ pub fn key_to_str(key: &Key) -> String {
         Key::Hash(package) => hex::encode(package),
         _ => panic!("Unexpected key type"),
     }
+}
+
+pub fn session_add_liquidity_cspr(
+    env: &TestEnv,
+    sender: AccountHash,
+    amount: U512,
+    destination_package_hash: Key,
+    token: Key,
+    amount_token_desired: U256,
+    amount_cspr_desired: U256,
+    amount_token_min: U256,
+    amount_cspr_min: U256,
+    to: Key,
+    deadline: U256,
+    pair: Option<Key>,
+    router: Key,
+    test_contract_hash: Key,
+) -> TestContract {
+    TestContract::new(
+        env,
+        PURSE_PROXY_WASM_SRC,
+        "purse-proxy",
+        sender,
+        runtime_args! {
+            "destination_package_hash"=> destination_package_hash,
+            "amount"=>amount,
+            "destination_entrypoint" => "asdasd",
+            "token" => token,
+            "amount_token_desired" => amount_token_desired,
+            "amount_cspr_desired" => amount_cspr_desired,
+            "amount_token_min" => amount_token_min,
+            "amount_cspr_min" => amount_cspr_min,
+            "to" => to,
+            "deadline" => deadline,
+            "pair" => pair,
+            "router_hash" => router,
+            "self_hash" => test_contract_hash
+        },
+    )
 }
