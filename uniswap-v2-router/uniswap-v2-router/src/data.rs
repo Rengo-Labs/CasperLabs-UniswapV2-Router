@@ -1,6 +1,6 @@
 use casper_contract::unwrap_or_revert::UnwrapOrRevert;
 use casper_types::{
-    contracts::{ContractHash, ContractPackageHash},
+    contracts::{ContractPackageHash},
     Key,
 };
 use contract_utils::{get_key, set_key};

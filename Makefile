@@ -8,7 +8,7 @@ pair_contract = ${uniswap_core_directory}/pair/
 wcspr_contract = ${uniswap_core_directory}/wcspr/
 library_contract = ${uniswap_router_directory}/uniswap-v2-library/
 router_contract = ${uniswap_router_directory}/uniswap-v2-router/
-test_contract = ${uniswap_router_directory}/uniswap-v2-router-test-contract/test-contract/contract/
+test_contract = ${uniswap_router_directory}/uniswap-v2-router-test-contract/test-contract/
 
 wasm_src_path = target/wasm32-unknown-unknown/release/
 wasm_dest_library_path = ${library_contract}/uniswap-v2-library-tests/wasm/
@@ -87,7 +87,7 @@ copy-wasm-file:
 # run all tests sequentially
 test:
 	# Test Library
-	cd ${library_contract} && make test
+	# cd ${library_contract} && make test
 
 	# Test Router
 	cd ${router_contract} && make test

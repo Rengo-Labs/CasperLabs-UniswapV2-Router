@@ -4,7 +4,7 @@ pub mod transfer_helper {
 
     use casper_contract::contract_api::runtime;
     use casper_types::{
-        contracts::ContractHash, runtime_args, ContractPackageHash, Key, RuntimeArgs, U256,
+         runtime_args, ContractPackageHash, Key, RuntimeArgs, U256,
     };
 
     pub fn safe_transfer(token: Key, to: Key, value: U256) -> Result<(), u32> {

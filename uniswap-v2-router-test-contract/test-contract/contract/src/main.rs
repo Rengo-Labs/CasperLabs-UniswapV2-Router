@@ -10,8 +10,8 @@ use casper_contract::{
 };
 use casper_types::{
     contracts::{ContractHash, ContractPackageHash},
-    runtime_args, CLType, CLTyped, EntryPoint, EntryPointAccess, EntryPointType, EntryPoints,
-    Group, Key, Parameter, RuntimeArgs, URef, U128, U256, U512, ApiError
+    runtime_args, CLType, CLTyped, EntryPoint, EntryPointAccess, EntryPointType,
+    EntryPoints, Group, Key, Parameter, RuntimeArgs, URef, U128, U256, U512,
 };
 
 pub mod mappings;
@@ -142,7 +142,7 @@ fn add_liquidity_cspr() {
         ContractPackageHash::from(router_address.into_hash().unwrap_or_revert());
 
     let self_hash: Key = runtime::get_named_arg("self_hash");
-    let self_hash: ContractHash = ContractHash::from(self_hash.into_hash().unwrap_or_revert());
+    let self_hash: ContractPackageHash = ContractPackageHash::from(self_hash.into_hash().unwrap_or_revert());
 
     let token: Key = runtime::get_named_arg("token");
     let amount_token_desired: U256 = runtime::get_named_arg("amount_token_desired");
@@ -186,8 +186,9 @@ fn add_liquidity_cspr() {
         runtime::call_versioned_contract(router_address, None, "add_liquidity_cspr", args);
 
     // this entry points context is session therefore it can't access contract keys. Therefore to set the keys, it calls new entrypoint method.
-    let _: () = runtime::call_contract(
+    let _: () = runtime::call_versioned_contract(
         self_hash,
+        None,
         "set_liquidity_cspr_keys",
         runtime_args! { "amount_token" => amount_token, "amount_cspr" => amount_cspr, "liquidity" => liquidity},
     );
@@ -206,6 +207,36 @@ fn set_liquidity_cspr_keys() {
 }
 
 #[no_mangle]
+fn set_remove_liquidity_cspr_keys() {
+    let amount_a: U256 = runtime::get_named_arg("amount_a");
+    let amount_b: U256 = runtime::get_named_arg("amount_b");
+
+    mappings::set_key(
+        &mappings::remove_liquidity_cspr_key(),
+        (amount_a, amount_b),
+    );
+}
+
+#[no_mangle]
+fn set_remove_liquidity_keys() {
+    let amount_a: U256 = runtime::get_named_arg("amount_a");
+    let amount_b: U256 = runtime::get_named_arg("amount_b");
+
+    mappings::set_key(
+        &mappings::remove_liquidity_key(),
+        (amount_a, amount_b),
+    );
+}
+
+#[no_mangle]
+fn set_remove_liquidity_cspr_with_permit_keys() {
+    let amount_a: U256 = runtime::get_named_arg("amount_a");
+    let amount_b: U256 = runtime::get_named_arg("amount_b");
+
+    mappings::set_key(&mappings::remove_liquidity_with_permit_key(), (amount_a, amount_b));
+}
+
+#[no_mangle]
 fn remove_liquidity() {
     let router_address: ContractPackageHash = mappings::get_key(&mappings::router_key());
 
@@ -217,6 +248,8 @@ fn remove_liquidity() {
     let to: Key = runtime::get_named_arg("to");
     let deadline: U256 = runtime::get_named_arg("deadline");
 
+    let self_hash: Key = runtime::get_named_arg("self_hash");
+    let self_hash: ContractPackageHash = ContractPackageHash::from(self_hash.into_hash().unwrap_or_revert());
     let pair_contract: Key = runtime::get_named_arg("pair");
     let router_package_hash: ContractPackageHash =
         runtime::call_versioned_contract(router_address, None, "package_hash", runtime_args! {});
@@ -243,7 +276,13 @@ fn remove_liquidity() {
 
     let (amount_a, amount_b): (U256, U256) =
         runtime::call_versioned_contract(router_address, None, "remove_liquidity", args);
-    mappings::set_key(&mappings::remove_liquidity_key(), (amount_a, amount_b));
+    // this entry points context is session therefore it can't access contract keys. Therefore to set the keys, it calls new entrypoint method.
+    let _: () = runtime::call_versioned_contract(
+        self_hash,
+        None,
+        "set_remove_liquidity_keys",
+        runtime_args! { "amount_a" => amount_a, "amount_b" => amount_b,},
+    );
 }
 
 #[no_mangle]
@@ -818,6 +857,37 @@ fn get_entry_points() -> EntryPoints {
     ));
 
     entry_points.add_entry_point(EntryPoint::new(
+        String::from("set_remove_liquidity_cspr_keys"),
+        vec![
+            Parameter::new("amount_a", CLType::U256),
+            Parameter::new("amount_b", CLType::U256),
+        ],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        String::from("set_remove_liquidity_keys"),
+        vec![
+            Parameter::new("amount_a", CLType::U256),
+            Parameter::new("amount_b", CLType::U256),
+        ],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        String::from("set_remove_liquidity_cspr_with_permit_keys"),
+        vec![
+            Parameter::new("amount_a", CLType::U256),
+            Parameter::new("amount_b", CLType::U256),
+        ],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+
+    entry_points.add_entry_point(EntryPoint::new(
         String::from("transfer_cspr"),
         vec![
             Parameter::new("src_purse", CLType::URef),
@@ -856,6 +926,7 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("to", Key::cl_type()),
             Parameter::new("deadline", CLType::U256),
             Parameter::new("pair", CLType::Key),
+            Parameter::new("self_hash", CLType::Key),
         ],
         <()>::cl_type(),
         EntryPointAccess::Public,

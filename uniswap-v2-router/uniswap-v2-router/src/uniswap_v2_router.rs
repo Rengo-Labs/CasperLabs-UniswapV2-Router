@@ -6,10 +6,8 @@ use casper_contract::{
     unwrap_or_revert::UnwrapOrRevert,
 };
 use casper_types::{
-    bytesrepr::FromBytes,
-    contracts::{ContractHash, ContractPackageHash},
-    runtime_args, ApiError, BlockTime, CLTyped, ContractPackage, Key, RuntimeArgs, URef, U128,
-    U256, U512,
+    bytesrepr::FromBytes, contracts::ContractPackageHash, runtime_args, ApiError, BlockTime,
+    CLTyped, Key, RuntimeArgs, URef, U128, U256, U512,
 };
 use contract_utils::{ContractContext, ContractStorage};
 
@@ -253,24 +251,31 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             uniswapv2_contract_methods::WCSPR_DEPOSIT,
             args,
         );
-        runtime::revert(ApiError::User(
-            ErrorCodes::UniswapV2RouterTransferFailed4 as u16,
-        ));
-
+        if result.is_err()
+        // transfer_from failed
+        {
+            runtime::revert(ApiError::User(
+                ErrorCodes::UniswapV2RouterTransferFailed4 as u16,
+            ));
+        }
         // call transfer method from wcspr
         let args: RuntimeArgs = runtime_args! {
             "recipient" => Key::from(pair_package_hash),
             "amount" => amount_cspr
         };
+
         let result: Result<(), u32> = Self::call_versioned_contract(
             &wcspr.to_formatted_string(),
             uniswapv2_contract_methods::WCSPR_TRANSFER,
             args,
         );
-        runtime::revert(ApiError::User(
-            ErrorCodes::UniswapV2RouterTransferFailed5 as u16,
-        ));
-
+        if result.is_err()
+        // transfer_from failed
+        {
+            runtime::revert(ApiError::User(
+                ErrorCodes::UniswapV2RouterTransferFailed5 as u16,
+            ));
+        }
         // call mint function from pair contract
         let args: RuntimeArgs = runtime_args! {
             "to" => to,
@@ -288,8 +293,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             pair_contract_hash: pair,
         });
         // No need to transfer the leftover cspr, because we are already taking the exact amount out from the caller purse
-        (0.into(), 0.into(), 0.into())
-        // (amount_token, amount_cspr, liquidity)
+        (amount_token, amount_cspr, liquidity)
     }
 
     fn remove_liquidity(
