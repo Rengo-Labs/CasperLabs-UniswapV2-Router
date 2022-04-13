@@ -240,13 +240,8 @@ fn test_uniswap_get_amount_in() {
 
 #[test]
 fn test_uniswap_get_reserves() {
-    let (env, owner, test_contract, _, factory, pair, router_contract) = deploy_library();
+    let (env, owner, test_contract, _, factory, pair, _router_contract) = deploy_library();
     let (token1, token2, token3) = deploy_dummy_tokens(&env, Some(owner));
-
-    // need to create pair and add liquidity for this test
-    let router_package_hash: ContractPackageHash =
-        router_contract.query_named_key(String::from("package_hash"));
-    let router_package_hash: Key = router_package_hash.into();
 
     let token_a = Key::Hash(token1.package_hash());
     let token_b = Key::Hash(token2.package_hash());
@@ -316,13 +311,8 @@ fn test_uniswap_get_reserves() {
 
 #[test]
 fn test_uniswap_get_amounts_out() {
-    let (env, owner, test_contract, _, factory, pair, router_contract) = deploy_library();
+    let (env, owner, test_contract, _, factory, pair, _router_contract) = deploy_library();
     let (token1, token2, token3) = deploy_dummy_tokens(&env, Some(owner));
-
-    // // need to create pair and liquidity for this test
-    let router_package_hash: ContractPackageHash =
-        router_contract.query_named_key(String::from("package_hash"));
-    let router_package_hash: Key = router_package_hash.into();
 
     let token_a = Key::Hash(token1.package_hash());
     let token_b = Key::Hash(token2.package_hash());
@@ -381,13 +371,9 @@ fn test_uniswap_get_amounts_out() {
 
 #[test]
 fn test_uniswap_get_amounts_in() {
-    let (env, owner, test_contract, _, factory, pair, router_contract) = deploy_library();
+    let (env, owner, test_contract, _, factory, pair, _router_contract) = deploy_library();
     let (token1, token2, token3) = deploy_dummy_tokens(&env, Some(owner));
 
-    // need to create pair and liquidity for this test
-    let router_package_hash: ContractPackageHash =
-        router_contract.query_named_key(String::from("package_hash"));
-    let router_package_hash: Key = router_package_hash.into();
 
     let token_a = Key::Hash(token1.package_hash());
     let token_b = Key::Hash(token2.package_hash());
