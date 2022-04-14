@@ -36,10 +36,12 @@ impl Uniswap {
         contract_hash: ContractHash,
         package_hash: ContractPackageHash,
     ) {
-        let _factory: ContractHash = ContractHash::from(factory.into_hash().unwrap_or_default());
-        let _wcspr: ContractHash = ContractHash::from(wcspr.into_hash().unwrap_or_default());
-        let _library_hash: ContractHash =
-            ContractHash::from(library_hash.into_hash().unwrap_or_default());
+        let _factory: ContractPackageHash =
+            ContractPackageHash::from(factory.into_hash().unwrap_or_default());
+        let _wcspr: ContractPackageHash =
+            ContractPackageHash::from(wcspr.into_hash().unwrap_or_default());
+        let _library_hash: ContractPackageHash =
+            ContractPackageHash::from(library_hash.into_hash().unwrap_or_default());
         UniswapV2Router::init(
             self,
             _factory,
@@ -69,7 +71,7 @@ fn constructor() {
 fn add_liquidity() {
     let deadline: U256 = runtime::get_named_arg("deadline");
     if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::TimedOut as u16));
+        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut1 as u16));
     }
 
     let token_a: Key = runtime::get_named_arg("token_a");
@@ -81,8 +83,8 @@ fn add_liquidity() {
     let to: Key = runtime::get_named_arg("to");
     let pair: Option<Key> = runtime::get_named_arg("pair");
 
-    let _token_a = ContractHash::from(token_a.into_hash().unwrap_or_default());
-    let _token_b = ContractHash::from(token_b.into_hash().unwrap_or_default());
+    let _token_a = ContractPackageHash::from(token_a.into_hash().unwrap_or_default());
+    let _token_b = ContractPackageHash::from(token_b.into_hash().unwrap_or_default());
 
     let (amount_a, amount_b, liquidity): (U256, U256, U256) = Uniswap::default().add_liquidity(
         _token_a,
@@ -104,7 +106,7 @@ fn add_liquidity() {
 fn add_liquidity_js_client() {
     let deadline: U256 = runtime::get_named_arg("deadline");
     if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::TimedOut as u16));
+        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut2 as u16));
     }
 
     let token_a: Key = runtime::get_named_arg("token_a");
@@ -116,8 +118,8 @@ fn add_liquidity_js_client() {
     let to: Key = runtime::get_named_arg("to");
     let pair: Option<Key> = runtime::get_named_arg("pair");
 
-    let _token_a = ContractHash::from(token_a.into_hash().unwrap_or_default());
-    let _token_b = ContractHash::from(token_b.into_hash().unwrap_or_default());
+    let _token_a = ContractPackageHash::from(token_a.into_hash().unwrap_or_default());
+    let _token_b = ContractPackageHash::from(token_b.into_hash().unwrap_or_default());
 
     let (_amount_a, _amount_b, _liquidity): (U256, U256, U256) = Uniswap::default().add_liquidity(
         _token_a,
@@ -138,7 +140,7 @@ fn add_liquidity_js_client() {
 fn add_liquidity_cspr() {
     let deadline: U256 = runtime::get_named_arg("deadline");
     if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::TimedOut as u16));
+        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut3 as u16));
     }
 
     let token: Key = runtime::get_named_arg("token");
@@ -150,7 +152,7 @@ fn add_liquidity_cspr() {
     let pair: Option<Key> = runtime::get_named_arg("pair");
     let purse: URef = runtime::get_named_arg("purse");
 
-    let _token = ContractHash::from(token.into_hash().unwrap_or_default());
+    let _token = ContractPackageHash::from(token.into_hash().unwrap_or_default());
     let (amount_token, amount_cspr, liquidity): (U256, U256, U256) = Uniswap::default()
         .add_liquidity_cspr(
             _token,
@@ -172,7 +174,7 @@ fn add_liquidity_cspr() {
 fn add_liquidity_cspr_js_client() {
     let deadline: U256 = runtime::get_named_arg("deadline");
     if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::TimedOut as u16));
+        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut4 as u16));
     }
 
     let token: Key = runtime::get_named_arg("token");
@@ -184,7 +186,7 @@ fn add_liquidity_cspr_js_client() {
     let pair: Option<Key> = runtime::get_named_arg("pair");
     let purse: URef = runtime::get_named_arg("purse");
 
-    let _token = ContractHash::from(token.into_hash().unwrap_or_default());
+    let _token = ContractPackageHash::from(token.into_hash().unwrap_or_default());
     let (_amount_token, _amount_cspr, _liquidity): (U256, U256, U256) = Uniswap::default()
         .add_liquidity_cspr(
             _token,
@@ -205,7 +207,7 @@ fn add_liquidity_cspr_js_client() {
 fn remove_liquidity() {
     let deadline: U256 = runtime::get_named_arg("deadline");
     if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::TimedOut as u16));
+        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut5 as u16));
     }
 
     let token_a: Key = runtime::get_named_arg("token_a");
@@ -215,8 +217,8 @@ fn remove_liquidity() {
     let amount_b_min: U256 = runtime::get_named_arg("amount_b_min");
     let to: Key = runtime::get_named_arg("to");
 
-    let _token_a = ContractHash::from(token_a.into_hash().unwrap_or_default());
-    let _token_b = ContractHash::from(token_b.into_hash().unwrap_or_default());
+    let _token_a = ContractPackageHash::from(token_a.into_hash().unwrap_or_default());
+    let _token_b = ContractPackageHash::from(token_b.into_hash().unwrap_or_default());
 
     let (amount_a, amount_b): (U256, U256) = Uniswap::default().remove_liquidity(
         _token_a,
@@ -236,7 +238,7 @@ fn remove_liquidity() {
 fn remove_liquidity_js_client() {
     let deadline: U256 = runtime::get_named_arg("deadline");
     if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::TimedOut as u16));
+        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut6 as u16));
     }
 
     let token_a: Key = runtime::get_named_arg("token_a");
@@ -246,8 +248,8 @@ fn remove_liquidity_js_client() {
     let amount_b_min: U256 = runtime::get_named_arg("amount_b_min");
     let to: Key = runtime::get_named_arg("to");
 
-    let _token_a = ContractHash::from(token_a.into_hash().unwrap_or_default());
-    let _token_b = ContractHash::from(token_b.into_hash().unwrap_or_default());
+    let _token_a = ContractPackageHash::from(token_a.into_hash().unwrap_or_default());
+    let _token_b = ContractPackageHash::from(token_b.into_hash().unwrap_or_default());
 
     let (_amount_a, _amount_b): (U256, U256) = Uniswap::default().remove_liquidity(
         _token_a,
@@ -266,7 +268,7 @@ fn remove_liquidity_js_client() {
 fn remove_liquidity_cspr() {
     let deadline: U256 = runtime::get_named_arg("deadline");
     if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::TimedOut as u16));
+        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut7 as u16));
     }
 
     let token: Key = runtime::get_named_arg("token");
@@ -276,14 +278,14 @@ fn remove_liquidity_cspr() {
     let to: Key = runtime::get_named_arg("to");
     let to_purse: URef = runtime::get_named_arg("to_purse");
 
-    let _token = ContractHash::from(token.into_hash().unwrap_or_default());
+    let _token = ContractPackageHash::from(token.into_hash().unwrap_or_default());
     let (amount_token, amount_cspr): (U256, U256) = Uniswap::default().remove_liquidity_cspr(
         _token,
         liquidity,
         amount_token_min,
         amount_cspr_min,
         to,
-        to_purse
+        to_purse,
     );
     runtime::ret(CLValue::from_t((amount_token, amount_cspr)).unwrap_or_revert());
 }
@@ -295,7 +297,7 @@ fn remove_liquidity_cspr() {
 fn remove_liquidity_cspr_js_client() {
     let deadline: U256 = runtime::get_named_arg("deadline");
     if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::TimedOut as u16));
+        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut8 as u16));
     }
 
     let token: Key = runtime::get_named_arg("token");
@@ -305,7 +307,7 @@ fn remove_liquidity_cspr_js_client() {
     let to: Key = runtime::get_named_arg("to");
     let to_purse: URef = runtime::get_named_arg("to_purse");
 
-    let _token = ContractHash::from(token.into_hash().unwrap_or_default());
+    let _token = ContractPackageHash::from(token.into_hash().unwrap_or_default());
     let (_amount_token, _amount_cspr): (U256, U256) = Uniswap::default().remove_liquidity_cspr(
         _token,
         liquidity,
@@ -333,8 +335,8 @@ fn remove_liquidity_with_permit() {
     let signature: String = runtime::get_named_arg("signature");
     let deadline: U256 = runtime::get_named_arg("deadline");
 
-    let _token_a = ContractHash::from(token_a.into_hash().unwrap_or_default());
-    let _token_b = ContractHash::from(token_b.into_hash().unwrap_or_default());
+    let _token_a = ContractPackageHash::from(token_a.into_hash().unwrap_or_default());
+    let _token_b = ContractPackageHash::from(token_b.into_hash().unwrap_or_default());
 
     let (amount_a, amount_b): (U256, U256) = Uniswap::default().remove_liquidity_with_permit(
         _token_a,
@@ -368,8 +370,8 @@ fn remove_liquidity_with_permit_js_client() {
     let signature: String = runtime::get_named_arg("signature");
     let deadline: U256 = runtime::get_named_arg("deadline");
 
-    let _token_a = ContractHash::from(token_a.into_hash().unwrap_or_default());
-    let _token_b = ContractHash::from(token_b.into_hash().unwrap_or_default());
+    let _token_a = ContractPackageHash::from(token_a.into_hash().unwrap_or_default());
+    let _token_b = ContractPackageHash::from(token_b.into_hash().unwrap_or_default());
 
     let (_amount_a, _amount_b): (U256, U256) = Uniswap::default().remove_liquidity_with_permit(
         _token_a,
@@ -388,7 +390,7 @@ fn remove_liquidity_with_permit_js_client() {
 #[no_mangle]
 /// Remove cspr from liquidity pool with permit.
 ///
-/// Parameters-> token:ContractHash, liquidity:U256, amount_token_min:U256, amount_cspr_min:U256, to:Key, approve_max:bool,
+/// Parameters-> token:ContractPackageHash, liquidity:U256, amount_token_min:U256, amount_cspr_min:U256, to:Key, approve_max:bool,
 /// deadline:U256, public_key:String, signature: String, to_purse: URef
 
 fn remove_liquidity_cspr_with_permit() {
@@ -403,7 +405,7 @@ fn remove_liquidity_cspr_with_permit() {
     let deadline: U256 = runtime::get_named_arg("deadline");
     let to_purse: URef = runtime::get_named_arg("to_purse");
 
-    let _token = ContractHash::from(token.into_hash().unwrap_or_default());
+    let _token = ContractPackageHash::from(token.into_hash().unwrap_or_default());
     let (amount_token, amount_cspr): (U256, U256) = Uniswap::default()
         .remove_liquidity_cspr_with_permit(
             _token,
@@ -415,7 +417,7 @@ fn remove_liquidity_cspr_with_permit() {
             public_key,
             signature,
             deadline,
-            to_purse
+            to_purse,
         );
     runtime::ret(CLValue::from_t((amount_token, amount_cspr)).unwrap_or_revert());
 }
@@ -423,7 +425,7 @@ fn remove_liquidity_cspr_with_permit() {
 #[no_mangle]
 /// Remove cspr from liquidity pool with permit.
 ///
-/// Parameters-> token:ContractHash, liquidity:U256, amount_token_min:U256, amount_cspr_min:U256, to:Key, approve_max:bool,
+/// Parameters-> token:ContractPackageHash, liquidity:U256, amount_token_min:U256, amount_cspr_min:U256, to:Key, approve_max:bool,
 /// deadline:U256, public_key:String, signature: String
 
 fn remove_liquidity_cspr_with_permit_js_client() {
@@ -438,7 +440,7 @@ fn remove_liquidity_cspr_with_permit_js_client() {
     let deadline: U256 = runtime::get_named_arg("deadline");
     let to_purse: URef = runtime::get_named_arg("to_purse");
 
-    let _token = ContractHash::from(token.into_hash().unwrap_or_default());
+    let _token = ContractPackageHash::from(token.into_hash().unwrap_or_default());
     let (_amount_token, _amount_cspr): (U256, U256) = Uniswap::default()
         .remove_liquidity_cspr_with_permit(
             _token,
@@ -450,7 +452,7 @@ fn remove_liquidity_cspr_with_permit_js_client() {
             public_key,
             signature,
             deadline,
-            to_purse
+            to_purse,
         );
 }
 
@@ -461,7 +463,7 @@ fn remove_liquidity_cspr_with_permit_js_client() {
 fn swap_exact_tokens_for_tokens() {
     let deadline: U256 = runtime::get_named_arg("deadline");
     if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::TimedOut as u16));
+        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut9 as u16));
     }
 
     let amount_in: U256 = runtime::get_named_arg("amount_in");
@@ -469,7 +471,8 @@ fn swap_exact_tokens_for_tokens() {
     let path: Vec<String> = runtime::get_named_arg("path");
     let to: Key = runtime::get_named_arg("to");
 
-    let amounts: Vec<U256> = Uniswap::default().swap_exact_tokens_for_tokens(amount_in, amount_out_min, path, to);
+    let amounts: Vec<U256> =
+        Uniswap::default().swap_exact_tokens_for_tokens(amount_in, amount_out_min, path, to);
     runtime::ret(CLValue::from_t(amounts).unwrap_or_revert());
 }
 
@@ -480,7 +483,7 @@ fn swap_exact_tokens_for_tokens() {
 fn swap_exact_tokens_for_tokens_js_client() {
     let deadline: U256 = runtime::get_named_arg("deadline");
     if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::TimedOut as u16));
+        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut10 as u16));
     }
 
     let amount_in: U256 = runtime::get_named_arg("amount_in");
@@ -499,7 +502,7 @@ fn swap_exact_tokens_for_tokens_js_client() {
 fn swap_tokens_for_exact_tokens() {
     let deadline: U256 = runtime::get_named_arg("deadline");
     if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::TimedOut as u16));
+        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut11 as u16));
     }
 
     let amount_out: U256 = runtime::get_named_arg("amount_out");
@@ -519,7 +522,7 @@ fn swap_tokens_for_exact_tokens() {
 fn swap_tokens_for_exact_tokens_js_client() {
     let deadline: U256 = runtime::get_named_arg("deadline");
     if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::TimedOut as u16));
+        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut12 as u16));
     }
 
     let amount_out: U256 = runtime::get_named_arg("amount_out");
@@ -538,7 +541,7 @@ fn swap_tokens_for_exact_tokens_js_client() {
 fn swap_exact_cspr_for_tokens() {
     let deadline: U256 = runtime::get_named_arg("deadline");
     if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::TimedOut as u16));
+        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut13 as u16));
     }
 
     let amount_out_min: U256 = runtime::get_named_arg("amount_out_min");
@@ -559,7 +562,7 @@ fn swap_exact_cspr_for_tokens() {
 fn swap_exact_cspr_for_tokens_js_client() {
     let deadline: U256 = runtime::get_named_arg("deadline");
     if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::TimedOut as u16));
+        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut14 as u16));
     }
 
     let amount_out_min: U256 = runtime::get_named_arg("amount_out_min");
@@ -579,7 +582,7 @@ fn swap_exact_cspr_for_tokens_js_client() {
 fn swap_tokens_for_exact_cspr() {
     let deadline: U256 = runtime::get_named_arg("deadline");
     if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::TimedOut as u16));
+        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut15 as u16));
     }
 
     let amount_out: U256 = runtime::get_named_arg("amount_out");
@@ -599,7 +602,7 @@ fn swap_tokens_for_exact_cspr() {
 fn swap_tokens_for_exact_cspr_js_client() {
     let deadline: U256 = runtime::get_named_arg("deadline");
     if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::TimedOut as u16));
+        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut16 as u16));
     }
 
     let amount_out: U256 = runtime::get_named_arg("amount_out");
@@ -618,7 +621,7 @@ fn swap_tokens_for_exact_cspr_js_client() {
 fn swap_exact_tokens_for_cspr() {
     let deadline: U256 = runtime::get_named_arg("deadline");
     if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::TimedOut as u16));
+        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut17 as u16));
     }
 
     let amount_in: U256 = runtime::get_named_arg("amount_in");
@@ -638,7 +641,7 @@ fn swap_exact_tokens_for_cspr() {
 fn swap_exact_tokens_for_cspr_js_client() {
     let deadline: U256 = runtime::get_named_arg("deadline");
     if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::TimedOut as u16));
+        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut18 as u16));
     }
 
     let amount_in: U256 = runtime::get_named_arg("amount_in");
@@ -658,7 +661,7 @@ fn swap_exact_tokens_for_cspr_js_client() {
 fn swap_cspr_for_exact_tokens() {
     let deadline: U256 = runtime::get_named_arg("deadline");
     if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::TimedOut as u16));
+        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut19 as u16));
     }
 
     let amount_out: U256 = runtime::get_named_arg("amount_out");
@@ -676,7 +679,7 @@ fn swap_cspr_for_exact_tokens() {
 fn swap_cspr_for_exact_tokens_js_client() {
     let deadline: U256 = runtime::get_named_arg("deadline");
     if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::TimedOut as u16));
+        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut20 as u16));
     }
 
     let amount_out: U256 = runtime::get_named_arg("amount_out");
@@ -728,9 +731,9 @@ fn get_amounts_out() {
     let amount_in: U256 = runtime::get_named_arg("amount_in");
     let path: Vec<Key> = runtime::get_named_arg("path");
 
-    let amounts: Vec<U256> = Uniswap::get_amounts_out(amount_in, path); 
+    let amounts: Vec<U256> = Uniswap::get_amounts_out(amount_in, path);
     runtime::ret(CLValue::from_t(amounts).unwrap_or_revert())
-}   
+}
 
 #[no_mangle]
 // performs chained getAmountIn calculations on any number of pairs
@@ -747,7 +750,6 @@ fn package_hash() {
     let ret: ContractPackageHash = Uniswap::default().get_package_hash();
     runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
 }
-
 
 fn get_entry_points() -> EntryPoints {
     let mut entry_points = EntryPoints::new();
@@ -957,7 +959,7 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("approve_max", CLType::Bool),
             Parameter::new("public_key", CLType::String),
             Parameter::new("signature", CLType::String),
-            Parameter::new("to_purse", CLType::URef)
+            Parameter::new("to_purse", CLType::URef),
         ],
         CLType::Tuple2([Box::new(CLType::U256), Box::new(CLType::U256)]),
         EntryPointAccess::Public,
@@ -976,7 +978,7 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("approve_max", CLType::Bool),
             Parameter::new("public_key", CLType::String),
             Parameter::new("signature", CLType::String),
-            Parameter::new("to_purse", CLType::URef)
+            Parameter::new("to_purse", CLType::URef),
         ],
         <()>::cl_type(),
         EntryPointAccess::Public,
@@ -1103,7 +1105,7 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("amount_in", CLType::U256),
             Parameter::new("amount_out_min", CLType::U256),
             Parameter::new("path", CLType::List(Box::new(String::cl_type()))),
-            Parameter::new("to", CLType::URef),                         // purse to transfer cspr to
+            Parameter::new("to", CLType::URef), // purse to transfer cspr to
             Parameter::new("deadline", CLType::U256),
         ],
         CLType::List(Box::new(CLType::U256)),
@@ -1117,7 +1119,7 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("amount_in", CLType::U256),
             Parameter::new("amount_out_min", CLType::U256),
             Parameter::new("path", CLType::List(Box::new(String::cl_type()))),
-            Parameter::new("to", CLType::URef),                         // purse to transfer cspr to
+            Parameter::new("to", CLType::URef), // purse to transfer cspr to
             Parameter::new("deadline", CLType::U256),
         ],
         <()>::cl_type(),
@@ -1227,13 +1229,11 @@ fn get_entry_points() -> EntryPoints {
 // All session code must have a `call` entrypoint.
 #[no_mangle]
 fn call() {
-
     // Store contract in the account's named keys. Contract name must be same for all new versions of the contracts
     let contract_name: alloc::string::String = runtime::get_named_arg("contract_name");
-    
+
     // If this is the first deployment
     if !runtime::has_key(&format!("{}_package_hash", contract_name)) {
-    
         // Build new package with initial a first version of the contract.
         let (package_hash, access_token) = storage::create_contract_package_at_hash();
         let (contract_hash, _): (ContractHash, _) =
@@ -1269,7 +1269,6 @@ fn call() {
         storage::remove_contract_user_group_urefs(package_hash, "constructor", urefs)
             .unwrap_or_revert();
 
-    
         runtime::put_key(
             &format!("{}_package_hash", contract_name),
             package_hash.into(),
@@ -1290,17 +1289,18 @@ fn call() {
             &format!("{}_package_access_token", contract_name),
             access_token.into(),
         );
-    }
-    else {          // this is a contract upgrade
+    } else {
+        // this is a contract upgrade
 
-        let package_hash: ContractPackageHash = runtime::get_key(&format!("{}_package_hash", contract_name))
-                                                            .unwrap_or_revert()
-                                                            .into_hash()
-                                                            .unwrap()
-                                                            .into();
+        let package_hash: ContractPackageHash =
+            runtime::get_key(&format!("{}_package_hash", contract_name))
+                .unwrap_or_revert()
+                .into_hash()
+                .unwrap()
+                .into();
 
         let (contract_hash, _): (ContractHash, _) =
-        storage::add_contract_version(package_hash, get_entry_points(), Default::default());
+            storage::add_contract_version(package_hash, get_entry_points(), Default::default());
 
         // update contract hash
         runtime::put_key(

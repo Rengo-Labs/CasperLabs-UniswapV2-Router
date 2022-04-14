@@ -3,12 +3,12 @@ uniswap_router_directory = .
 
 erc20_contract = ${uniswap_core_directory}/erc20/
 factory_contract = ${uniswap_core_directory}/factory/
-flash_swapper_contract = ${uniswap_core_directory}/flash-swapper/
+flash_swapper_contract = ${uniswap_core_directory}/flashswapper/
 pair_contract = ${uniswap_core_directory}/pair/
 wcspr_contract = ${uniswap_core_directory}/wcspr/
 library_contract = ${uniswap_router_directory}/uniswap-v2-library/
 router_contract = ${uniswap_router_directory}/uniswap-v2-router/
-test_contract = ${uniswap_router_directory}/uniswap-v2-router-test-contract/test-contract/contract/
+test_contract = ${uniswap_router_directory}/uniswap-v2-router-test-contract/test-contract/
 
 wasm_src_path = target/wasm32-unknown-unknown/release/
 wasm_dest_library_path = ${library_contract}/uniswap-v2-library-tests/wasm/

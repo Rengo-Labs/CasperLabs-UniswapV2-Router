@@ -1,14 +1,21 @@
+use casper_types::account::AccountHash;
 use casper_types::{runtime_args, ContractHash, ContractPackageHash, Key, RuntimeArgs, U256, U512};
-use test_env::{Sender, TestContract, TestEnv};
+use test_env::{TestContract, TestEnv};
 
 use cryptoxide::ed25519;
 use renvm_sig::hash_message;
 use renvm_sig::keccak256;
 
-pub struct UniswapInstance(TestContract);
+pub const PURSE_PROXY_WASM_SRC: &str = "purse-proxy.wasm";
 
+pub struct UniswapInstance(TestContract);
 impl UniswapInstance {
-    pub fn new(env: &TestEnv, router_address: Key, library_address: Key, sender: Sender) -> UniswapInstance {
+    pub fn new(
+        env: &TestEnv,
+        router_address: Key,
+        library_address: Key,
+        sender: AccountHash,
+    ) -> UniswapInstance {
         UniswapInstance(TestContract::new(
             env,
             "contract.wasm",
@@ -24,7 +31,7 @@ impl UniswapInstance {
 
     pub fn constructor(
         &self,
-        sender: Sender,
+        sender: AccountHash,
         name: &str,
         symbol: &str,
         decimals: u8,
@@ -44,7 +51,7 @@ impl UniswapInstance {
 
     pub fn add_liquidity(
         &self,
-        sender: Sender,
+        sender: AccountHash,
         token_a: Key,
         token_b: Key,
         amount_a_desired: U256,
@@ -53,7 +60,7 @@ impl UniswapInstance {
         amount_b_min: U256,
         to: Key,
         deadline: U256,
-        pair: Option<Key>
+        pair: Option<Key>,
     ) {
         self.0.call_contract(
             sender,
@@ -74,7 +81,7 @@ impl UniswapInstance {
 
     pub fn add_liquidity_cspr(
         &self,
-        sender: Sender,
+        sender: AccountHash,
         token: Key,
         amount_token_desired: U256,
         amount_cspr_desired: U256,
@@ -84,7 +91,7 @@ impl UniswapInstance {
         deadline: U256,
         pair: Option<Key>,
         router: Key,
-        test_contract_hash: Key
+        test_contract_hash: Key,
     ) {
         self.0.call_contract(
             sender,
@@ -106,7 +113,7 @@ impl UniswapInstance {
 
     pub fn remove_liquidity(
         &self,
-        sender: Sender,
+        sender: AccountHash,
         token_a: Key,
         token_b: Key,
         liquidity: U256,
@@ -114,7 +121,8 @@ impl UniswapInstance {
         amount_b_min: U256,
         to: Key,
         deadline: U256,
-        pair: Key
+        pair: Key,
+        test_contract_hash: Key,
     ) {
         self.0.call_contract(
             sender,
@@ -127,14 +135,15 @@ impl UniswapInstance {
                 "amount_b_min" => amount_b_min,
                 "to" => to,
                 "deadline" => deadline,
-                "pair" => pair
+                "pair" => pair,
+                "self_hash" => test_contract_hash
             },
         );
     }
 
     pub fn remove_liquidity_cspr(
         &self,
-        sender: Sender,
+        sender: AccountHash,
         token: Key,
         liquidity: U256,
         amount_token_min: U256,
@@ -160,7 +169,7 @@ impl UniswapInstance {
 
     pub fn remove_liquidity_with_permit(
         &self,
-        sender: Sender,
+        sender: AccountHash,
         token_a: Key,
         token_b: Key,
         liquidity: U256,
@@ -192,7 +201,7 @@ impl UniswapInstance {
 
     pub fn remove_liquidity_cspr_with_permit(
         &self,
-        sender: Sender,
+        sender: AccountHash,
         token: Key,
         liquidity: U256,
         amount_token_min: U256,
@@ -222,7 +231,7 @@ impl UniswapInstance {
 
     pub fn swap_exact_tokens_for_tokens(
         &self,
-        sender: Sender,
+        sender: AccountHash,
         amount_in: U256,
         amount_out_min: U256,
         path: Vec<String>,
@@ -244,7 +253,7 @@ impl UniswapInstance {
 
     pub fn swap_tokens_for_exact_tokens(
         &self,
-        sender: Sender,
+        sender: AccountHash,
         amount_out: U256,
         amount_in_max: U256,
         path: Vec<String>,
@@ -266,13 +275,13 @@ impl UniswapInstance {
 
     pub fn swap_exact_cspr_for_tokens(
         &self,
-        sender: Sender,
+        sender: AccountHash,
         amount_out_min: U256,
         amount_in: U256,
         path: Vec<String>,
         to: Key,
         deadline: U256,
-        router: Key
+        router: Key,
     ) {
         self.0.call_contract(
             sender,
@@ -290,7 +299,7 @@ impl UniswapInstance {
 
     pub fn swap_tokens_for_exact_cspr(
         &self,
-        sender: Sender,
+        sender: AccountHash,
         amount_out: U256,
         amount_in_max: U256,
         path: Vec<String>,
@@ -310,7 +319,7 @@ impl UniswapInstance {
 
     pub fn swap_exact_tokens_for_cspr(
         &self,
-        sender: Sender,
+        sender: AccountHash,
         amount_in: U256,
         amount_out_min: U256,
         path: Vec<String>,
@@ -330,12 +339,12 @@ impl UniswapInstance {
 
     pub fn swap_cspr_for_exact_tokens(
         &self,
-        sender: Sender,
+        sender: AccountHash,
         amount_out: U256,
         amount_in_max: U256,
         path: Vec<String>,
         to: Key,
-        deadline: U256
+        deadline: U256,
     ) {
         self.0.call_contract(
             sender,
@@ -350,7 +359,7 @@ impl UniswapInstance {
         );
     }
 
-    pub fn store_cspr(&self, sender: Sender, test_contract_hash: Key, amount: U256) {
+    pub fn store_cspr(&self, sender: AccountHash, test_contract_hash: Key, amount: U256) {
         self.0.call_contract(
             sender,
             "store_cspr",
@@ -361,7 +370,7 @@ impl UniswapInstance {
         );
     }
 
-    pub fn approve(&self, token: &TestContract, sender: Sender, spender: Key, amount: U256) {
+    pub fn approve(&self, token: &TestContract, sender: AccountHash, spender: Key, amount: U256) {
         token.call_contract(
             sender,
             "approve",
@@ -467,4 +476,188 @@ pub fn key_to_str(key: &Key) -> String {
         Key::Hash(package) => hex::encode(package),
         _ => panic!("Unexpected key type"),
     }
+}
+
+pub fn session_add_liquidity_cspr(
+    env: &TestEnv,
+    sender: AccountHash,
+    amount: U512,
+    token: Key,
+    amount_token_desired: U256,
+    amount_cspr_desired: U256,
+    amount_token_min: U256,
+    amount_cspr_min: U256,
+    to: Key,
+    deadline: U256,
+    pair: Option<Key>,
+    router: Key,
+    test_contract_hash: Key,
+) -> TestContract {
+    TestContract::new(
+        env,
+        PURSE_PROXY_WASM_SRC,
+        "purse-proxy",
+        sender,
+        runtime_args! {
+            "amount"=>amount,
+            "destination_entrypoint" => "add_liquidity_cspr",
+            "token" => token,
+            "amount_token_desired" => amount_token_desired,
+            "amount_cspr_desired" => amount_cspr_desired,
+            "amount_token_min" => amount_token_min,
+            "amount_cspr_min" => amount_cspr_min,
+            "to" => to,
+            "deadline" => deadline,
+            "pair" => pair,
+            "router_hash" => router,
+            "self_hash" => test_contract_hash
+        },
+    )
+}
+
+pub fn session_remove_liquidity_cspr(
+    env: &TestEnv,
+    sender: AccountHash,
+    amount: U512,
+    token: Key,
+    liquidity: U256,
+    amount_token_min: U256,
+    amount_cspr_min: U256,
+    to: Key,
+    deadline: U256,
+    pair: Key,
+    router: Key,
+    test_contract_hash: Key,
+) -> TestContract {
+    TestContract::new(
+        env,
+        PURSE_PROXY_WASM_SRC,
+        "purse-proxy",
+        sender,
+        runtime_args! {
+            "amount"=>amount,
+            "destination_entrypoint" => "remove_liquidity_cspr",
+            "token" => token,
+            "liquidity" => liquidity,
+            "amount_token_min" => amount_token_min,
+            "amount_cspr_min" => amount_cspr_min,
+            "to" => to,
+            "deadline" => deadline,
+            "pair" => pair,
+            "router_hash" => router,
+            "self_hash" => test_contract_hash
+        },
+    )
+}
+
+pub fn session_swap_exact_cspr_for_tokens(
+    env: &TestEnv,
+    sender: AccountHash,
+    amount: U512,
+    amount_out_min: U256,
+    amount_in: U256,
+    path: Vec<String>,
+    to: Key,
+    deadline: U256,
+    router: Key,
+) -> TestContract {
+    TestContract::new(
+        env,
+        PURSE_PROXY_WASM_SRC,
+        "purse-proxy",
+        sender,
+        runtime_args! {
+            "amount"=>amount,
+            "destination_entrypoint" => "swap_exact_cspr_for_tokens",
+            "amount_out_min" => amount_out_min,
+            "amount_in" => amount_in,
+            "path" => path,
+            "to" => to,
+            "deadline" => deadline,
+            "router_hash" => router
+        },
+    )
+}
+
+pub fn session_swap_cspr_for_exact_tokens(
+    env: &TestEnv,
+    sender: AccountHash,
+    amount: U512,
+    amount_out: U256,
+    amount_in_max: U256,
+    path: Vec<String>,
+    to: Key,
+    deadline: U256,
+    router: Key,
+) -> TestContract {
+    TestContract::new(
+        env,
+        PURSE_PROXY_WASM_SRC,
+        "purse-proxy",
+        sender,
+        runtime_args! {
+            "amount"=>amount,
+            "destination_entrypoint" => "swap_cspr_for_exact_tokens",
+            "amount_in_max" => amount_in_max,
+            "amount_out" => amount_out,
+            "path" => path,
+            "to" => to,
+            "deadline" => deadline,
+            "router_hash" => router
+        },
+    )
+}
+
+pub fn session_swap_tokens_for_exact_cspr(
+    env: &TestEnv,
+    sender: AccountHash,
+    amount: U512,
+    amount_out: U256,
+    amount_in_max: U256,
+    path: Vec<String>,
+    deadline: U256,
+    router: Key,
+) -> TestContract {
+    TestContract::new(
+        env,
+        PURSE_PROXY_WASM_SRC,
+        "purse-proxy",
+        sender,
+        runtime_args! {
+            "amount"=>amount,
+            "destination_entrypoint" => "swap_tokens_for_exact_cspr",
+            "amount_out" => amount_out,
+            "amount_in_max" => amount_in_max,
+            "path" => path,
+            "deadline" => deadline,
+            "router_hash" => router
+        },
+    )
+}
+
+pub fn session_swap_exact_tokens_for_cspr(
+    env: &TestEnv,
+    sender: AccountHash,
+    amount: U512,
+    amount_in: U256,
+    amount_out_min: U256,
+    path: Vec<String>,
+    deadline: U256,
+    router: Key,
+) -> TestContract {
+    TestContract::new(
+        env,
+        PURSE_PROXY_WASM_SRC,
+        "purse-proxy",
+        sender,
+        runtime_args! {
+            "amount"=>amount,
+            "destination_entrypoint" => "swap_exact_tokens_for_cspr",
+            "amount_in" => amount_in,
+            "amount_out_min" => amount_out_min,
+            "path" => path,
+            "deadline" => deadline,
+            "router_hash" => router
+        },
+    )
 }

@@ -24,13 +24,13 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
 
     fn sort_tokens(
         &mut self,
-        token_a: ContractHash,
-        token_b: ContractHash,
-    ) -> (ContractHash, ContractHash) {
+        token_a: ContractPackageHash,
+        token_b: ContractPackageHash,
+    ) -> (ContractPackageHash, ContractPackageHash) {
         if token_a == token_b {
             runtime::revert(ApiError::User(ErrorCode::IdenticalAddresses as u16));
         }
-        let (token_0, token_1): (ContractHash, ContractHash);
+        let (token_0, token_1): (ContractPackageHash, ContractPackageHash);
         if token_a < token_b {
             token_0 = token_a;
             token_1 = token_b;
@@ -52,8 +52,9 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
             "token1" => token_b
         };
 
-        let pair: Key = runtime::call_contract(
-            ContractHash::from(factory.into_hash().unwrap_or_default()),
+        let pair: Key = runtime::call_versioned_contract(
+            ContractPackageHash::from(factory.into_hash().unwrap_or_default()),
+            None,
             "get_pair",
             args,
         );
@@ -62,17 +63,19 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
 
     fn get_reserves(
         &mut self,
-        factory: ContractHash,
-        token_a: ContractHash,
-        token_b: ContractHash,
+        factory: ContractPackageHash,
+        token_a: ContractPackageHash,
+        token_b: ContractPackageHash,
     ) -> (U128, U128) {
-        let (token_0, _): (ContractHash, ContractHash) = self.sort_tokens(token_a, token_b);
+        let (token_0, _): (ContractPackageHash, ContractPackageHash) =
+            self.sort_tokens(token_a, token_b);
 
         let pair: Key = self.pair_for(Key::from(factory), Key::from(token_a), Key::from(token_b));
-        let pair: ContractHash = ContractHash::from(pair.into_hash().unwrap_or_default());
+        let pair: ContractPackageHash =
+            ContractPackageHash::from(pair.into_hash().unwrap_or_default());
 
         let (reserve_0, reserve_1, _): (U128, U128, u64) =
-            runtime::call_contract(pair, "get_reserves", runtime_args! {});
+            runtime::call_versioned_contract(pair, None, "get_reserves", runtime_args! {});
         let (reserve_a, reserve_b): (U128, U128);
         if token_a == token_0 {
             reserve_a = reserve_0;
@@ -81,6 +84,7 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
             reserve_a = reserve_1;
             reserve_b = reserve_0;
         }
+        // (0.into(),0.into())
         (reserve_a, reserve_b)
     }
 
@@ -140,9 +144,9 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
     // performs chained getAmountOut calculations on any number of pairs
     fn get_amounts_out(
         &mut self,
-        factory: ContractHash,
+        factory: ContractPackageHash,
         amount_in: U256,
-        path: Vec<ContractHash>,
+        path: Vec<ContractPackageHash>,
     ) -> Vec<U256> {
         if path.len() < 2 {
             runtime::revert(ApiError::User(ErrorCode::InsufficientLiquidity as u16));
@@ -164,9 +168,9 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
     // performs chained getAmountIn calculations on any number of pairs
     fn get_amounts_in(
         &mut self,
-        factory: ContractHash,
+        factory: ContractPackageHash,
         amount_out: U256,
-        path: Vec<ContractHash>,
+        path: Vec<ContractPackageHash>,
     ) -> Vec<U256> {
         if path.len() < 2 {
             runtime::revert(ApiError::User(ErrorCode::InvalidPath as u16));
@@ -186,12 +190,12 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
         amounts
     }
 
-    fn call_contract<T: CLTyped + FromBytes>(
-        contract_hash_str: &str,
+    fn call_versioned_contract<T: CLTyped + FromBytes>(
+        package_hash_str: &str,
         method: &str,
         args: RuntimeArgs,
     ) -> T {
-        let contract_hash = ContractHash::from_formatted_str(contract_hash_str);
-        runtime::call_contract(contract_hash.unwrap_or_default(), method, args)
+        let package_hash = ContractPackageHash::from_formatted_str(package_hash_str);
+        runtime::call_versioned_contract(package_hash.unwrap_or_default(), None, method, args)
     }
 }

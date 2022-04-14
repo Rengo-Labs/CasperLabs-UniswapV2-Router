@@ -1,10 +1,6 @@
-
 use core::convert::TryInto;
 
-use alloc::{
-    format,
-    string::String,
-};
+use alloc::{format, string::String};
 
 use casper_contract::{
     contract_api::{runtime, storage},
@@ -12,8 +8,8 @@ use casper_contract::{
 };
 
 use casper_types::{
-    bytesrepr::{ToBytes, FromBytes},
-    CLTyped, URef, ApiError
+    bytesrepr::{FromBytes, ToBytes},
+    ApiError, CLTyped, URef,
 };
 
 const SELF_PURSE: &str = "self_purse";
@@ -40,7 +36,6 @@ pub fn set_key<T: ToBytes + CLTyped>(name: &str, value: T) {
         }
     }
 }
-
 
 pub fn self_hash_key() -> String {
     format!("self_hash")
@@ -106,7 +101,7 @@ pub fn swap_cspr_for_exact_tokens() -> String {
     format!("swap_cspr_for_exact_tokens")
 }
 
-pub fn purse_balance() -> String{
+pub fn purse_balance() -> String {
     format!("purse_balance")
 }
 

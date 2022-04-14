@@ -4,7 +4,7 @@
 
 extern crate alloc;
 use crate::vec::Vec;
-use alloc::{collections::BTreeSet, format, prelude::v1::Box, vec};
+use alloc::{boxed::Box, collections::BTreeSet, format, vec};
 use casper_contract::{
     contract_api::{runtime, storage},
     unwrap_or_revert::UnwrapOrRevert,
@@ -43,8 +43,8 @@ fn sort_tokens() {
     let _token_a: Key = runtime::get_named_arg("token_a");
     let _token_b: Key = runtime::get_named_arg("token_b");
 
-    let token_a: ContractHash = _token_a.into_hash().unwrap_or_default().into();
-    let token_b: ContractHash = _token_b.into_hash().unwrap_or_default().into();
+    let token_a: ContractPackageHash = _token_a.into_hash().unwrap_or_default().into();
+    let token_b: ContractPackageHash = _token_b.into_hash().unwrap_or_default().into();
 
     let (token_0, token_1) = Uniswap::default().sort_tokens(token_a, token_b);
     runtime::ret(CLValue::from_t((token_0, token_1)).unwrap_or_revert())
@@ -56,9 +56,9 @@ fn get_reserves() {
     let _token_a: Key = runtime::get_named_arg("token_a");
     let _token_b: Key = runtime::get_named_arg("token_b");
 
-    let token_a: ContractHash = _token_a.into_hash().unwrap_or_default().into();
-    let token_b: ContractHash = _token_b.into_hash().unwrap_or_default().into();
-    let factory: ContractHash = _factory.into_hash().unwrap_or_default().into();
+    let token_a: ContractPackageHash = _token_a.into_hash().unwrap_or_default().into();
+    let token_b: ContractPackageHash = _token_b.into_hash().unwrap_or_default().into();
+    let factory: ContractPackageHash = _factory.into_hash().unwrap_or_default().into();
 
     let (reserve_a, reserve_b) = Uniswap::default().get_reserves(factory, token_a, token_b);
     runtime::ret(CLValue::from_t((reserve_a, reserve_b)).unwrap_or_revert())
@@ -104,8 +104,8 @@ fn get_amounts_out() {
     let amount_in: U256 = runtime::get_named_arg("amount_in");
     let _path: Vec<Key> = runtime::get_named_arg("path");
 
-    let factory: ContractHash = _factory.into_hash().unwrap_or_default().into();
-    let mut path: Vec<ContractHash> = Vec::new();
+    let factory: ContractPackageHash = _factory.into_hash().unwrap_or_default().into();
+    let mut path: Vec<ContractPackageHash> = Vec::new();
     for value in _path {
         path.push(value.into_hash().unwrap_or_default().into());
     }
@@ -121,8 +121,8 @@ fn get_amounts_in() {
     let amount_out: U256 = runtime::get_named_arg("amount_out");
     let _path: Vec<Key> = runtime::get_named_arg("path");
 
-    let factory: ContractHash = _factory.into_hash().unwrap_or_default().into();
-    let mut path: Vec<ContractHash> = Vec::new();
+    let factory: ContractPackageHash = _factory.into_hash().unwrap_or_default().into();
+    let mut path: Vec<ContractPackageHash> = Vec::new();
     for value in _path {
         path.push(value.into_hash().unwrap_or_default().into());
     }
@@ -161,8 +161,8 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("token_b", Key::cl_type()),
         ],
         CLType::Tuple2([
-            Box::new(ContractHash::cl_type()),
-            Box::new(ContractHash::cl_type()),
+            Box::new(ContractPackageHash::cl_type()),
+            Box::new(ContractPackageHash::cl_type()),
         ]),
         EntryPointAccess::Public,
         EntryPointType::Contract,
