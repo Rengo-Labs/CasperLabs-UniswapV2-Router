@@ -16,7 +16,7 @@ If you have feature enhancements or other requests, please feel free to file iss
   - You can also filter by appending e. g. "state:open" to the search string.
   - More info on [search syntax within GitHub](https://help.github.com/articles/searching-issues)
 
-## Contributing to Uniswap V2 Core - Casper Blockchain
+## Contributing to Uniswap V2 Router - Casper Blockchain
 
 All contributions to this repository from September 9, 2021 on are considered to be licensed under MIT License.
 
@@ -26,4 +26,3 @@ Workflow for bug fixes:
 * Do your changes on your fork
 * Make sure to add or update relevant test cases
 * Create a pull request, with a suitable title and description, referring to the related issue
-
