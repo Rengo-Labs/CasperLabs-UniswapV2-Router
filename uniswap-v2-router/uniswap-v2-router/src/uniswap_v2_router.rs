@@ -9,7 +9,7 @@ use casper_types::{
     bytesrepr::FromBytes, contracts::ContractPackageHash, runtime_args, ApiError, BlockTime,
     CLTyped, Key, RuntimeArgs, URef, U128, U256, U512,
 };
-use contract_utils::{ContractContext, ContractStorage};
+use casperlabs_contract_utils::{ContractContext, ContractStorage};
 
 use crate::alloc::string::ToString;
 use crate::config::*;

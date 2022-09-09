@@ -1,7 +1,7 @@
 use casper_types::{
     account::AccountHash, runtime_args, ContractPackageHash, Key, RuntimeArgs, U256, U512,
 };
-use test_env::{TestContract, TestEnv};
+use casperlabs_test_env::{TestContract, TestEnv};
 
 use crate::uniswap_instance::*;
 
@@ -33,6 +33,7 @@ fn deploy_dummy_tokens(
             "symbol" => "tk1",
             "decimals" => decimals
         },
+        0
     );
 
     let token2_owner = if owner.is_none() {
@@ -51,6 +52,7 @@ fn deploy_dummy_tokens(
             "symbol" => "tk2",
             "decimals" => decimals
         },
+        0
     );
 
     let token3_owner = if owner.is_none() {
@@ -69,6 +71,7 @@ fn deploy_dummy_tokens(
             "symbol" => "tk3",
             "decimals" => decimals
         },
+        0
     );
     (token1_contract, token2_contract, token3_contract)
 }
@@ -95,6 +98,7 @@ fn deploy_pair_contract(
             "factory_hash" => factory_contract,
             "callee_contract_hash" => flash_swapper
         },
+        0
     );
 
     pair_contract
@@ -128,6 +132,7 @@ fn deploy_uniswap_router() -> (
             "fee_to_setter" => Key::Hash(token3.package_hash())
             // contract_name is passed seperately, so we don't need to pass it here.
         },
+        0
     );
 
     let decimals: u8 = 18;
@@ -143,6 +148,7 @@ fn deploy_uniswap_router() -> (
             "symbol" => "ERC",
             "decimals" => decimals
         },
+        0
     );
 
     // deploy wcspr contract
@@ -156,6 +162,7 @@ fn deploy_uniswap_router() -> (
             "symbol" => "dai",
             "decimals" => decimals
         },
+        0
     );
 
     // deploy flash swapper
@@ -169,6 +176,7 @@ fn deploy_uniswap_router() -> (
             "wcspr" => Key::Hash(wcspr.package_hash()),
             "dai" => Key::Hash(dai.package_hash())
         },
+        0
     );
 
     // deploy pair contract
@@ -185,6 +193,7 @@ fn deploy_uniswap_router() -> (
             "factory_hash" => Key::Hash(factory_contract.package_hash()),
             "callee_package_hash" => Key::Hash(flash_swapper.package_hash())
         },
+        0
     );
 
     // deploy library contract
@@ -194,6 +203,7 @@ fn deploy_uniswap_router() -> (
         "library",
         owner,
         runtime_args! {},
+        0
     );
 
     // Deploy Router Contract
@@ -207,6 +217,7 @@ fn deploy_uniswap_router() -> (
             "wcspr" => Key::Hash(wcspr.package_hash()),
             "library" => Key::Hash(library_contract.package_hash())
         },
+        0
     );
 
     // deploy Test contract
@@ -224,6 +235,7 @@ fn deploy_uniswap_router() -> (
         owner,
         "set_white_list",
         runtime_args! {"white_list" => Key::from(router_package_hash)},
+        0
     );
 
     token1.call_contract(
@@ -233,6 +245,7 @@ fn deploy_uniswap_router() -> (
             "to" => test_contract.test_contract_package_hash(),
             "amount" => U256::from(100000000),
         },
+        0
     );
 
     token1.call_contract(
@@ -242,15 +255,8 @@ fn deploy_uniswap_router() -> (
             "to" => Key::from(owner),
             "amount" => U256::from(100000000),
         },
+        0
     );
-    // token1.call_contract(
-    //     owner,
-    //     "mint",
-    //     runtime_args! {
-    //         "to" => Key::Hash(pair_contract.package_hash()),
-    //         "amount" => U256::from(100000000),
-    //     },
-    // );
 
     token2.call_contract(
         owner,
@@ -259,6 +265,7 @@ fn deploy_uniswap_router() -> (
             "to" => test_contract.test_contract_package_hash(),
              "amount" => U256::from(100000000),
         },
+        0
     );
     token3.call_contract(
         owner,
@@ -267,6 +274,7 @@ fn deploy_uniswap_router() -> (
             "to" => test_contract.test_contract_package_hash(),
              "amount" => U256::from(100000000),
         },
+        0
     );
     (
         env,
@@ -497,7 +505,6 @@ fn remove_liquidity_cspr() {
     let _ = session_remove_liquidity_cspr(
         &env,
         owner,
-        amount,
         token,
         liquidity,
         amount_token_min,
@@ -877,7 +884,6 @@ fn swap_tokens_for_exact_cspr() {
     let _ = session_swap_tokens_for_exact_cspr(
         &env,
         owner,
-        amount,
         amount_out,
         amount_in_max,
         path,
@@ -943,7 +949,6 @@ fn swap_exact_tokens_for_cspr() {
     let _ = session_swap_exact_tokens_for_cspr(
         &env,
         owner,
-        amount,
         amount_in,
         amount_out_min,
         path,

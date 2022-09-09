@@ -1,6 +1,6 @@
 use casper_types::account::AccountHash;
 use casper_types::{runtime_args, ContractHash, ContractPackageHash, Key, RuntimeArgs, U256, U512};
-use test_env::{TestContract, TestEnv};
+use casperlabs_test_env::{TestContract, TestEnv};
 
 use cryptoxide::ed25519;
 use renvm_sig::hash_message;
@@ -26,6 +26,7 @@ impl UniswapInstance {
                 "library_address" => library_address
                 // contract_name is passed seperately, so we don't need to pass it here.
             },
+            0
         ))
     }
 
@@ -46,6 +47,7 @@ impl UniswapInstance {
                 "symbol" => symbol,
                 "decimals" => decimals
             },
+            0
         );
     }
 
@@ -76,6 +78,7 @@ impl UniswapInstance {
                 "deadline" => deadline,
                 "pair" => pair
             },
+            0
         );
     }
 
@@ -108,6 +111,7 @@ impl UniswapInstance {
                 "router_hash" => router,
                 "self_hash" => test_contract_hash
             },
+            0
         );
     }
 
@@ -138,6 +142,7 @@ impl UniswapInstance {
                 "pair" => pair,
                 "self_hash" => test_contract_hash
             },
+            0
         );
     }
 
@@ -164,6 +169,7 @@ impl UniswapInstance {
                 "deadline" => deadline,
                 "pair" => pair,
             },
+            0
         );
     }
 
@@ -196,6 +202,7 @@ impl UniswapInstance {
                 "public_key" => public_key,
                 "signature" => signature
             },
+            0
         );
     }
 
@@ -226,6 +233,7 @@ impl UniswapInstance {
                 "public_key" => public_key,
                 "signature" => signature
             },
+            0
         );
     }
 
@@ -248,6 +256,7 @@ impl UniswapInstance {
                 "to" => to,
                 "deadline" => deadline
             },
+            0
         );
     }
 
@@ -270,6 +279,7 @@ impl UniswapInstance {
                 "to" => to,
                 "deadline" => deadline
             },
+            0
         );
     }
 
@@ -294,6 +304,7 @@ impl UniswapInstance {
                 "deadline" => deadline,
                 "router_hash" => router
             },
+            0
         );
     }
 
@@ -314,6 +325,7 @@ impl UniswapInstance {
                 "path" => path,
                 "deadline" => deadline
             },
+            0
         );
     }
 
@@ -334,6 +346,7 @@ impl UniswapInstance {
                 "path" => path,
                 "deadline" => deadline
             },
+            0
         );
     }
 
@@ -356,6 +369,7 @@ impl UniswapInstance {
                 "to" => to,
                 "deadline" => deadline
             },
+            0
         );
     }
 
@@ -367,6 +381,7 @@ impl UniswapInstance {
                 "self_hash" => test_contract_hash,
                 "amount" => amount
             },
+            0
         );
     }
 
@@ -378,6 +393,7 @@ impl UniswapInstance {
                 "spender" => spender,
                 "amount" => amount
             },
+            0
         );
     }
 
@@ -512,13 +528,13 @@ pub fn session_add_liquidity_cspr(
             "router_hash" => router,
             "self_hash" => test_contract_hash
         },
+        0
     )
 }
 
 pub fn session_remove_liquidity_cspr(
     env: &TestEnv,
     sender: AccountHash,
-    amount: U512,
     token: Key,
     liquidity: U256,
     amount_token_min: U256,
@@ -535,7 +551,6 @@ pub fn session_remove_liquidity_cspr(
         "purse-proxy",
         sender,
         runtime_args! {
-            "amount"=>amount,
             "destination_entrypoint" => "remove_liquidity_cspr",
             "token" => token,
             "liquidity" => liquidity,
@@ -547,6 +562,7 @@ pub fn session_remove_liquidity_cspr(
             "router_hash" => router,
             "self_hash" => test_contract_hash
         },
+        0
     )
 }
 
@@ -576,6 +592,7 @@ pub fn session_swap_exact_cspr_for_tokens(
             "deadline" => deadline,
             "router_hash" => router
         },
+        0
     )
 }
 
@@ -605,13 +622,13 @@ pub fn session_swap_cspr_for_exact_tokens(
             "deadline" => deadline,
             "router_hash" => router
         },
+        0
     )
 }
 
 pub fn session_swap_tokens_for_exact_cspr(
     env: &TestEnv,
     sender: AccountHash,
-    amount: U512,
     amount_out: U256,
     amount_in_max: U256,
     path: Vec<String>,
@@ -624,7 +641,6 @@ pub fn session_swap_tokens_for_exact_cspr(
         "purse-proxy",
         sender,
         runtime_args! {
-            "amount"=>amount,
             "destination_entrypoint" => "swap_tokens_for_exact_cspr",
             "amount_out" => amount_out,
             "amount_in_max" => amount_in_max,
@@ -632,13 +648,13 @@ pub fn session_swap_tokens_for_exact_cspr(
             "deadline" => deadline,
             "router_hash" => router
         },
+        0
     )
 }
 
 pub fn session_swap_exact_tokens_for_cspr(
     env: &TestEnv,
     sender: AccountHash,
-    amount: U512,
     amount_in: U256,
     amount_out_min: U256,
     path: Vec<String>,
@@ -651,7 +667,6 @@ pub fn session_swap_exact_tokens_for_cspr(
         "purse-proxy",
         sender,
         runtime_args! {
-            "amount"=>amount,
             "destination_entrypoint" => "swap_exact_tokens_for_cspr",
             "amount_in" => amount_in,
             "amount_out_min" => amount_out_min,
@@ -659,5 +674,6 @@ pub fn session_swap_exact_tokens_for_cspr(
             "deadline" => deadline,
             "router_hash" => router
         },
+        0
     )
 }

@@ -1,8 +1,8 @@
 #![no_std]
 #![no_main]
 
-#[cfg(not(target_arch = "wasm32"))]
-compile_error!("target arch should be wasm32: compile with '--target wasm32-unknown-unknown'");
+// #[cfg(not(target_arch = "wasm32"))]
+// compile_error!("target arch should be wasm32: compile with '--target wasm32-unknown-unknown'");
 
 // We need to explicitly import the std alloc crate and `alloc::string::String` as we're in a
 // `no_std` environment.
@@ -112,11 +112,6 @@ pub extern "C" fn call() {
             Ok(())
         }
         DESTINATION_REMOVE_LIQUIDITY_CSPR => {
-            let amount: U512 = runtime::get_named_arg(AMOUNT_RUNTIME_ARG);
-            let secondary_purse: URef = system::create_purse();
-            system::transfer_from_purse_to_purse(main_purse, secondary_purse, amount, None)
-                .unwrap_or_revert();
-
             let self_hash: Key = runtime::get_named_arg("self_hash");
             let self_hash: ContractPackageHash =
                 ContractPackageHash::from(self_hash.into_hash().unwrap_or_revert());
@@ -157,7 +152,7 @@ pub extern "C" fn call() {
                 "amount_cspr_min" => amount_cspr_min,
                 "to" => to,
                 "deadline" => deadline,
-                "to_purse" => secondary_purse
+                "to_purse" => main_purse
             };
 
             let (amount_token, amount_cspr): (U256, U256) = runtime::call_versioned_contract(
@@ -270,11 +265,6 @@ pub extern "C" fn call() {
             Ok(())
         }
         DESTINATION_SWAP_TOKENS_FOR_EXACT_CSPR => {
-            let amount: U512 = runtime::get_named_arg(AMOUNT_RUNTIME_ARG);
-            let secondary_purse: URef = system::create_purse();
-            system::transfer_from_purse_to_purse(main_purse, secondary_purse, amount, None)
-                .unwrap_or_revert();
-
             let router_address: Key = runtime::get_named_arg("router_hash");
             let router_address: ContractPackageHash =
                 ContractPackageHash::from(router_address.into_hash().unwrap_or_revert());
@@ -310,7 +300,7 @@ pub extern "C" fn call() {
                 "amount_out" => amount_out,
                 "amount_in_max" => amount_in_max,
                 "path" => _path,
-                "to" => secondary_purse,
+                "to" => main_purse,
                 "deadline" => deadline
             };
 
@@ -323,11 +313,6 @@ pub extern "C" fn call() {
             Ok(())
         }
         DESTINATION_SWAP_EXACT_TOKENS_FOR_CSPR => {
-            let amount: U512 = runtime::get_named_arg(AMOUNT_RUNTIME_ARG);
-            let secondary_purse: URef = system::create_purse();
-            system::transfer_from_purse_to_purse(main_purse, secondary_purse, amount, None)
-                .unwrap_or_revert();
-
             let router_address: Key = runtime::get_named_arg("router_hash");
             let router_address: ContractPackageHash =
                 ContractPackageHash::from(router_address.into_hash().unwrap_or_revert());
@@ -363,7 +348,7 @@ pub extern "C" fn call() {
                 "amount_in" => amount_in,
                 "amount_out_min" => amount_out_min,
                 "path" => _path,
-                "to" => secondary_purse,
+                "to" => main_purse,
                 "deadline" => deadline
             };
 
