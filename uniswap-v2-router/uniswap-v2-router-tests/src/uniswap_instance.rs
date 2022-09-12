@@ -541,7 +541,6 @@ pub fn session_remove_liquidity_cspr(
     amount_cspr_min: U256,
     to: Key,
     deadline: U256,
-    pair: Key,
     router: Key,
     test_contract_hash: Key,
 ) -> TestContract {
@@ -558,7 +557,6 @@ pub fn session_remove_liquidity_cspr(
             "amount_cspr_min" => amount_cspr_min,
             "to" => to,
             "deadline" => deadline,
-            "pair" => pair,
             "router_hash" => router,
             "self_hash" => test_contract_hash
         },

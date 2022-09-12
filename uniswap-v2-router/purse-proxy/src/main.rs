@@ -65,24 +65,6 @@ pub extern "C" fn call() {
             let deadline: U256 = runtime::get_named_arg("deadline");
             let pair: Option<Key> = runtime::get_named_arg("pair");
 
-            let router_package_hash: ContractPackageHash = runtime::call_versioned_contract(
-                router_address,
-                None,
-                "package_hash",
-                runtime_args! {},
-            );
-
-            // Approve contract
-            let _: () = runtime::call_versioned_contract(
-                ContractPackageHash::from(token.into_hash().unwrap_or_revert()),
-                None,
-                "approve",
-                runtime_args! {
-                    "spender" => Key::from(router_package_hash),
-                    "amount" => amount_token_desired
-                },
-            );
-
             let args: RuntimeArgs = runtime_args! {
                 "token" => token,
                 "amount_token_desired" => amount_token_desired,
@@ -126,24 +108,6 @@ pub extern "C" fn call() {
             let amount_cspr_min: U256 = runtime::get_named_arg("amount_cspr_min");
             let to: Key = runtime::get_named_arg("to");
             let deadline: U256 = runtime::get_named_arg("deadline");
-
-            let pair_contract: Key = runtime::get_named_arg("pair");
-            let router_package_hash: ContractPackageHash = runtime::call_versioned_contract(
-                router_address,
-                None,
-                "package_hash",
-                runtime_args! {},
-            );
-
-            let _: () = runtime::call_versioned_contract(
-                ContractPackageHash::from(pair_contract.into_hash().unwrap_or_revert()),
-                None,
-                "approve",
-                runtime_args! {
-                    "spender" => Key::from(router_package_hash),
-                    "amount" => liquidity
-                },
-            );
 
             let args: RuntimeArgs = runtime_args! {
                 "token" => token,
@@ -222,31 +186,11 @@ pub extern "C" fn call() {
             let _path: Vec<String> = runtime::get_named_arg("path");
             let to: Key = runtime::get_named_arg("to");
             let deadline: U256 = runtime::get_named_arg("deadline");
-            let router_package_hash: ContractPackageHash = runtime::call_versioned_contract(
-                router_address,
-                None,
-                "package_hash",
-                runtime_args! {},
-            );
 
             let mut path: Vec<Key> = Vec::new();
             for i in 0..(_path.len()) {
                 path.push(Key::from_formatted_str(&_path[i]).unwrap());
             }
-
-            // give approval to input token
-            let _: () = runtime::call_versioned_contract(
-                ContractPackageHash::from(path[0].into_hash().unwrap_or_revert()),
-                None,
-                "approve",
-                runtime_args! {
-                    "spender" => Key::from(router_package_hash),
-                    "amount" => amount_in_max
-                },
-            );
-
-            // create purse and send balance in it.
-            // let caller_purse: URef = mappings::get_self_purse();
 
             let args: RuntimeArgs = runtime_args! {
                 "amount_out" => amount_out,
@@ -273,28 +217,11 @@ pub extern "C" fn call() {
             let amount_in_max: U256 = runtime::get_named_arg("amount_in_max");
             let _path: Vec<String> = runtime::get_named_arg("path");
             let deadline: U256 = runtime::get_named_arg("deadline");
-            let router_package_hash: ContractPackageHash = runtime::call_versioned_contract(
-                router_address,
-                None,
-                "package_hash",
-                runtime_args! {},
-            );
 
             let mut path: Vec<Key> = Vec::new();
             for i in 0..(_path.len()) {
                 path.push(Key::from_formatted_str(&_path[i]).unwrap());
             }
-
-            // give approval to input token
-            let _: () = runtime::call_versioned_contract(
-                ContractPackageHash::from(path[0].into_hash().unwrap_or_revert()),
-                None,
-                "approve",
-                runtime_args! {
-                    "spender" => Key::from(router_package_hash),
-                    "amount" => amount_in_max
-                },
-            );
 
             let args: RuntimeArgs = runtime_args! {
                 "amount_out" => amount_out,
@@ -321,28 +248,10 @@ pub extern "C" fn call() {
             let amount_out_min: U256 = runtime::get_named_arg("amount_out_min");
             let _path: Vec<String> = runtime::get_named_arg("path");
             let deadline: U256 = runtime::get_named_arg("deadline");
-            let router_package_hash: ContractPackageHash = runtime::call_versioned_contract(
-                router_address,
-                None,
-                "package_hash",
-                runtime_args! {},
-            );
-
             let mut path: Vec<Key> = Vec::new();
             for i in 0..(_path.len()) {
                 path.push(Key::from_formatted_str(&_path[i]).unwrap());
             }
-
-            // give approval to input token
-            let _: () = runtime::call_versioned_contract(
-                ContractPackageHash::from(path[0].into_hash().unwrap_or_revert()),
-                None,
-                "approve",
-                runtime_args! {
-                    "spender" => Key::from(router_package_hash),
-                    "amount" => amount_in
-                },
-            );
 
             let args: RuntimeArgs = runtime_args! {
                 "amount_in" => amount_in,

@@ -33,7 +33,7 @@ fn deploy_dummy_tokens(
             "symbol" => "tk1",
             "decimals" => decimals
         },
-        0
+        0,
     );
 
     let token2_owner = if owner.is_none() {
@@ -52,7 +52,7 @@ fn deploy_dummy_tokens(
             "symbol" => "tk2",
             "decimals" => decimals
         },
-        0
+        0,
     );
 
     let token3_owner = if owner.is_none() {
@@ -71,7 +71,7 @@ fn deploy_dummy_tokens(
             "symbol" => "tk3",
             "decimals" => decimals
         },
-        0
+        0,
     );
     (token1_contract, token2_contract, token3_contract)
 }
@@ -98,7 +98,7 @@ fn deploy_pair_contract(
             "factory_hash" => factory_contract,
             "callee_contract_hash" => flash_swapper
         },
-        0
+        0,
     );
 
     pair_contract
@@ -132,7 +132,7 @@ fn deploy_uniswap_router() -> (
             "fee_to_setter" => Key::Hash(token3.package_hash())
             // contract_name is passed seperately, so we don't need to pass it here.
         },
-        0
+        0,
     );
 
     let decimals: u8 = 18;
@@ -148,7 +148,7 @@ fn deploy_uniswap_router() -> (
             "symbol" => "ERC",
             "decimals" => decimals
         },
-        0
+        0,
     );
 
     // deploy wcspr contract
@@ -162,7 +162,7 @@ fn deploy_uniswap_router() -> (
             "symbol" => "dai",
             "decimals" => decimals
         },
-        0
+        0,
     );
 
     // deploy flash swapper
@@ -176,7 +176,7 @@ fn deploy_uniswap_router() -> (
             "wcspr" => Key::Hash(wcspr.package_hash()),
             "dai" => Key::Hash(dai.package_hash())
         },
-        0
+        0,
     );
 
     // deploy pair contract
@@ -193,7 +193,7 @@ fn deploy_uniswap_router() -> (
             "factory_hash" => Key::Hash(factory_contract.package_hash()),
             "callee_package_hash" => Key::Hash(flash_swapper.package_hash())
         },
-        0
+        0,
     );
 
     // deploy library contract
@@ -203,7 +203,7 @@ fn deploy_uniswap_router() -> (
         "library",
         owner,
         runtime_args! {},
-        0
+        0,
     );
 
     // Deploy Router Contract
@@ -217,7 +217,7 @@ fn deploy_uniswap_router() -> (
             "wcspr" => Key::Hash(wcspr.package_hash()),
             "library" => Key::Hash(library_contract.package_hash())
         },
-        0
+        0,
     );
 
     // deploy Test contract
@@ -235,7 +235,7 @@ fn deploy_uniswap_router() -> (
         owner,
         "set_white_list",
         runtime_args! {"white_list" => Key::from(router_package_hash)},
-        0
+        0,
     );
 
     token1.call_contract(
@@ -245,7 +245,7 @@ fn deploy_uniswap_router() -> (
             "to" => test_contract.test_contract_package_hash(),
             "amount" => U256::from(100000000),
         },
-        0
+        0,
     );
 
     token1.call_contract(
@@ -255,7 +255,7 @@ fn deploy_uniswap_router() -> (
             "to" => Key::from(owner),
             "amount" => U256::from(100000000),
         },
-        0
+        0,
     );
 
     token2.call_contract(
@@ -265,7 +265,7 @@ fn deploy_uniswap_router() -> (
             "to" => test_contract.test_contract_package_hash(),
              "amount" => U256::from(100000000),
         },
-        0
+        0,
     );
     token3.call_contract(
         owner,
@@ -274,7 +274,7 @@ fn deploy_uniswap_router() -> (
             "to" => test_contract.test_contract_package_hash(),
              "amount" => U256::from(100000000),
         },
-        0
+        0,
     );
     (
         env,
@@ -373,6 +373,16 @@ fn add_liquidity_cspr() {
         Ok(n) => n.as_millis() + (1000 * (30 * 60)), // current epoch time in milisecond + 30 minutes
         Err(_) => 0,
     };
+
+    token1.call_contract(
+        owner,
+        "approve",
+        runtime_args! {
+            "spender" => Key::Hash(router_contract.package_hash()),
+            "amount" => amount_token_desired
+        },
+        0,
+    );
 
     let amount: U512 = 1000.into();
 
@@ -481,6 +491,15 @@ fn remove_liquidity_cspr() {
     };
 
     let amount: U512 = 1000.into();
+    token1.call_contract(
+        owner,
+        "approve",
+        runtime_args! {
+            "spender" => Key::Hash(router_contract.package_hash()),
+            "amount" => amount_token_desired
+        },
+        0,
+    );
 
     let _ = session_add_liquidity_cspr(
         &env,
@@ -500,6 +519,17 @@ fn remove_liquidity_cspr() {
 
     let (_amount_token, _amount_cspr, liquidity): (U256, U256, U256) =
         uniswap.add_liquidity_cspr_result();
+
+    pair.call_contract(
+        owner,
+        "approve",
+        runtime_args! {
+            "spender" => Key::Hash(router_contract.package_hash()),
+            "amount" => liquidity
+        },
+        0,
+    );
+
     // Now Remove liquidity
 
     let _ = session_remove_liquidity_cspr(
@@ -511,7 +541,6 @@ fn remove_liquidity_cspr() {
         amount_cspr_min,
         Key::from(owner),
         deadline.into(),
-        Key::Hash(pair.package_hash()),
         Key::Hash(router_contract.package_hash()),
         uniswap.test_contract_package_hash(),
     );
@@ -783,7 +812,15 @@ fn swap_exact_cspr_for_tokens() {
         Ok(n) => n.as_millis() + (1000 * (30 * 60)), // current epoch time in milisecond + 30 minutes
         Err(_) => 0,
     };
-
+    token1.call_contract(
+        owner,
+        "approve",
+        runtime_args! {
+            "spender" => Key::Hash(router_contract.package_hash()),
+            "amount" => amount_token_desired
+        },
+        0,
+    );
     let amount: U512 = 1000.into();
 
     let _ = session_add_liquidity_cspr(
@@ -830,8 +867,19 @@ fn swap_exact_cspr_for_tokens() {
 
 #[test]
 fn swap_tokens_for_exact_cspr() {
-    let (env, uniswap, owner, router_contract, flash_swapper, _, token1, _token2, _, wcspr, factory) =
-        deploy_uniswap_router();
+    let (
+        env,
+        uniswap,
+        owner,
+        router_contract,
+        flash_swapper,
+        _,
+        token1,
+        _token2,
+        _,
+        wcspr,
+        factory,
+    ) = deploy_uniswap_router();
     let pair: TestContract = deploy_pair_contract(
         &env,
         owner,
@@ -850,7 +898,15 @@ fn swap_tokens_for_exact_cspr() {
         Ok(n) => n.as_millis() + (1000 * (30 * 60)), // current epoch time in milisecond + 30 minutes
         Err(_) => 0,
     };
-
+    token1.call_contract(
+        owner,
+        "approve",
+        runtime_args! {
+            "spender" => Key::Hash(router_contract.package_hash()),
+            "amount" => amount_token_desired
+        },
+        0,
+    );
     let amount: U512 = 1000.into();
 
     let _ = session_add_liquidity_cspr(
@@ -881,6 +937,16 @@ fn swap_tokens_for_exact_cspr() {
         Key::Hash(wcspr.package_hash()).to_formatted_string(),
     ];
 
+    token1.call_contract(
+        owner,
+        "approve",
+        runtime_args! {
+            "spender" => Key::Hash(router_contract.package_hash()),
+            "amount" => amount_in_max
+        },
+        0,
+    );
+
     let _ = session_swap_tokens_for_exact_cspr(
         &env,
         owner,
@@ -894,8 +960,19 @@ fn swap_tokens_for_exact_cspr() {
 
 #[test]
 fn swap_exact_tokens_for_cspr() {
-    let (env, uniswap, owner, router_contract, flash_swapper, _, token1, _token2, _, wcspr, factory) =
-        deploy_uniswap_router();
+    let (
+        env,
+        uniswap,
+        owner,
+        router_contract,
+        flash_swapper,
+        _,
+        token1,
+        _token2,
+        _,
+        wcspr,
+        factory,
+    ) = deploy_uniswap_router();
     let pair: TestContract = deploy_pair_contract(
         &env,
         owner,
@@ -914,6 +991,15 @@ fn swap_exact_tokens_for_cspr() {
         Ok(n) => n.as_millis() + (1000 * (30 * 60)), // current epoch time in milisecond + 30 minutes
         Err(_) => 0,
     };
+    token1.call_contract(
+        owner,
+        "approve",
+        runtime_args! {
+            "spender" => Key::Hash(router_contract.package_hash()),
+            "amount" => amount_token_desired
+        },
+        0,
+    );
     let amount: U512 = 1000.into();
 
     let _ = session_add_liquidity_cspr(
@@ -944,6 +1030,17 @@ fn swap_exact_tokens_for_cspr() {
         Key::Hash(token1.package_hash()).to_formatted_string(),
         Key::Hash(wcspr.package_hash()).to_formatted_string(),
     ];
+
+    token1.call_contract(
+        owner,
+        "approve",
+        runtime_args! {
+            "spender" => Key::Hash(router_contract.package_hash()),
+            "amount" => amount_in
+        },
+        0,
+    );
+
     // Swap
 
     let _ = session_swap_exact_tokens_for_cspr(
@@ -979,7 +1076,15 @@ fn swap_cspr_for_exact_tokens() {
         Ok(n) => n.as_millis() + (1000 * (30 * 60)), // current epoch time in milisecond + 30 minutes
         Err(_) => 0,
     };
-
+    token1.call_contract(
+        owner,
+        "approve",
+        runtime_args! {
+            "spender" => Key::Hash(router_contract.package_hash()),
+            "amount" => amount_token_desired
+        },
+        0,
+    );
     let amount: U512 = 1000.into();
 
     let _ = session_add_liquidity_cspr(
@@ -1009,6 +1114,15 @@ fn swap_cspr_for_exact_tokens() {
         Key::Hash(token1.package_hash()).to_formatted_string(),
     ];
     let to: Key = Key::Hash(token2.package_hash());
+    wcspr.call_contract(
+        owner,
+        "approve",
+        runtime_args! {
+            "spender" => Key::Hash(router_contract.package_hash()),
+            "amount" => amount_in_max
+        },
+        0,
+    );
 
     let _ = session_swap_cspr_for_exact_tokens(
         &env,
