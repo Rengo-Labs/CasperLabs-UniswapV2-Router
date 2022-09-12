@@ -3,7 +3,7 @@ use casper_types::{
     contracts::{ContractPackageHash},
     Key,
 };
-use contract_utils::{get_key, set_key};
+use casperlabs_contract_utils::{get_key, set_key};
 
 pub const WCSPR: &str = "wcspr";
 pub const FACTORY: &str = "factory";

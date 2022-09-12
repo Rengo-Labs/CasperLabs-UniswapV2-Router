@@ -12,7 +12,7 @@ use casper_types::{
     runtime_args, ApiError, CLType, CLTyped, CLValue, EntryPoint, EntryPointAccess, EntryPointType,
     EntryPoints, Group, Key, Parameter, RuntimeArgs, URef, U256,
 };
-use contract_utils::{ContractContext, OnChainContractStorage};
+use casperlabs_contract_utils::{ContractContext, OnChainContractStorage};
 use uniswap_v2_router::config::*;
 use uniswap_v2_router::{self, UniswapV2Router};
 

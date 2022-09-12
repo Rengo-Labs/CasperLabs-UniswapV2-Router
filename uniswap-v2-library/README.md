@@ -76,14 +76,14 @@ Tests are implemented in `erc20-tests/src/erc20_tests.rs`.
 
 The repository contains 2 utility crates:
 
-* `utils/test-env`
-* `utils/contract-utils`
+* `casperlabs-test-env`
+* `casperlabs-contract-utils`
 
 The utility code after review and adoption should be moved to a separate repo
 and eventually be added to `casper-contract` and `casper-engine-test-support`.
 
 #### Test Env Crate
-`utils/test-env` is a small library written on top of 
+`casperlabs-test-env` is a small library written on top of 
 `casper-engine-test-support`. It provides two structs:
 
 * `TestEnv` wraps `TestContext` and provides user accounts with initial
@@ -141,7 +141,7 @@ fn test_multiple_tokens() {
 ```
 
 #### Contract Utils Crate
-`utils/contract-utils` contains common building blocks for writing smart
+`casperlabs-contract-utils` contains common building blocks for writing smart
 contracts:
 * `contract_context.rs` provides the `ContractContext` trait that has 
   `get_caller` and `self_addr` methods.
