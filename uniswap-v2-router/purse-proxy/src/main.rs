@@ -65,24 +65,6 @@ pub extern "C" fn call() {
             let deadline: U256 = runtime::get_named_arg("deadline");
             let pair: Option<Key> = runtime::get_named_arg("pair");
 
-            let router_package_hash: ContractPackageHash = runtime::call_versioned_contract(
-                router_address,
-                None,
-                "package_hash",
-                runtime_args! {},
-            );
-
-            // Approve contract
-            let _: () = runtime::call_versioned_contract(
-                ContractPackageHash::from(token.into_hash().unwrap_or_revert()),
-                None,
-                "approve",
-                runtime_args! {
-                    "spender" => Key::from(router_package_hash),
-                    "amount" => amount_token_desired
-                },
-            );
-
             let args: RuntimeArgs = runtime_args! {
                 "token" => token,
                 "amount_token_desired" => amount_token_desired,
@@ -112,11 +94,6 @@ pub extern "C" fn call() {
             Ok(())
         }
         DESTINATION_REMOVE_LIQUIDITY_CSPR => {
-            let amount: U512 = runtime::get_named_arg(AMOUNT_RUNTIME_ARG);
-            let secondary_purse: URef = system::create_purse();
-            system::transfer_from_purse_to_purse(main_purse, secondary_purse, amount, None)
-                .unwrap_or_revert();
-
             let self_hash: Key = runtime::get_named_arg("self_hash");
             let self_hash: ContractPackageHash =
                 ContractPackageHash::from(self_hash.into_hash().unwrap_or_revert());
@@ -132,24 +109,6 @@ pub extern "C" fn call() {
             let to: Key = runtime::get_named_arg("to");
             let deadline: U256 = runtime::get_named_arg("deadline");
 
-            let pair_contract: Key = runtime::get_named_arg("pair");
-            let router_package_hash: ContractPackageHash = runtime::call_versioned_contract(
-                router_address,
-                None,
-                "package_hash",
-                runtime_args! {},
-            );
-
-            let _: () = runtime::call_versioned_contract(
-                ContractPackageHash::from(pair_contract.into_hash().unwrap_or_revert()),
-                None,
-                "approve",
-                runtime_args! {
-                    "spender" => Key::from(router_package_hash),
-                    "amount" => liquidity
-                },
-            );
-
             let args: RuntimeArgs = runtime_args! {
                 "token" => token,
                 "liquidity" => liquidity,
@@ -157,7 +116,7 @@ pub extern "C" fn call() {
                 "amount_cspr_min" => amount_cspr_min,
                 "to" => to,
                 "deadline" => deadline,
-                "to_purse" => secondary_purse
+                "to_purse" => main_purse
             };
 
             let (amount_token, amount_cspr): (U256, U256) = runtime::call_versioned_contract(
@@ -227,31 +186,11 @@ pub extern "C" fn call() {
             let _path: Vec<String> = runtime::get_named_arg("path");
             let to: Key = runtime::get_named_arg("to");
             let deadline: U256 = runtime::get_named_arg("deadline");
-            let router_package_hash: ContractPackageHash = runtime::call_versioned_contract(
-                router_address,
-                None,
-                "package_hash",
-                runtime_args! {},
-            );
 
             let mut path: Vec<Key> = Vec::new();
             for i in 0..(_path.len()) {
                 path.push(Key::from_formatted_str(&_path[i]).unwrap());
             }
-
-            // give approval to input token
-            let _: () = runtime::call_versioned_contract(
-                ContractPackageHash::from(path[0].into_hash().unwrap_or_revert()),
-                None,
-                "approve",
-                runtime_args! {
-                    "spender" => Key::from(router_package_hash),
-                    "amount" => amount_in_max
-                },
-            );
-
-            // create purse and send balance in it.
-            // let caller_purse: URef = mappings::get_self_purse();
 
             let args: RuntimeArgs = runtime_args! {
                 "amount_out" => amount_out,
@@ -270,11 +209,6 @@ pub extern "C" fn call() {
             Ok(())
         }
         DESTINATION_SWAP_TOKENS_FOR_EXACT_CSPR => {
-            let amount: U512 = runtime::get_named_arg(AMOUNT_RUNTIME_ARG);
-            let secondary_purse: URef = system::create_purse();
-            system::transfer_from_purse_to_purse(main_purse, secondary_purse, amount, None)
-                .unwrap_or_revert();
-
             let router_address: Key = runtime::get_named_arg("router_hash");
             let router_address: ContractPackageHash =
                 ContractPackageHash::from(router_address.into_hash().unwrap_or_revert());
@@ -283,34 +217,17 @@ pub extern "C" fn call() {
             let amount_in_max: U256 = runtime::get_named_arg("amount_in_max");
             let _path: Vec<String> = runtime::get_named_arg("path");
             let deadline: U256 = runtime::get_named_arg("deadline");
-            let router_package_hash: ContractPackageHash = runtime::call_versioned_contract(
-                router_address,
-                None,
-                "package_hash",
-                runtime_args! {},
-            );
 
             let mut path: Vec<Key> = Vec::new();
             for i in 0..(_path.len()) {
                 path.push(Key::from_formatted_str(&_path[i]).unwrap());
             }
 
-            // give approval to input token
-            let _: () = runtime::call_versioned_contract(
-                ContractPackageHash::from(path[0].into_hash().unwrap_or_revert()),
-                None,
-                "approve",
-                runtime_args! {
-                    "spender" => Key::from(router_package_hash),
-                    "amount" => amount_in_max
-                },
-            );
-
             let args: RuntimeArgs = runtime_args! {
                 "amount_out" => amount_out,
                 "amount_in_max" => amount_in_max,
                 "path" => _path,
-                "to" => secondary_purse,
+                "to" => main_purse,
                 "deadline" => deadline
             };
 
@@ -323,11 +240,6 @@ pub extern "C" fn call() {
             Ok(())
         }
         DESTINATION_SWAP_EXACT_TOKENS_FOR_CSPR => {
-            let amount: U512 = runtime::get_named_arg(AMOUNT_RUNTIME_ARG);
-            let secondary_purse: URef = system::create_purse();
-            system::transfer_from_purse_to_purse(main_purse, secondary_purse, amount, None)
-                .unwrap_or_revert();
-
             let router_address: Key = runtime::get_named_arg("router_hash");
             let router_address: ContractPackageHash =
                 ContractPackageHash::from(router_address.into_hash().unwrap_or_revert());
@@ -336,34 +248,16 @@ pub extern "C" fn call() {
             let amount_out_min: U256 = runtime::get_named_arg("amount_out_min");
             let _path: Vec<String> = runtime::get_named_arg("path");
             let deadline: U256 = runtime::get_named_arg("deadline");
-            let router_package_hash: ContractPackageHash = runtime::call_versioned_contract(
-                router_address,
-                None,
-                "package_hash",
-                runtime_args! {},
-            );
-
             let mut path: Vec<Key> = Vec::new();
             for i in 0..(_path.len()) {
                 path.push(Key::from_formatted_str(&_path[i]).unwrap());
             }
 
-            // give approval to input token
-            let _: () = runtime::call_versioned_contract(
-                ContractPackageHash::from(path[0].into_hash().unwrap_or_revert()),
-                None,
-                "approve",
-                runtime_args! {
-                    "spender" => Key::from(router_package_hash),
-                    "amount" => amount_in
-                },
-            );
-
             let args: RuntimeArgs = runtime_args! {
                 "amount_in" => amount_in,
                 "amount_out_min" => amount_out_min,
                 "path" => _path,
-                "to" => secondary_purse,
+                "to" => main_purse,
                 "deadline" => deadline
             };
 

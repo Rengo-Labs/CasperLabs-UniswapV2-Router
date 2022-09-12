@@ -6,7 +6,7 @@ use casper_types::{
     account::AccountHash, bytesrepr::ToBytes, runtime_args, ContractHash, ContractPackageHash, Key,
     RuntimeArgs, U128, U256,
 };
-use test_env::{TestContract, TestEnv};
+use casperlabs_test_env::{TestContract, TestEnv};
 
 pub struct LibraryInstance(TestContract);
 
@@ -27,6 +27,7 @@ impl LibraryInstance {
                 "library_address" => library_address
                 // contract_name is passed seperately, so we don't need to pass it here.
             },
+            0
         ))
     }
 
@@ -47,6 +48,7 @@ impl LibraryInstance {
                 "symbol" => symbol,
                 "decimals" => decimals
             },
+            0
         );
     }
 
@@ -64,6 +66,7 @@ impl LibraryInstance {
                 "reserve_a" => reserve_a,
                 "reserve_b" => reserve_b
             },
+            0
         );
     }
 
@@ -76,6 +79,7 @@ impl LibraryInstance {
                 "token_a" => token_a,
                 "token_b" => token_b
             },
+            0
         );
     }
 
@@ -94,6 +98,7 @@ impl LibraryInstance {
                 "reserve_in" => reserve_in,
                 "reserve_out" => reserve_out
             },
+            0
         );
     }
 
@@ -112,6 +117,7 @@ impl LibraryInstance {
                 "reserve_in" => reserve_in,
                 "reserve_out" => reserve_out
             },
+            0
         );
     }
 
@@ -130,6 +136,7 @@ impl LibraryInstance {
                 "amount_in" => amount_in,
                 "path" => path
             },
+            0
         );
     }
 
@@ -148,6 +155,7 @@ impl LibraryInstance {
                 "amount_out" => amount_out,
                 "path" => path
             },
+            0
         );
     }
 
@@ -178,6 +186,7 @@ impl LibraryInstance {
                 "deadline" => deadline,
                 "pair" => pair
             },
+            0
         );
     }
 
@@ -189,6 +198,7 @@ impl LibraryInstance {
                 "spender" => spender,
                 "amount" => amount
             },
+            0
         );
     }
 
@@ -207,6 +217,7 @@ impl LibraryInstance {
                 "spender" => spender,
                 "amount" => amount
             },
+            0
         );
     }
 

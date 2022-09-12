@@ -3,7 +3,7 @@ use casper_types::{
     RuntimeArgs, U256,
 };
 use std::time::{SystemTime, UNIX_EPOCH};
-use test_env::{TestContract, TestEnv};
+use casperlabs_test_env::{TestContract, TestEnv};
 
 use crate::uniswap_v2_library_instance::LibraryInstance;
 
@@ -30,6 +30,7 @@ fn deploy_dummy_tokens(
             "symbol" => "tk1",
             "decimals" => decimals
         },
+        0
     );
 
     let token2_owner = if owner.is_none() {
@@ -48,6 +49,7 @@ fn deploy_dummy_tokens(
             "symbol" => "tk2",
             "decimals" => decimals
         },
+        0
     );
 
     let token3_owner = if owner.is_none() {
@@ -66,6 +68,7 @@ fn deploy_dummy_tokens(
             "symbol" => "tk3",
             "decimals" => decimals
         },
+        0
     );
 
     (token1_contract, token2_contract, token3_contract)
@@ -96,6 +99,7 @@ fn deploy_library() -> (
             "fee_to_setter" => Key::Hash(token3.package_hash())
             // contract_name is passed seperately, so we don't need to pass it here.
         },
+        0
     );
 
     let decimals: u8 = 18;
@@ -110,6 +114,7 @@ fn deploy_library() -> (
             "symbol" => "ERC",
             "decimals" => decimals
         },
+        0
     );
 
     // deploy wcspr contract
@@ -123,6 +128,7 @@ fn deploy_library() -> (
             "symbol" => "dai",
             "decimals" => decimals
         },
+        0
     );
 
     // deploy flash swapper
@@ -136,6 +142,7 @@ fn deploy_library() -> (
             "wcspr" => Key::Hash(wcspr.package_hash()),
             "dai" => Key::Hash(dai.package_hash())
         },
+        0
     );
 
     // deploy pair contract
@@ -153,6 +160,7 @@ fn deploy_library() -> (
             "factory_hash" => Key::Hash(factory_contract.package_hash()),
             "callee_package_hash" => Key::Hash(flash_swapper.package_hash())
         },
+        0
     );
 
     // deploy library contract
@@ -162,6 +170,7 @@ fn deploy_library() -> (
         "library",
         owner,
         runtime_args! {},
+        0
     );
 
     // Deploy Router Contract
@@ -175,6 +184,7 @@ fn deploy_library() -> (
             "wcspr" => Key::Hash(wcspr.package_hash()),
             "library" => Key::Hash(library_contract.package_hash())
         },
+        0
     );
 
     // deploy Test contract
@@ -192,6 +202,7 @@ fn deploy_library() -> (
         owner,
         "set_white_list",
         runtime_args! {"white_list" => Key::from(router_package_hash)},
+        0
     );
 
     (
@@ -265,6 +276,7 @@ fn test_uniswap_get_reserves() {
             "to" => Key::from(test_contract.package_hash_result()),
             "amount" => U256::from("100000000000")
         },
+        0
     );
     token2.call_contract(
         owner,
@@ -273,6 +285,7 @@ fn test_uniswap_get_reserves() {
             "to" => Key::from(test_contract.package_hash_result()),
             "amount" => U256::from("100000000000")
         },
+        0
     );
 
     // test_contract.proxy_approve(
@@ -336,6 +349,7 @@ fn test_uniswap_get_amounts_out() {
             "to" => Key::from(test_contract.package_hash_result()),
             "amount" => U256::from("100000000000")
         },
+        0
     );
     token2.call_contract(
         owner,
@@ -344,6 +358,7 @@ fn test_uniswap_get_amounts_out() {
             "to" => Key::from(test_contract.package_hash_result()),
             "amount" => U256::from("100000000000")
         },
+        0
     );
 
     // test_contract.proxy_approve(owner, &token1, router_package_hash, amount_a_desired);
@@ -397,6 +412,7 @@ fn test_uniswap_get_amounts_in() {
             "to" => Key::from(test_contract.package_hash_result()),
             "amount" => U256::from("100000000000")
         },
+        0
     );
     token2.call_contract(
         owner,
@@ -405,6 +421,7 @@ fn test_uniswap_get_amounts_in() {
             "to" => Key::from(test_contract.package_hash_result()),
             "amount" => U256::from("100000000000")
         },
+        0
     );
 
     // test_contract.proxy_approve(

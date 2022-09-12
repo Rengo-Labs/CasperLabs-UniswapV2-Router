@@ -1,6 +1,6 @@
 use casper_contract::unwrap_or_revert::UnwrapOrRevert;
 use casper_types::{ContractHash, ContractPackageHash};
-use contract_utils::{get_key, set_key};
+use casperlabs_contract_utils::{get_key, set_key};
 
 extern crate alloc;
 use alloc::{string::String, vec::Vec};

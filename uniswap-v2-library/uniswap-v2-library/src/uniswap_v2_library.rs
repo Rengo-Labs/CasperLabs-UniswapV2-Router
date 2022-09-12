@@ -10,7 +10,7 @@ use casper_types::{
     contracts::{ContractHash, ContractPackageHash},
     runtime_args, CLTyped, Key, RuntimeArgs, U128, U256,
 };
-use contract_utils::{ContractContext, ContractStorage};
+use casperlabs_contract_utils::{ContractContext, ContractStorage};
 
 use crate::config::error::ErrorCode;
 use crate::data::{self};

@@ -10,8 +10,8 @@ casper-contract = { version = "1.4.4", default-features = false, features = ["te
 casper-engine-test-support = { version = "2.2.0", features = ["test-support"] }
 casper-types = "1.5.0"
 # casper-hashing = "1.4.3"
-test-env = { path = "../../utils/test-env" }
-contract-utils = { path = "../../utils/contract-utils" }
+casperlabs-test-env = "0.2.0"
+casperlabs-contract-utils = "0.1.4"
 hex = "0.4.3"
 blake2 = "0.9.1"
 renvm-sig = "0.1.1"
