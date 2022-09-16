@@ -1,6 +1,10 @@
 # Uniswap V2 Router - Casper Blockchain
 Router uses other contracts (factory, pair, library, etc) and add, remove, swap tokens from liquidity pools.
 
+## Security Audit by Quantstamp
+
+https://certificate.quantstamp.com/full/rengo-labs
+
 ## Table of contents
 
 - [Interacting with the contract](#interacting-with-the-contract)
@@ -60,7 +64,7 @@ into a sibling directory (one up from the current directory).
 ```
 cd ..
 
-git clone git@github.com:Scytalelabs-official/CasperLabs-UniswapV2-core.git
+git clone git@github.com:Rengo-Labs/CasperLabs-UniswapV2-core.git
 ```
 
 To build the contracts and run the tests, first navigate back to this directory
