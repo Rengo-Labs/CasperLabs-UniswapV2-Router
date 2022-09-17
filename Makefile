@@ -1,4 +1,4 @@
-uniswap_core_directory = ../CasperLabs-UniswapV2-core
+uniswap_core_directory = ../CasperLabs-UniswapV2-Core
 uniswap_router_directory = .
 
 erc20_contract = ${uniswap_core_directory}/erc20/
