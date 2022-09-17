@@ -5,7 +5,6 @@ jobs:
     docker:
       - image: cimg/rust:1.50.0
     steps:
-      - run: ssh-keyscan github.com >> ~/.ssh/known_hosts
       - run: git clone https://github.com/Rengo-Labs/CasperLabs-UniswapV2-Core.git
       - run: git clone https://github.com/Rengo-Labs/CasperLabs-UniswapV2-Router.git
       - run: cd CasperLabs-UniswapV2-Router
