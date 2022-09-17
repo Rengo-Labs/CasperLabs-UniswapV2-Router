@@ -5,9 +5,8 @@ jobs:
     docker:
       - image: cimg/rust:1.50.0
     steps:
-      - checkout
-      - run: cd ..
       - run: git clone git@github.com:Rengo-Labs/CasperLabs-UniswapV2-Core.git
+      - run: git clone git@github.com:Rengo-Labs/CasperLabs-UniswapV2-Router.git
       - run: cd CasperLabs-UniswapV2-Router
       - run: curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
       - run: sudo apt update
