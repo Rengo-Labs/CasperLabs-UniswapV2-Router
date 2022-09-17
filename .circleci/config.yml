@@ -7,7 +7,6 @@ jobs:
     steps:
       - run: git clone https://github.com/Rengo-Labs/CasperLabs-UniswapV2-Core.git
       - run: git clone https://github.com/Rengo-Labs/CasperLabs-UniswapV2-Router.git
-      - run: cd CasperLabs-UniswapV2-Router
       - run: sudo apt update
       - run: sudo apt install libssl-dev pkg-config
       - run: rustup install nightly-2022-08-29
@@ -16,10 +15,10 @@ jobs:
       - run: cargo +nightly-2022-08-29-x86_64-unknown-linux-gnu install casper-client
       - run: 
           name: Build
-          command: make all
+          command: cd CasperLabs-UniswapV2-Router && make all
       - run:
           name: Run Tests
-          command: "make test-all"
+          command: cd CasperLabs-UniswapV2-Router && make test-all
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
