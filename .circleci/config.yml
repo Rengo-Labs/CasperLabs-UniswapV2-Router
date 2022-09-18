@@ -9,10 +9,11 @@ jobs:
       - run: git clone https://github.com/Rengo-Labs/CasperLabs-UniswapV2-Router.git
       - run: sudo apt update
       - run: sudo apt install libssl-dev pkg-config
-      - run: rustup install nightly-2022-08-29
-      - run: rustup default nightly-2022-08-29-x86_64-unknown-linux-gnu
-      - run: cargo install cargo-casper
-      - run: cargo +nightly-2022-08-29-x86_64-unknown-linux-gnu install casper-client
+      - run: cd CasperLabs-UniswapV2-Router && rustup install nightly-2022-08-29
+      - run: cd CasperLabs-UniswapV2-Router && rustup default nightly-2022-08-29-x86_64-unknown-linux-gnu
+      - run: cd CasperLabs-UniswapV2-Router && rustup target add wasm32-unknown-unknown
+      - run: cd CasperLabs-UniswapV2-Router && cargo install cargo-casper
+      - run: cd CasperLabs-UniswapV2-Router && cargo +nightly-2022-08-29-x86_64-unknown-linux-gnu install casper-client
       - run: 
           name: Build
           command: cd CasperLabs-UniswapV2-Router && make all
