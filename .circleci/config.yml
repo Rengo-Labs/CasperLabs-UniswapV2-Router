@@ -14,8 +14,11 @@ jobs:
       - run: cargo install cargo-casper
       - run: cargo +nightly-2022-08-29-x86_64-unknown-linux-gnu install casper-client
       - run: 
-          name: Build
-          command: cd CasperLabs-UniswapV2-Core && rustup target add wasm32-unknown-unknown && cd ../CasperLabs-UniswapV2-Router && rustup target add wasm32-unknown-unknown && make all
+          name: Build Casper Core
+          command: cd CasperLabs-UniswapV2-Core && rustup target add wasm32-unknown-unknown && make all
+      - run: 
+          name: Build Casper Router
+          command: cd CasperLabs-UniswapV2-Router && rustup target add wasm32-unknown-unknown && make all
       - run:
           name: Run Tests
           command: cd CasperLabs-UniswapV2-Router && make test-all
