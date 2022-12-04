@@ -87,7 +87,7 @@ make all
 To run all the tests:
 
 ```
-make test
+make test-all
 ```
 
 To clean up:
