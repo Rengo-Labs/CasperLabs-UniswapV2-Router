@@ -9,9 +9,8 @@ edition = "2018"
 casper-contract = { version = "1.4.4", default-features = false, features = ["test-support"] }
 casper-engine-test-support = { version = "2.2.0", features = ["test-support"] }
 casper-types = "1.5.0"
-# casper-hashing = "1.4.3"
-casperlabs-test-env = "0.2.0"
-casperlabs-contract-utils = "0.1.4"
+casperlabs-test-env = "0.3.0"
+casperlabs-contract-utils = "0.2.1"
 hex = "0.4.3"
 blake2 = "0.9.1"
 renvm-sig = "0.1.1"

@@ -1,0 +1,14 @@
+[workspace]
+members = [
+    # UNISWAP V2 LIBRARY
+    "uniswap-v2-library/uniswap-v2-library",
+    "uniswap-v2-library/uniswap-v2-library-tests",
+    # UNISWAP V2 ROUTER
+    "uniswap-v2-router/uniswap-v2-router",
+    "uniswap-v2-router/uniswap-v2-router-tests",
+    "uniswap-v2-router/session-code-router",
+]
+
+[profile.release]
+codegen-units = 1
+lto = true
