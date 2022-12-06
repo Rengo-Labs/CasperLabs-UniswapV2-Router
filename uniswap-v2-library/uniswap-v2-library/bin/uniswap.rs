@@ -1,20 +1,12 @@
 #![no_main]
-#![no_std]
 #![feature(slice_range)]
 
-extern crate alloc;
-use crate::vec::Vec;
-use alloc::{boxed::Box, collections::BTreeSet, format, vec};
-use casper_contract::{
+use common::{
     contract_api::{runtime, storage},
     unwrap_or_revert::UnwrapOrRevert,
+    *,
 };
-use casper_types::{
-    runtime_args, CLType, CLTyped, CLValue, ContractHash, ContractPackageHash, EntryPoint,
-    EntryPointAccess, EntryPointType, EntryPoints, Group, Key, Parameter, RuntimeArgs, URef, U128,
-    U256,
-};
-use casperlabs_contract_utils::{ContractContext, OnChainContractStorage};
+use std::collections::BTreeSet;
 use uniswap_v2_library::{self, UniswapV2Library};
 
 #[derive(Default)]
@@ -26,7 +18,7 @@ impl ContractContext<OnChainContractStorage> for Uniswap {
 }
 impl UniswapV2Library<OnChainContractStorage> for Uniswap {}
 impl Uniswap {
-    fn constructor(&mut self, contract_hash: ContractHash, package_hash: ContractPackageHash) {
+    fn constructor(&self, contract_hash: ContractHash, package_hash: ContractPackageHash) {
         UniswapV2Library::init(self, contract_hash, package_hash);
     }
 }
@@ -278,7 +270,7 @@ fn call() {
         .unwrap_or_revert();
 
     // Store contract in the account's named keys.
-    let contract_name: alloc::string::String = runtime::get_named_arg("contract_name");
+    let contract_name: String = runtime::get_named_arg("contract_name");
     runtime::put_key(
         &format!("{}_package_hash", contract_name),
         package_hash.into(),

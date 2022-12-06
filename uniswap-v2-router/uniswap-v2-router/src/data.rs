@@ -1,15 +1,30 @@
-use casper_contract::unwrap_or_revert::UnwrapOrRevert;
-use casper_types::{
-    contracts::{ContractPackageHash},
-    Key,
-};
-use casperlabs_contract_utils::{get_key, set_key};
+use casper_types_derive::{CLTyped, FromBytes, ToBytes};
+use common::{functions::account_zero_address, keys::*, unwrap_or_revert::UnwrapOrRevert, *};
 
-pub const WCSPR: &str = "wcspr";
-pub const FACTORY: &str = "factory";
-pub const SELF_HASH: &str = "self_hash";
-pub const PACKAGE_HASH: &str = "package_hash";
-pub const LIBRARY_HASH: &str = "library_hash";
+#[derive(CLTyped, ToBytes, FromBytes)]
+pub struct Whitelist {
+    dict: Dict,
+}
+
+impl Whitelist {
+    pub fn instance() -> Whitelist {
+        Whitelist {
+            dict: Dict::instance(WHITELIST),
+        }
+    }
+
+    pub fn init() {
+        Dict::init(WHITELIST)
+    }
+
+    pub fn get(&self, user: &Key) -> bool {
+        self.dict.get_by_key(user).unwrap_or_default()
+    }
+
+    pub fn set(&self, user: &Key, value: bool) {
+        self.dict.set_by_key(user, value);
+    }
+}
 
 pub fn wcspr() -> ContractPackageHash {
     get_key(WCSPR).unwrap_or_revert()
@@ -32,16 +47,10 @@ pub fn set_library_hash(library_hash: ContractPackageHash) {
     set_key(LIBRARY_HASH, library_hash);
 }
 
-pub fn self_hash() -> Key {
-    get_key(SELF_HASH).unwrap_or_revert()
-}
-pub fn set_self_hash(contract_hash: Key) {
-    set_key(SELF_HASH, contract_hash);
+pub fn set_owner(owner: Key) {
+    set_key(OWNER, owner)
 }
 
-pub fn package_hash() -> ContractPackageHash {
-    get_key(PACKAGE_HASH).unwrap_or_revert()
-}
-pub fn set_package_hash(package_hash: ContractPackageHash) {
-    set_key(PACKAGE_HASH, package_hash);
+pub fn get_owner() -> Key {
+    get_key(OWNER).unwrap_or_else(account_zero_address)
 }

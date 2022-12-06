@@ -1,5 +1,8 @@
 [workspace]
 members = [
+    # COMMON
+    "common/common",
+    "common/tests-common",
     # UNISWAP V2 LIBRARY
     "uniswap-v2-library/uniswap-v2-library",
     "uniswap-v2-library/uniswap-v2-library-tests",
