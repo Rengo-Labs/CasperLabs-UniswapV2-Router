@@ -1,34 +1,10 @@
-use blake2::{
-    digest::{Update, VariableOutput},
-    VarBlake2b,
-};
-use casper_types::{
-    account::AccountHash, bytesrepr::ToBytes, runtime_args, ContractHash, ContractPackageHash, Key,
-    RuntimeArgs, U128, U256,
-};
-use casperlabs_test_env::{TestContract, TestEnv};
+use tests_common::{account::AccountHash, TestContract, *};
 
 pub struct LibraryInstance(TestContract);
 
 impl LibraryInstance {
-    pub fn new(
-        env: &TestEnv,
-        router_address: Key,
-        library_address: Key,
-        sender: AccountHash,
-    ) -> LibraryInstance {
-        LibraryInstance(TestContract::new(
-            env,
-            "contract.wasm",
-            "library_test_contract",
-            sender,
-            runtime_args! {
-                "router_address" => router_address,
-                "library_address" => library_address
-                // contract_name is passed seperately, so we don't need to pass it here.
-            },
-            0
-        ))
+    pub fn instance(contract: TestContract) -> LibraryInstance {
+        LibraryInstance(contract)
     }
 
     pub fn constructor(
@@ -48,7 +24,7 @@ impl LibraryInstance {
                 "symbol" => symbol,
                 "decimals" => decimals
             },
-            0
+            0,
         );
     }
 
@@ -66,7 +42,7 @@ impl LibraryInstance {
                 "reserve_a" => reserve_a,
                 "reserve_b" => reserve_b
             },
-            0
+            0,
         );
     }
 
@@ -79,7 +55,7 @@ impl LibraryInstance {
                 "token_a" => token_a,
                 "token_b" => token_b
             },
-            0
+            0,
         );
     }
 
@@ -98,7 +74,7 @@ impl LibraryInstance {
                 "reserve_in" => reserve_in,
                 "reserve_out" => reserve_out
             },
-            0
+            0,
         );
     }
 
@@ -117,7 +93,7 @@ impl LibraryInstance {
                 "reserve_in" => reserve_in,
                 "reserve_out" => reserve_out
             },
-            0
+            0,
         );
     }
 
@@ -136,7 +112,7 @@ impl LibraryInstance {
                 "amount_in" => amount_in,
                 "path" => path
             },
-            0
+            0,
         );
     }
 
@@ -155,7 +131,7 @@ impl LibraryInstance {
                 "amount_out" => amount_out,
                 "path" => path
             },
-            0
+            0,
         );
     }
 
@@ -186,7 +162,7 @@ impl LibraryInstance {
                 "deadline" => deadline,
                 "pair" => pair
             },
-            0
+            0,
         );
     }
 
@@ -198,7 +174,7 @@ impl LibraryInstance {
                 "spender" => spender,
                 "amount" => amount
             },
-            0
+            0,
         );
     }
 
@@ -217,28 +193,11 @@ impl LibraryInstance {
                 "spender" => spender,
                 "amount" => amount
             },
-            0
+            0,
         );
     }
 
-    pub fn package_hash_result(&self) -> ContractPackageHash {
-        self.0.query_named_key("package_hash".to_string())
+    pub fn package_hash(&self) -> ContractPackageHash {
+        self.0.query_named_key("contract_package_hash".to_string())
     }
-}
-
-pub fn key_to_str(key: &Key) -> String {
-    match key {
-        Key::Account(account) => account.to_string(),
-        Key::Hash(package) => hex::encode(package),
-        _ => panic!("Unexpected key type"),
-    }
-}
-
-pub fn keys_to_str(key_a: &U256, key_b: &Key) -> String {
-    let mut hasher = VarBlake2b::new(32).unwrap();
-    hasher.update(key_a.to_bytes().unwrap());
-    hasher.update(key_b.to_bytes().unwrap());
-    let mut ret = [0u8; 32];
-    hasher.finalize_variable(|hash| ret.clone_from_slice(hash));
-    hex::encode(ret)
 }

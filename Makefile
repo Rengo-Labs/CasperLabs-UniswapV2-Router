@@ -12,9 +12,9 @@ build-dependencies:
 	cd ${uniswap_core_directory} && make build-all
 
 build-contract-uniswap-v2-library:
-	cargo build --release -p uniswap-v2-library --target wasm32-unknown-unknown
+	cargo build --release -p uniswap-v2-library -p session-code-router --target wasm32-unknown-unknown
 build-contract-uniswap-v2-router:
-	cargo build --release -p uniswap-v2-router --target wasm32-unknown-unknown
+	cargo build --release -p uniswap-v2-router -p session-code-router --target wasm32-unknown-unknown
 
 build-all:
 	make build-contract-uniswap-v2-library

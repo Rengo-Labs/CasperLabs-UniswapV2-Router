@@ -1,19 +1,12 @@
 #![no_main]
-#![no_std]
 
-extern crate alloc;
-use alloc::{boxed::Box, collections::BTreeSet, format, string::String, vec, vec::Vec};
-use casper_contract::{
-    contract_api::{runtime, storage},
+use common::{
+    contract_api::{runtime, storage, system},
+    functions::get_purse,
     unwrap_or_revert::UnwrapOrRevert,
+    *,
 };
-use casper_types::{
-    contracts::{ContractHash, ContractPackageHash},
-    runtime_args, ApiError, CLType, CLTyped, CLValue, EntryPoint, EntryPointAccess, EntryPointType,
-    EntryPoints, Group, Key, Parameter, RuntimeArgs, URef, U256,
-};
-use casperlabs_contract_utils::{ContractContext, OnChainContractStorage};
-use uniswap_v2_router::config::*;
+use std::collections::BTreeSet;
 use uniswap_v2_router::{self, UniswapV2Router};
 
 #[derive(Default)]
@@ -29,25 +22,19 @@ impl UniswapV2Router<OnChainContractStorage> for Uniswap {}
 
 impl Uniswap {
     fn constructor(
-        &mut self,
+        &self,
         factory: Key,
         wcspr: Key,
         library_hash: Key,
         contract_hash: ContractHash,
         package_hash: ContractPackageHash,
     ) {
-        let _factory: ContractPackageHash =
-            ContractPackageHash::from(factory.into_hash().unwrap_or_default());
-        let _wcspr: ContractPackageHash =
-            ContractPackageHash::from(wcspr.into_hash().unwrap_or_default());
-        let _library_hash: ContractPackageHash =
-            ContractPackageHash::from(library_hash.into_hash().unwrap_or_default());
         UniswapV2Router::init(
             self,
-            _factory,
-            _wcspr,
-            _library_hash,
-            Key::from(contract_hash),
+            factory.into_hash().unwrap_or_default().into(),
+            wcspr.into_hash().unwrap_or_default().into(),
+            library_hash.into_hash().unwrap_or_default().into(),
+            contract_hash,
             package_hash,
         );
     }
@@ -69,11 +56,6 @@ fn constructor() {
 ///
 /// Parameters-> token_a:Key, token_b:Key, amount_a_desired:U256, amount_b_desired:U256, amount_a_min:U256, amount_b_min:U256, to:Key, deadline: U256, pair:Option<Key> , purse:URef
 fn add_liquidity() {
-    let deadline: U256 = runtime::get_named_arg("deadline");
-    if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut1 as u16));
-    }
-
     let token_a: Key = runtime::get_named_arg("token_a");
     let token_b: Key = runtime::get_named_arg("token_b");
     let amount_a_desired: U256 = runtime::get_named_arg("amount_a_desired");
@@ -82,55 +64,19 @@ fn add_liquidity() {
     let amount_b_min: U256 = runtime::get_named_arg("amount_b_min");
     let to: Key = runtime::get_named_arg("to");
     let pair: Option<Key> = runtime::get_named_arg("pair");
-
-    let _token_a = ContractPackageHash::from(token_a.into_hash().unwrap_or_default());
-    let _token_b = ContractPackageHash::from(token_b.into_hash().unwrap_or_default());
-
+    let deadline: U256 = runtime::get_named_arg("deadline");
     let (amount_a, amount_b, liquidity): (U256, U256, U256) = Uniswap::default().add_liquidity(
-        _token_a,
-        _token_b,
+        token_a.into_hash().unwrap_or_revert().into(),
+        token_b.into_hash().unwrap_or_revert().into(),
         amount_a_desired,
         amount_b_desired,
         amount_a_min,
         amount_b_min,
         to,
         pair,
+        deadline,
     );
     runtime::ret(CLValue::from_t((amount_a, amount_b, liquidity)).unwrap_or_revert());
-}
-
-#[no_mangle]
-/// Add tokens to liquidity pool.
-///
-/// Parameters-> token_a:Key, token_b:Key, amount_a_desired:U256, amount_b_desired:U256, amount_a_min:U256, amount_b_min:U256, to:Key, deadline: U256, pair:Option<Key> , purse:URef
-fn add_liquidity_js_client() {
-    let deadline: U256 = runtime::get_named_arg("deadline");
-    if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut2 as u16));
-    }
-
-    let token_a: Key = runtime::get_named_arg("token_a");
-    let token_b: Key = runtime::get_named_arg("token_b");
-    let amount_a_desired: U256 = runtime::get_named_arg("amount_a_desired");
-    let amount_b_desired: U256 = runtime::get_named_arg("amount_b_desired");
-    let amount_a_min: U256 = runtime::get_named_arg("amount_a_min");
-    let amount_b_min: U256 = runtime::get_named_arg("amount_b_min");
-    let to: Key = runtime::get_named_arg("to");
-    let pair: Option<Key> = runtime::get_named_arg("pair");
-
-    let _token_a = ContractPackageHash::from(token_a.into_hash().unwrap_or_default());
-    let _token_b = ContractPackageHash::from(token_b.into_hash().unwrap_or_default());
-
-    let (_amount_a, _amount_b, _liquidity): (U256, U256, U256) = Uniswap::default().add_liquidity(
-        _token_a,
-        _token_b,
-        amount_a_desired,
-        amount_b_desired,
-        amount_a_min,
-        amount_b_min,
-        to,
-        pair,
-    );
 }
 
 #[no_mangle]
@@ -138,11 +84,6 @@ fn add_liquidity_js_client() {
 ///
 /// Parameters-> token:Key, amount_token_desired:U256, amount_cspr_desired:U256, amount_token_min:U256, amount_cspr_min:U256, to:Key, deadline:U256, pair:Option<Key> , purse:URef
 fn add_liquidity_cspr() {
-    let deadline: U256 = runtime::get_named_arg("deadline");
-    if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut3 as u16));
-    }
-
     let token: Key = runtime::get_named_arg("token");
     let amount_token_desired: U256 = runtime::get_named_arg("amount_token_desired");
     let amount_cspr_desired: U256 = runtime::get_named_arg("amount_cspr_desired");
@@ -151,11 +92,10 @@ fn add_liquidity_cspr() {
     let to: Key = runtime::get_named_arg("to");
     let pair: Option<Key> = runtime::get_named_arg("pair");
     let purse: URef = runtime::get_named_arg("purse");
-
-    let _token = ContractPackageHash::from(token.into_hash().unwrap_or_default());
+    let deadline: U256 = runtime::get_named_arg("deadline");
     let (amount_token, amount_cspr, liquidity): (U256, U256, U256) = Uniswap::default()
         .add_liquidity_cspr(
-            _token,
+            token.into_hash().unwrap_or_revert().into(),
             amount_token_desired,
             amount_cspr_desired,
             amount_token_min,
@@ -163,41 +103,9 @@ fn add_liquidity_cspr() {
             to,
             pair,
             purse,
+            deadline,
         );
     runtime::ret(CLValue::from_t((amount_token, amount_cspr, liquidity)).unwrap_or_revert());
-}
-
-#[no_mangle]
-/// Add cspr to liquidity pool.
-///
-/// Parameters-> token:Key, amount_token_desired:U256, amount_cspr_desired:U256, amount_token_min:U256, amount_cspr_min:U256, to:Key, deadline:U256, pair:Option<Key> , purse:URef
-fn add_liquidity_cspr_js_client() {
-    let deadline: U256 = runtime::get_named_arg("deadline");
-    if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut4 as u16));
-    }
-
-    let token: Key = runtime::get_named_arg("token");
-    let amount_token_desired: U256 = runtime::get_named_arg("amount_token_desired");
-    let amount_cspr_desired: U256 = runtime::get_named_arg("amount_cspr_desired");
-    let amount_token_min: U256 = runtime::get_named_arg("amount_token_min");
-    let amount_cspr_min: U256 = runtime::get_named_arg("amount_cspr_min");
-    let to: Key = runtime::get_named_arg("to");
-    let pair: Option<Key> = runtime::get_named_arg("pair");
-    let purse: URef = runtime::get_named_arg("purse");
-
-    let _token = ContractPackageHash::from(token.into_hash().unwrap_or_default());
-    let (_amount_token, _amount_cspr, _liquidity): (U256, U256, U256) = Uniswap::default()
-        .add_liquidity_cspr(
-            _token,
-            amount_token_desired,
-            amount_cspr_desired,
-            amount_token_min,
-            amount_cspr_min,
-            to,
-            pair,
-            purse,
-        );
 }
 
 #[no_mangle]
@@ -205,60 +113,23 @@ fn add_liquidity_cspr_js_client() {
 ///
 /// Parameters-> token_a:Key, token_b:Key, liquidity:U256, amount_a_min:U256, amount_b_min:U256, to:Key, deadline:U256
 fn remove_liquidity() {
-    let deadline: U256 = runtime::get_named_arg("deadline");
-    if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut5 as u16));
-    }
-
     let token_a: Key = runtime::get_named_arg("token_a");
     let token_b: Key = runtime::get_named_arg("token_b");
     let liquidity: U256 = runtime::get_named_arg("liquidity");
     let amount_a_min: U256 = runtime::get_named_arg("amount_a_min");
     let amount_b_min: U256 = runtime::get_named_arg("amount_b_min");
     let to: Key = runtime::get_named_arg("to");
-
-    let _token_a = ContractPackageHash::from(token_a.into_hash().unwrap_or_default());
-    let _token_b = ContractPackageHash::from(token_b.into_hash().unwrap_or_default());
-
+    let deadline: U256 = runtime::get_named_arg("deadline");
     let (amount_a, amount_b): (U256, U256) = Uniswap::default().remove_liquidity(
-        _token_a,
-        _token_b,
+        token_a.into_hash().unwrap_or_revert().into(),
+        token_b.into_hash().unwrap_or_revert().into(),
         liquidity,
         amount_a_min,
         amount_b_min,
         to,
+        deadline,
     );
     runtime::ret(CLValue::from_t((amount_a, amount_b)).unwrap_or_revert());
-}
-
-#[no_mangle]
-/// Remove from liquidity pool.
-///
-/// Parameters-> token_a:Key, token_b:Key, liquidity:U256, amount_a_min:U256, amount_b_min:U256, to:Key, deadline:U256
-fn remove_liquidity_js_client() {
-    let deadline: U256 = runtime::get_named_arg("deadline");
-    if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut6 as u16));
-    }
-
-    let token_a: Key = runtime::get_named_arg("token_a");
-    let token_b: Key = runtime::get_named_arg("token_b");
-    let liquidity: U256 = runtime::get_named_arg("liquidity");
-    let amount_a_min: U256 = runtime::get_named_arg("amount_a_min");
-    let amount_b_min: U256 = runtime::get_named_arg("amount_b_min");
-    let to: Key = runtime::get_named_arg("to");
-
-    let _token_a = ContractPackageHash::from(token_a.into_hash().unwrap_or_default());
-    let _token_b = ContractPackageHash::from(token_b.into_hash().unwrap_or_default());
-
-    let (_amount_a, _amount_b): (U256, U256) = Uniswap::default().remove_liquidity(
-        _token_a,
-        _token_b,
-        liquidity,
-        amount_a_min,
-        amount_b_min,
-        to,
-    );
 }
 
 #[no_mangle]
@@ -266,56 +137,23 @@ fn remove_liquidity_js_client() {
 ///
 /// Parameters-> token:Key, liquidity:U256, amount_token_min:U256, amount_cspr_min:U256, to:Key, deadline:U256
 fn remove_liquidity_cspr() {
-    let deadline: U256 = runtime::get_named_arg("deadline");
-    if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut7 as u16));
-    }
-
     let token: Key = runtime::get_named_arg("token");
     let liquidity: U256 = runtime::get_named_arg("liquidity");
     let amount_token_min: U256 = runtime::get_named_arg("amount_token_min");
     let amount_cspr_min: U256 = runtime::get_named_arg("amount_cspr_min");
     let to: Key = runtime::get_named_arg("to");
     let to_purse: URef = runtime::get_named_arg("to_purse");
-
-    let _token = ContractPackageHash::from(token.into_hash().unwrap_or_default());
+    let deadline: U256 = runtime::get_named_arg("deadline");
     let (amount_token, amount_cspr): (U256, U256) = Uniswap::default().remove_liquidity_cspr(
-        _token,
+        token.into_hash().unwrap_or_revert().into(),
         liquidity,
         amount_token_min,
         amount_cspr_min,
         to,
         to_purse,
+        deadline,
     );
     runtime::ret(CLValue::from_t((amount_token, amount_cspr)).unwrap_or_revert());
-}
-
-#[no_mangle]
-/// Remove cspr from liquidity pool.
-///
-/// Parameters-> token:Key, liquidity:U256, amount_token_min:U256, amount_cspr_min:U256, to:Key, deadline:U256
-fn remove_liquidity_cspr_js_client() {
-    let deadline: U256 = runtime::get_named_arg("deadline");
-    if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut8 as u16));
-    }
-
-    let token: Key = runtime::get_named_arg("token");
-    let liquidity: U256 = runtime::get_named_arg("liquidity");
-    let amount_token_min: U256 = runtime::get_named_arg("amount_token_min");
-    let amount_cspr_min: U256 = runtime::get_named_arg("amount_cspr_min");
-    let to: Key = runtime::get_named_arg("to");
-    let to_purse: URef = runtime::get_named_arg("to_purse");
-
-    let _token = ContractPackageHash::from(token.into_hash().unwrap_or_default());
-    let (_amount_token, _amount_cspr): (U256, U256) = Uniswap::default().remove_liquidity_cspr(
-        _token,
-        liquidity,
-        amount_token_min,
-        amount_cspr_min,
-        to,
-        to_purse,
-    );
 }
 
 #[no_mangle]
@@ -323,38 +161,19 @@ fn remove_liquidity_cspr_js_client() {
 ///
 /// Parameters-> amount_in:U256, amount_out_min:U256, path:Vec<Key>, to:Key, deadline:U256
 fn swap_exact_tokens_for_tokens() {
-    let deadline: U256 = runtime::get_named_arg("deadline");
-    if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut9 as u16));
-    }
-
     let amount_in: U256 = runtime::get_named_arg("amount_in");
     let amount_out_min: U256 = runtime::get_named_arg("amount_out_min");
     let path: Vec<String> = runtime::get_named_arg("path");
     let to: Key = runtime::get_named_arg("to");
-
-    let amounts: Vec<U256> =
-        Uniswap::default().swap_exact_tokens_for_tokens(amount_in, amount_out_min, path, to);
+    let deadline: U256 = runtime::get_named_arg("deadline");
+    let amounts: Vec<U256> = Uniswap::default().swap_exact_tokens_for_tokens(
+        amount_in,
+        amount_out_min,
+        path,
+        to,
+        deadline,
+    );
     runtime::ret(CLValue::from_t(amounts).unwrap_or_revert());
-}
-
-#[no_mangle]
-/// Swap exact tokens for tokens.
-///
-/// Parameters-> amount_in:U256, amount_out_min:U256, path:Vec<Key>, to:Key, deadline:U256
-fn swap_exact_tokens_for_tokens_js_client() {
-    let deadline: U256 = runtime::get_named_arg("deadline");
-    if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut10 as u16));
-    }
-
-    let amount_in: U256 = runtime::get_named_arg("amount_in");
-    let amount_out_min: U256 = runtime::get_named_arg("amount_out_min");
-    let path: Vec<String> = runtime::get_named_arg("path");
-    let to: Key = runtime::get_named_arg("to");
-
-    let _amounts: Vec<U256> =
-        Uniswap::default().swap_exact_tokens_for_tokens(amount_in, amount_out_min, path, to);
 }
 
 #[no_mangle]
@@ -362,38 +181,19 @@ fn swap_exact_tokens_for_tokens_js_client() {
 ///
 /// Parameters-> amount_out:U256, amount_in_max:U256, path:Vec<Key>, to:Key, deadline:U256
 fn swap_tokens_for_exact_tokens() {
-    let deadline: U256 = runtime::get_named_arg("deadline");
-    if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut11 as u16));
-    }
-
     let amount_out: U256 = runtime::get_named_arg("amount_out");
     let amount_in_max: U256 = runtime::get_named_arg("amount_in_max");
     let path: Vec<String> = runtime::get_named_arg("path");
     let to: Key = runtime::get_named_arg("to");
-
-    let amounts: Vec<U256> =
-        Uniswap::default().swap_tokens_for_exact_tokens(amount_out, amount_in_max, path, to);
+    let deadline: U256 = runtime::get_named_arg("deadline");
+    let amounts: Vec<U256> = Uniswap::default().swap_tokens_for_exact_tokens(
+        amount_out,
+        amount_in_max,
+        path,
+        to,
+        deadline,
+    );
     runtime::ret(CLValue::from_t(amounts).unwrap_or_revert());
-}
-
-#[no_mangle]
-/// Swap tokens for exact tokens.
-///
-/// Parameters-> amount_out:U256, amount_in_max:U256, path:Vec<Key>, to:Key, deadline:U256
-fn swap_tokens_for_exact_tokens_js_client() {
-    let deadline: U256 = runtime::get_named_arg("deadline");
-    if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut12 as u16));
-    }
-
-    let amount_out: U256 = runtime::get_named_arg("amount_out");
-    let amount_in_max: U256 = runtime::get_named_arg("amount_in_max");
-    let path: Vec<String> = runtime::get_named_arg("path");
-    let to: Key = runtime::get_named_arg("to");
-
-    let _amounts: Vec<U256> =
-        Uniswap::default().swap_tokens_for_exact_tokens(amount_out, amount_in_max, path, to);
 }
 
 #[no_mangle]
@@ -401,118 +201,21 @@ fn swap_tokens_for_exact_tokens_js_client() {
 ///
 /// Parameters-> amount_out_min:U256, amount_in:U256, path:Vec<Key>, to:Key, deadline:U256, purse:URef
 fn swap_exact_cspr_for_tokens() {
-    let deadline: U256 = runtime::get_named_arg("deadline");
-    if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut13 as u16));
-    }
-
     let amount_out_min: U256 = runtime::get_named_arg("amount_out_min");
     let amount_in: U256 = runtime::get_named_arg("amount_in");
     let path: Vec<String> = runtime::get_named_arg("path");
     let to: Key = runtime::get_named_arg("to");
     let purse: URef = runtime::get_named_arg("purse");
-
-    let amounts: Vec<U256> =
-        Uniswap::default().swap_exact_cspr_for_tokens(amount_out_min, amount_in, path, to, purse);
+    let deadline: U256 = runtime::get_named_arg("deadline");
+    let amounts: Vec<U256> = Uniswap::default().swap_exact_cspr_for_tokens(
+        amount_out_min,
+        amount_in,
+        path,
+        to,
+        purse,
+        deadline,
+    );
     runtime::ret(CLValue::from_t(amounts).unwrap_or_revert());
-}
-
-#[no_mangle]
-/// Swap exact cspr for tokens.
-///
-/// Parameters-> amount_out_min:U256, amount_in:U256, path:Vec<Key>, to:Key, deadline:U256, purse:URef
-fn swap_exact_cspr_for_tokens_js_client() {
-    let deadline: U256 = runtime::get_named_arg("deadline");
-    if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut14 as u16));
-    }
-
-    let amount_out_min: U256 = runtime::get_named_arg("amount_out_min");
-    let amount_in: U256 = runtime::get_named_arg("amount_in");
-    let path: Vec<String> = runtime::get_named_arg("path");
-    let to: Key = runtime::get_named_arg("to");
-    let purse: URef = runtime::get_named_arg("purse");
-
-    let _amounts: Vec<U256> =
-        Uniswap::default().swap_exact_cspr_for_tokens(amount_out_min, amount_in, path, to, purse);
-}
-
-#[no_mangle]
-/// Swap tokens for exact cspr.
-///
-/// Parameters-> amount_out:U256, amount_in_max:U256, path:Vec<Key>, to:Key, deadline:U256
-fn swap_tokens_for_exact_cspr() {
-    let deadline: U256 = runtime::get_named_arg("deadline");
-    if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut15 as u16));
-    }
-
-    let amount_out: U256 = runtime::get_named_arg("amount_out");
-    let amount_in_max: U256 = runtime::get_named_arg("amount_in_max");
-    let path: Vec<String> = runtime::get_named_arg("path");
-    let to: URef = runtime::get_named_arg("to");
-
-    let amounts: Vec<U256> =
-        Uniswap::default().swap_tokens_for_exact_cspr(amount_out, amount_in_max, path, to);
-    runtime::ret(CLValue::from_t(amounts).unwrap_or_revert());
-}
-
-#[no_mangle]
-/// Swap tokens for exact cspr.
-///
-/// Parameters-> amount_out:U256, amount_in_max:U256, path:Vec<Key>, to:Key, deadline:U256
-fn swap_tokens_for_exact_cspr_js_client() {
-    let deadline: U256 = runtime::get_named_arg("deadline");
-    if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut16 as u16));
-    }
-
-    let amount_out: U256 = runtime::get_named_arg("amount_out");
-    let amount_in_max: U256 = runtime::get_named_arg("amount_in_max");
-    let path: Vec<String> = runtime::get_named_arg("path");
-    let to: URef = runtime::get_named_arg("to");
-
-    let _amounts: Vec<U256> =
-        Uniswap::default().swap_tokens_for_exact_cspr(amount_out, amount_in_max, path, to);
-}
-
-#[no_mangle]
-/// Swap exact tokens for cspr.
-///
-/// Parameters-> amount_in:U256, amount_out_min:U256, path:Vec<Key>, to:Key, deadline:U256
-fn swap_exact_tokens_for_cspr() {
-    let deadline: U256 = runtime::get_named_arg("deadline");
-    if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut17 as u16));
-    }
-
-    let amount_in: U256 = runtime::get_named_arg("amount_in");
-    let amount_out_min: U256 = runtime::get_named_arg("amount_out_min");
-    let path: Vec<String> = runtime::get_named_arg("path");
-    let to: URef = runtime::get_named_arg("to");
-
-    let amounts: Vec<U256> =
-        Uniswap::default().swap_exact_tokens_for_cspr(amount_in, amount_out_min, path, to);
-    runtime::ret(CLValue::from_t(amounts).unwrap_or_revert());
-}
-
-#[no_mangle]
-/// Swap exact tokens for cspr.
-///
-/// Parameters-> amount_in:U256, amount_out_min:U256, path:Vec<Key>, to:Key, deadline:U256
-fn swap_exact_tokens_for_cspr_js_client() {
-    let deadline: U256 = runtime::get_named_arg("deadline");
-    if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut18 as u16));
-    }
-
-    let amount_in: U256 = runtime::get_named_arg("amount_in");
-    let amount_out_min: U256 = runtime::get_named_arg("amount_out_min");
-    let path: Vec<String> = runtime::get_named_arg("path");
-    let to: URef = runtime::get_named_arg("to");
-
-    let _amounts: Vec<U256> =
-        Uniswap::default().swap_exact_tokens_for_cspr(amount_in, amount_out_min, path, to);
 }
 
 /// Swap cspr for exact tokens
@@ -521,37 +224,61 @@ fn swap_exact_tokens_for_cspr_js_client() {
 
 #[no_mangle]
 fn swap_cspr_for_exact_tokens() {
-    let deadline: U256 = runtime::get_named_arg("deadline");
-    if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut19 as u16));
-    }
-
     let amount_out: U256 = runtime::get_named_arg("amount_out");
     let amount_in_max: U256 = runtime::get_named_arg("amount_in_max");
     let path: Vec<String> = runtime::get_named_arg("path");
     let to: Key = runtime::get_named_arg("to");
     let purse: URef = runtime::get_named_arg("purse");
-
-    let amounts: Vec<U256> =
-        Uniswap::default().swap_cspr_for_exact_tokens(amount_out, amount_in_max, path, to, purse);
+    let deadline: U256 = runtime::get_named_arg("deadline");
+    let amounts: Vec<U256> = Uniswap::default().swap_cspr_for_exact_tokens(
+        amount_out,
+        amount_in_max,
+        path,
+        to,
+        purse,
+        deadline,
+    );
     runtime::ret(CLValue::from_t(amounts).unwrap_or_revert());
 }
 
 #[no_mangle]
-fn swap_cspr_for_exact_tokens_js_client() {
-    let deadline: U256 = runtime::get_named_arg("deadline");
-    if !(Uniswap::default().ensure(deadline)) {
-        runtime::revert(ApiError::User(ErrorCodes::UniswapV2RouterTimedOut20 as u16));
-    }
-
+/// Swap tokens for exact cspr.
+///
+/// Parameters-> amount_out:U256, amount_in_max:U256, path:Vec<Key>, to:Key, deadline:U256
+fn swap_tokens_for_exact_cspr() {
     let amount_out: U256 = runtime::get_named_arg("amount_out");
     let amount_in_max: U256 = runtime::get_named_arg("amount_in_max");
     let path: Vec<String> = runtime::get_named_arg("path");
-    let to: Key = runtime::get_named_arg("to");
-    let purse: URef = runtime::get_named_arg("purse");
+    let to: URef = runtime::get_named_arg("to");
+    let deadline: U256 = runtime::get_named_arg("deadline");
+    let amounts: Vec<U256> = Uniswap::default().swap_tokens_for_exact_cspr(
+        amount_out,
+        amount_in_max,
+        path,
+        to,
+        deadline,
+    );
+    runtime::ret(CLValue::from_t(amounts).unwrap_or_revert());
+}
 
-    let _amounts: Vec<U256> =
-        Uniswap::default().swap_cspr_for_exact_tokens(amount_out, amount_in_max, path, to, purse);
+#[no_mangle]
+/// Swap exact tokens for cspr.
+///
+/// Parameters-> amount_in:U256, amount_out_min:U256, path:Vec<Key>, to:Key, deadline:U256
+fn swap_exact_tokens_for_cspr() {
+    let amount_in: U256 = runtime::get_named_arg("amount_in");
+    let amount_out_min: U256 = runtime::get_named_arg("amount_out_min");
+    let path: Vec<String> = runtime::get_named_arg("path");
+    let to: URef = runtime::get_named_arg("to");
+    let deadline: U256 = runtime::get_named_arg("deadline");
+    let amounts: Vec<U256> = Uniswap::default().swap_exact_tokens_for_cspr(
+        amount_in,
+        amount_out_min,
+        path,
+        to,
+        deadline,
+    );
+    runtime::ret(CLValue::from_t(amounts).unwrap_or_revert());
 }
 
 #[no_mangle]
@@ -571,7 +298,6 @@ fn get_amount_out() {
     let amount_in: U256 = runtime::get_named_arg("amount_in");
     let reserve_in: U256 = runtime::get_named_arg("reserve_in");
     let reserve_out: U256 = runtime::get_named_arg("reserve_out");
-
     let amount_out: U256 = Uniswap::get_amount_out(amount_in, reserve_in, reserve_out);
     runtime::ret(CLValue::from_t(amount_out).unwrap_or_revert())
 }
@@ -582,7 +308,6 @@ fn get_amount_in() {
     let amount_out: U256 = runtime::get_named_arg("amount_out");
     let reserve_in: U256 = runtime::get_named_arg("reserve_in");
     let reserve_out: U256 = runtime::get_named_arg("reserve_out");
-
     let amount_in: U256 = Uniswap::get_amount_in(amount_out, reserve_in, reserve_out);
     runtime::ret(CLValue::from_t(amount_in).unwrap_or_revert())
 }
@@ -592,7 +317,6 @@ fn get_amount_in() {
 fn get_amounts_out() {
     let amount_in: U256 = runtime::get_named_arg("amount_in");
     let path: Vec<Key> = runtime::get_named_arg("path");
-
     let amounts: Vec<U256> = Uniswap::get_amounts_out(amount_in, path);
     runtime::ret(CLValue::from_t(amounts).unwrap_or_revert())
 }
@@ -602,20 +326,41 @@ fn get_amounts_out() {
 fn get_amounts_in() {
     let amount_out: U256 = runtime::get_named_arg("amount_out");
     let path: Vec<Key> = runtime::get_named_arg("path");
-
     let amounts: Vec<U256> = Uniswap::get_amounts_in(amount_out, path);
     runtime::ret(CLValue::from_t(amounts).unwrap_or_revert())
 }
 
 #[no_mangle]
-fn package_hash() {
-    let ret: ContractPackageHash = Uniswap::default().get_package_hash();
-    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
+// only accept CSPR via from the WCSPR contract
+fn receive() {
+    let amount: U512 = runtime::get_named_arg("amount");
+    let purse: URef = runtime::get_named_arg("purse");
+    system::transfer_from_purse_to_purse(purse, get_purse(), amount, None).unwrap_or_revert();
+}
+
+#[no_mangle]
+// change the owner for whitelisting
+fn change_owner() {
+    let owner: Key = runtime::get_named_arg("owner");
+    Uniswap::default().change_owner(owner);
+}
+
+#[no_mangle]
+// add a user to whitelist
+fn add_to_whitelist() {
+    let user: Key = runtime::get_named_arg("user");
+    Uniswap::default().add_to_whitelist(user);
+}
+
+#[no_mangle]
+// remove a user from whitelist
+fn remove_from_whitelist() {
+    let user: Key = runtime::get_named_arg("user");
+    Uniswap::default().remove_from_whitelist(user);
 }
 
 fn get_entry_points() -> EntryPoints {
     let mut entry_points = EntryPoints::new();
-
     entry_points.add_entry_point(EntryPoint::new(
         "constructor",
         vec![
@@ -629,9 +374,8 @@ fn get_entry_points() -> EntryPoints {
         EntryPointAccess::Groups(vec![Group::new("constructor")]),
         EntryPointType::Contract,
     ));
-
     entry_points.add_entry_point(EntryPoint::new(
-        String::from("add_liquidity"),
+        "add_liquidity",
         vec![
             Parameter::new("token_a", CLType::Key),
             Parameter::new("token_b", CLType::Key),
@@ -652,25 +396,7 @@ fn get_entry_points() -> EntryPoints {
         EntryPointType::Contract,
     ));
     entry_points.add_entry_point(EntryPoint::new(
-        String::from("add_liquidity_js_client"),
-        vec![
-            Parameter::new("token_a", CLType::Key),
-            Parameter::new("token_b", CLType::Key),
-            Parameter::new("amount_a_desired", CLType::U256),
-            Parameter::new("amount_b_desired", CLType::U256),
-            Parameter::new("amount_a_min", CLType::U256),
-            Parameter::new("amount_b_min", CLType::U256),
-            Parameter::new("to", CLType::Key),
-            Parameter::new("deadline", CLType::U256),
-            Parameter::new("pair", CLType::Option(Box::new(CLType::Key))),
-        ],
-        <()>::cl_type(),
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
-
-    entry_points.add_entry_point(EntryPoint::new(
-        String::from("add_liquidity_cspr"),
+        "add_liquidity_cspr",
         vec![
             Parameter::new("token", Key::cl_type()),
             Parameter::new("amount_token_desired", CLType::U256),
@@ -691,25 +417,7 @@ fn get_entry_points() -> EntryPoints {
         EntryPointType::Contract,
     ));
     entry_points.add_entry_point(EntryPoint::new(
-        String::from("add_liquidity_cspr_js_client"),
-        vec![
-            Parameter::new("token", Key::cl_type()),
-            Parameter::new("amount_token_desired", CLType::U256),
-            Parameter::new("amount_cspr_desired", CLType::U256),
-            Parameter::new("amount_token_min", CLType::U256),
-            Parameter::new("amount_cspr_min", CLType::U256),
-            Parameter::new("to", Key::cl_type()),
-            Parameter::new("deadline", CLType::U256),
-            Parameter::new("pair", CLType::Option(Box::new(CLType::Key))),
-            Parameter::new("purse", CLType::URef),
-        ],
-        <()>::cl_type(),
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
-
-    entry_points.add_entry_point(EntryPoint::new(
-        String::from("remove_liquidity"),
+        "remove_liquidity",
         vec![
             Parameter::new("token_a", Key::cl_type()),
             Parameter::new("token_b", Key::cl_type()),
@@ -723,25 +431,8 @@ fn get_entry_points() -> EntryPoints {
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
-
     entry_points.add_entry_point(EntryPoint::new(
-        String::from("remove_liquidity_js_client"),
-        vec![
-            Parameter::new("token_a", Key::cl_type()),
-            Parameter::new("token_b", Key::cl_type()),
-            Parameter::new("liquidity", CLType::U256),
-            Parameter::new("amount_a_min", CLType::U256),
-            Parameter::new("amount_b_min", CLType::U256),
-            Parameter::new("to", Key::cl_type()),
-            Parameter::new("deadline", CLType::U256),
-        ],
-        <()>::cl_type(),
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
-
-    entry_points.add_entry_point(EntryPoint::new(
-        String::from("remove_liquidity_cspr"),
+        "remove_liquidity_cspr",
         vec![
             Parameter::new("token", Key::cl_type()),
             Parameter::new("liquidity", CLType::U256),
@@ -755,25 +446,8 @@ fn get_entry_points() -> EntryPoints {
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
-
     entry_points.add_entry_point(EntryPoint::new(
-        String::from("remove_liquidity_cspr_js_client"),
-        vec![
-            Parameter::new("token", Key::cl_type()),
-            Parameter::new("liquidity", CLType::U256),
-            Parameter::new("amount_token_min", CLType::U256),
-            Parameter::new("amount_cspr_min", CLType::U256),
-            Parameter::new("to", Key::cl_type()),
-            Parameter::new("deadline", CLType::U256),
-            Parameter::new("to_purse", CLType::URef),
-        ],
-        <()>::cl_type(),
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
-
-    entry_points.add_entry_point(EntryPoint::new(
-        String::from("swap_exact_tokens_for_tokens"),
+        "swap_exact_tokens_for_tokens",
         vec![
             Parameter::new("amount_in", CLType::U256),
             Parameter::new("amount_out_min", CLType::U256),
@@ -785,23 +459,8 @@ fn get_entry_points() -> EntryPoints {
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
-
     entry_points.add_entry_point(EntryPoint::new(
-        String::from("swap_exact_tokens_for_tokens_js_client"),
-        vec![
-            Parameter::new("amount_in", CLType::U256),
-            Parameter::new("amount_out_min", CLType::U256),
-            Parameter::new("path", CLType::List(Box::new(String::cl_type()))),
-            Parameter::new("to", CLType::Key),
-            Parameter::new("deadline", CLType::U256),
-        ],
-        <()>::cl_type(),
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
-
-    entry_points.add_entry_point(EntryPoint::new(
-        String::from("swap_tokens_for_exact_tokens"),
+        "swap_tokens_for_exact_tokens",
         vec![
             Parameter::new("amount_out", CLType::U256),
             Parameter::new("amount_in_max", CLType::U256),
@@ -813,23 +472,8 @@ fn get_entry_points() -> EntryPoints {
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
-
     entry_points.add_entry_point(EntryPoint::new(
-        String::from("swap_tokens_for_exact_tokens_js_client"),
-        vec![
-            Parameter::new("amount_out", CLType::U256),
-            Parameter::new("amount_in_max", CLType::U256),
-            Parameter::new("path", CLType::List(Box::new(String::cl_type()))),
-            Parameter::new("to", CLType::Key),
-            Parameter::new("deadline", CLType::U256),
-        ],
-        <()>::cl_type(),
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
-
-    entry_points.add_entry_point(EntryPoint::new(
-        String::from("swap_exact_cspr_for_tokens"),
+        "swap_exact_cspr_for_tokens",
         vec![
             Parameter::new("amount_out_min", CLType::U256),
             Parameter::new("amount_in", CLType::U256),
@@ -842,24 +486,8 @@ fn get_entry_points() -> EntryPoints {
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
-
     entry_points.add_entry_point(EntryPoint::new(
-        String::from("swap_exact_cspr_for_tokens_js_client"),
-        vec![
-            Parameter::new("amount_out_min", CLType::U256),
-            Parameter::new("amount_in", CLType::U256),
-            Parameter::new("path", CLType::List(Box::new(String::cl_type()))),
-            Parameter::new("to", CLType::Key),
-            Parameter::new("deadline", CLType::U256),
-            Parameter::new("purse", CLType::URef),
-        ],
-        <()>::cl_type(),
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
-
-    entry_points.add_entry_point(EntryPoint::new(
-        String::from("swap_tokens_for_exact_cspr"),
+        "swap_tokens_for_exact_cspr",
         vec![
             Parameter::new("amount_out", CLType::U256),
             Parameter::new("amount_in_max", CLType::U256),
@@ -871,23 +499,8 @@ fn get_entry_points() -> EntryPoints {
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
-
     entry_points.add_entry_point(EntryPoint::new(
-        String::from("swap_tokens_for_exact_cspr_js_client"),
-        vec![
-            Parameter::new("amount_out", CLType::U256),
-            Parameter::new("amount_in_max", CLType::U256),
-            Parameter::new("path", CLType::List(Box::new(String::cl_type()))),
-            Parameter::new("to", CLType::URef),
-            Parameter::new("deadline", CLType::U256),
-        ],
-        <()>::cl_type(),
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
-
-    entry_points.add_entry_point(EntryPoint::new(
-        String::from("swap_exact_tokens_for_cspr"),
+        "swap_exact_tokens_for_cspr",
         vec![
             Parameter::new("amount_in", CLType::U256),
             Parameter::new("amount_out_min", CLType::U256),
@@ -899,23 +512,8 @@ fn get_entry_points() -> EntryPoints {
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
-
     entry_points.add_entry_point(EntryPoint::new(
-        String::from("swap_exact_tokens_for_cspr_js_client"),
-        vec![
-            Parameter::new("amount_in", CLType::U256),
-            Parameter::new("amount_out_min", CLType::U256),
-            Parameter::new("path", CLType::List(Box::new(String::cl_type()))),
-            Parameter::new("to", CLType::URef), // purse to transfer cspr to
-            Parameter::new("deadline", CLType::U256),
-        ],
-        <()>::cl_type(),
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
-
-    entry_points.add_entry_point(EntryPoint::new(
-        String::from("swap_cspr_for_exact_tokens"),
+        "swap_cspr_for_exact_tokens",
         vec![
             Parameter::new("amount_out", CLType::U256),
             Parameter::new("amount_in_max", CLType::U256),
@@ -928,22 +526,6 @@ fn get_entry_points() -> EntryPoints {
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
-
-    entry_points.add_entry_point(EntryPoint::new(
-        String::from("swap_cspr_for_exact_tokens_js_client"),
-        vec![
-            Parameter::new("amount_out", CLType::U256),
-            Parameter::new("amount_in_max", CLType::U256),
-            Parameter::new("path", CLType::List(Box::new(String::cl_type()))),
-            Parameter::new("to", CLType::Key),
-            Parameter::new("deadline", CLType::U256),
-            Parameter::new("purse", CLType::URef),
-        ],
-        <()>::cl_type(),
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
-
     entry_points.add_entry_point(EntryPoint::new(
         "quote",
         vec![
@@ -955,9 +537,8 @@ fn get_entry_points() -> EntryPoints {
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
-
     entry_points.add_entry_point(EntryPoint::new(
-        String::from("get_amount_out"),
+        "get_amount_out",
         vec![
             Parameter::new("amount_in", U256::cl_type()),
             Parameter::new("reserve_in", U256::cl_type()),
@@ -967,9 +548,8 @@ fn get_entry_points() -> EntryPoints {
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
-
     entry_points.add_entry_point(EntryPoint::new(
-        String::from("get_amount_in"),
+        "get_amount_in",
         vec![
             Parameter::new("amount_out", U256::cl_type()),
             Parameter::new("reserve_in", U256::cl_type()),
@@ -979,9 +559,8 @@ fn get_entry_points() -> EntryPoints {
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
-
     entry_points.add_entry_point(EntryPoint::new(
-        String::from("get_amounts_out"),
+        "get_amounts_out",
         vec![
             Parameter::new("amount_in", U256::cl_type()),
             Parameter::new("path", CLType::List(Box::new(Key::cl_type()))),
@@ -990,9 +569,8 @@ fn get_entry_points() -> EntryPoints {
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
-
     entry_points.add_entry_point(EntryPoint::new(
-        String::from("get_amounts_in"),
+        "get_amounts_in",
         vec![
             Parameter::new("amount_out", U256::cl_type()),
             Parameter::new("path", CLType::List(Box::new(Key::cl_type()))),
@@ -1001,15 +579,37 @@ fn get_entry_points() -> EntryPoints {
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
-
     entry_points.add_entry_point(EntryPoint::new(
-        "package_hash",
-        vec![],
-        ContractPackageHash::cl_type(),
+        "receive",
+        vec![
+            Parameter::new("amount", U512::cl_type()),
+            Parameter::new("purse", URef::cl_type()),
+        ],
+        <()>::cl_type(),
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
-
+    entry_points.add_entry_point(EntryPoint::new(
+        "change_owner",
+        vec![Parameter::new("owner", Key::cl_type())],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "add_to_whitelist",
+        vec![Parameter::new("user", Key::cl_type())],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "remove_from_whitelist",
+        vec![Parameter::new("user", Key::cl_type())],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
     entry_points
 }
 
@@ -1017,7 +617,7 @@ fn get_entry_points() -> EntryPoints {
 #[no_mangle]
 fn call() {
     // Store contract in the account's named keys. Contract name must be same for all new versions of the contracts
-    let contract_name: alloc::string::String = runtime::get_named_arg("contract_name");
+    let contract_name: String = runtime::get_named_arg("contract_name");
 
     // If this is the first deployment
     if !runtime::has_key(&format!("{}_package_hash", contract_name)) {
@@ -1078,7 +678,6 @@ fn call() {
         );
     } else {
         // this is a contract upgrade
-
         let package_hash: ContractPackageHash =
             runtime::get_key(&format!("{}_package_hash", contract_name))
                 .unwrap_or_revert()

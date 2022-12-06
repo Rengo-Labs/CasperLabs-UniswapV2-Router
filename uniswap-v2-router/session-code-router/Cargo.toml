@@ -4,12 +4,11 @@ version = "0.1.0"
 edition = "2018"
 
 [dependencies]
-casper-contract = "1.4.4"
-casper-types = "1.5.0"
+common = { path = "../../common/common" }
 
 [[bin]]
 name = "session-code-router"
-path = "src/main.rs"
+path = "bin/main.rs"
 bench = false
 doctest = false
 test = false
