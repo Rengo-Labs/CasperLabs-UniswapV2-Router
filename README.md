@@ -278,11 +278,11 @@ sudo casper-client put-deploy \
     --node-address http://$NODE_ADDRESS:7777/ \
     --secret-key path_to_secret_key.pem \
     --session-path path_to_wasm_file \
-    --payment-amount 260000000000 \
+    --payment-amount 250000000000 \
     --session-arg="public_key:public_key='Public Key In Hex'" \
     --session-arg="factory:Key='Hash of factory Contract'" \
     --session-arg="wcspr:Key='Hash of WCSPR Contract'" \
-    --session-arg="library_hash:Key='Hash of Library Contract'" \
+    --session-arg="library:Key='Hash of Library Contract'" \
     --session-arg="contract_name:string='contract_name'"
 ```
 
@@ -307,7 +307,7 @@ sudo casper-client put-deploy \
     --node-address http://$NODE_ADDRESS:7777/ \
     --secret-key path_to_secret_key.pem \
     --session-path path_to_wasm_file \
-    --payment-amount 10000000000 \
+    --payment-amount 150000000000 \
     --session-arg="public_key:public_key='Public Key In Hex'" \
     --session-arg="fee_to_setter:Key='Hash of fee-to-setter Contract'" \
     --session-arg="contract_name:string='contract_name'"
@@ -321,7 +321,7 @@ sudo casper-client put-deploy \
     --node-address http://$NODE_ADDRESS:7777/ \
     --secret-key path_to_secret_key.pem \
     --session-path path_to_wasm_file \
-    --payment-amount 10000000000 \
+    --payment-amount 345000000000 \
     --session-arg="public_key:public_key='Public Key In Hex'" \
     --session-arg="name:string='token-name'" \
     --session-arg="symbol:string='token-symbol'" \
@@ -351,7 +351,7 @@ sudo casper-client put-deploy \
     --node-address http://$NODE_ADDRESS:7777/ \
     --secret-key path_to_secret_key.pem \
     --session-path path_to_wasm_file \
-    --payment-amount 10000000000 \
+    --payment-amount 440000000000 \
     --session-arg="public_key:public_key='Public Key In Hex'" \
     --session-arg="name:string='token-name'" \
     --session-arg="symbol:string='token-symbol'" \
@@ -680,7 +680,7 @@ sudo casper-client put-deploy \
     --node-address http://$NODE_ADDRESS:7777/ \
     --secret-key path_to_secret_key.pem \
     --session-path path_to_wasm_file \
-    --payment-amount 10000000000 \
+    --payment-amount 120000000000 \
     --session-arg="public_key:public_key='Public Key In Hex'" \
     --session-arg="contract_name:string='contract_name'"
 ```
