@@ -935,8 +935,6 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
     }
 
     fn emit(&self, router_event: &ROUTEREvent) {
-        let mut events = Vec::new();
-        let package = get_package_hash();
         match router_event {
             ROUTEREvent::AddReserves {
                 user,
@@ -945,13 +943,13 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
                 pair_contract_hash,
             } => {
                 let mut event = BTreeMap::new();
-                event.insert("contract_package_hash", package.to_string());
+                event.insert("contract_package_hash", get_package_hash().to_string());
                 event.insert("event_type", router_event.type_name());
                 event.insert("user", user.to_string());
                 event.insert("reserve0", reserve0.to_string());
                 event.insert("reserve1", reserve1.to_string());
                 event.insert("pair_contract_hash", pair_contract_hash.to_string());
-                events.push(event);
+                storage::new_uref(event);
             }
             ROUTEREvent::RemoveReserves {
                 user,
@@ -960,17 +958,14 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
                 pair_contract_hash,
             } => {
                 let mut event = BTreeMap::new();
-                event.insert("contract_package_hash", package.to_string());
+                event.insert("contract_package_hash", get_package_hash().to_string());
                 event.insert("event_type", router_event.type_name());
                 event.insert("user", user.to_string());
                 event.insert("reserve0", reserve0.to_string());
                 event.insert("reserve1", reserve1.to_string());
                 event.insert("pair_contract_hash", pair_contract_hash.to_string());
-                events.push(event);
+                storage::new_uref(event);
             }
         };
-        for event in events {
-            storage::new_uref(event);
-        }
     }
 }
