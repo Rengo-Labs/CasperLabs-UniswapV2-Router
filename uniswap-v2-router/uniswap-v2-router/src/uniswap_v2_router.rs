@@ -172,7 +172,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         deadline: U256,
     ) -> (U256, U256, U256) {
         if !(self.ensure(deadline)) {
-            runtime::revert(ApiError::User(Errors::UniswapV2RouterTimedOut3 as u16));
+            runtime::revert(ApiError::User(Errors::UniswapV2RouterTimedOut2 as u16));
         }
         let (amount_token, amount_cspr): (U256, U256) = self._add_liquidity(
             token,
@@ -262,7 +262,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         deadline: U256,
     ) -> (U256, U256) {
         if !(self.ensure(deadline)) {
-            runtime::revert(ApiError::User(Errors::UniswapV2RouterTimedOut5 as u16));
+            runtime::revert(ApiError::User(Errors::UniswapV2RouterTimedOut3 as u16));
         }
         // call pair_for from library contract
         let pair: Key = runtime::call_versioned_contract(
@@ -335,7 +335,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         deadline: U256,
     ) -> (U256, U256) {
         if !(self.ensure(deadline)) {
-            runtime::revert(ApiError::User(Errors::UniswapV2RouterTimedOut7 as u16));
+            runtime::revert(ApiError::User(Errors::UniswapV2RouterTimedOut4 as u16));
         }
         // calling self contract's removeLiquidity
         let (amount_token, amount_cspr): (U256, U256) = self.remove_liquidity(
@@ -371,7 +371,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         deadline: U256,
     ) -> Vec<U256> {
         if !(self.ensure(deadline)) {
-            runtime::revert(ApiError::User(Errors::UniswapV2RouterTimedOut9 as u16));
+            runtime::revert(ApiError::User(Errors::UniswapV2RouterTimedOut5 as u16));
         }
         let mut path: Vec<Key> = Vec::new();
         for i in &_path {
@@ -389,7 +389,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             },
         );
         if amounts[amounts.len() - 1] < amount_out_min {
-            runtime::revert(Errors::UniswapV2RouterAbort4);
+            runtime::revert(Errors::UniswapV2RouterAbort2);
         }
         // get pair
         let pair: Key = runtime::call_versioned_contract(
@@ -416,7 +416,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         deadline: U256,
     ) -> Vec<U256> {
         if !(self.ensure(deadline)) {
-            runtime::revert(ApiError::User(Errors::UniswapV2RouterTimedOut11 as u16));
+            runtime::revert(ApiError::User(Errors::UniswapV2RouterTimedOut6 as u16));
         }
         let mut path: Vec<Key> = Vec::new();
         for i in &_path {
@@ -434,7 +434,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             },
         );
         if amounts[0] > amount_in_max {
-            runtime::revert(Errors::UniswapV2RouterAbort5);
+            runtime::revert(Errors::UniswapV2RouterAbort3);
         }
         let pair: Key = runtime::call_versioned_contract(
             library_hash(),
@@ -461,14 +461,14 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         deadline: U256,
     ) -> Vec<U256> {
         if !(self.ensure(deadline)) {
-            runtime::revert(ApiError::User(Errors::UniswapV2RouterTimedOut13 as u16));
+            runtime::revert(ApiError::User(Errors::UniswapV2RouterTimedOut7 as u16));
         }
         let mut path: Vec<Key> = Vec::new();
         for i in &_path {
             path.push(Key::from_formatted_str(i).unwrap());
         }
         if path[0] != Key::from(wcspr()) {
-            runtime::revert(Errors::UniswapV2RouterAbort6);
+            runtime::revert(Errors::UniswapV2RouterAbort4);
         }
         // call get_amounts_out
         let amounts: Vec<U256> = runtime::call_versioned_contract(
@@ -482,7 +482,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             },
         );
         if amounts[amounts.len() - 1] < amount_out_min {
-            runtime::revert(Errors::UniswapV2RouterAbort7);
+            runtime::revert(Errors::UniswapV2RouterAbort5);
         }
         system::transfer_from_purse_to_purse(
             caller_purse,
@@ -533,14 +533,14 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         deadline: U256,
     ) -> Vec<U256> {
         if !(self.ensure(deadline)) {
-            runtime::revert(ApiError::User(Errors::UniswapV2RouterTimedOut15 as u16));
+            runtime::revert(ApiError::User(Errors::UniswapV2RouterTimedOut8 as u16));
         }
         let mut path: Vec<Key> = Vec::new();
         for i in &_path {
             path.push(Key::from_formatted_str(i).unwrap());
         }
         if path[path.len() - 1] != Key::from(wcspr()) {
-            runtime::revert(Errors::UniswapV2RouterAbort8);
+            runtime::revert(Errors::UniswapV2RouterAbort6);
         }
         // call getAmountIn from Library contract
         let amounts: Vec<U256> = runtime::call_versioned_contract(
@@ -554,7 +554,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             },
         );
         if amounts[0] > amount_in_max {
-            runtime::revert(Errors::UniswapV2RouterAbort9);
+            runtime::revert(Errors::UniswapV2RouterAbort7);
         }
         // call safeTransferFrom from TransferHelper, first need to get the pair
         let pair: Key = runtime::call_versioned_contract(
@@ -591,14 +591,14 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         deadline: U256,
     ) -> Vec<U256> {
         if !(self.ensure(deadline)) {
-            runtime::revert(ApiError::User(Errors::UniswapV2RouterTimedOut17 as u16));
+            runtime::revert(ApiError::User(Errors::UniswapV2RouterTimedOut9 as u16));
         }
         let mut path: Vec<Key> = Vec::new();
         for i in &_path {
             path.push(Key::from_formatted_str(i).unwrap());
         }
         if path[path.len() - 1] != Key::from(wcspr()) {
-            runtime::revert(Errors::UniswapV2RouterAbort10);
+            runtime::revert(Errors::UniswapV2RouterAbort8);
         }
         // call get_amounts_out
         let amounts: Vec<U256> = runtime::call_versioned_contract(
@@ -612,7 +612,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             },
         );
         if amounts[amounts.len() - 1] < amount_out_min {
-            runtime::revert(Errors::UniswapV2RouterAbort11);
+            runtime::revert(Errors::UniswapV2RouterAbort9);
         }
         // call safeTransferFrom from TransferHelper, first need to get the pair
         let pair: Key = runtime::call_versioned_contract(
@@ -650,14 +650,14 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         deadline: U256,
     ) -> Vec<U256> {
         if !(self.ensure(deadline)) {
-            runtime::revert(ApiError::User(Errors::UniswapV2RouterTimedOut19 as u16));
+            runtime::revert(ApiError::User(Errors::UniswapV2RouterTimedOut10 as u16));
         }
         let mut path: Vec<Key> = Vec::new();
         for i in &_path {
             path.push(Key::from_formatted_str(i).unwrap());
         }
         if path[0] != Key::from(wcspr()) {
-            runtime::revert(Errors::UniswapV2RouterAbort12);
+            runtime::revert(Errors::UniswapV2RouterAbort10);
         }
         // call get_amounts_out
         let amounts: Vec<U256> = runtime::call_versioned_contract(
@@ -671,7 +671,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             },
         );
         if amounts[0] > amount_in_max {
-            runtime::revert(Errors::UniswapV2RouterAbort13);
+            runtime::revert(Errors::UniswapV2RouterAbort11);
         }
         system::transfer_from_purse_to_purse(
             caller_purse,

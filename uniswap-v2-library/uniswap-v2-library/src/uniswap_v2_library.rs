@@ -76,7 +76,7 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
             runtime::revert(Errors::InsufficientAmount);
         }
         if reserve_a <= 0.into() || reserve_b <= 0.into() {
-            runtime::revert(Errors::InsufficientLiquidity);
+            runtime::revert(Errors::InsufficientLiquidity1);
         }
         (amount_a * U256::from(reserve_b.as_u128())) / U256::from(reserve_a.as_u128())
     }
@@ -87,7 +87,7 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
             runtime::revert(Errors::InsufficientInputAmount);
         }
         if reserve_in <= 0.into() || reserve_out <= 0.into() {
-            runtime::revert(Errors::InsufficientLiquidity);
+            runtime::revert(Errors::InsufficientLiquidity2);
         }
         let amount_in_with_fee: U256 = amount_in * 997;
         let numerator: U256 = amount_in_with_fee * reserve_out;
@@ -105,7 +105,7 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
             runtime::revert(Errors::InsufficientOutputAmount);
         }
         if reserve_in <= 0.into() || reserve_out <= 0.into() {
-            runtime::revert(Errors::InsufficientLiquidity);
+            runtime::revert(Errors::InsufficientLiquidity3);
         }
         let numerator: U256 = reserve_in * amount_out * 1000;
         let denominator: U256 = (reserve_out - amount_out) * 997;
@@ -122,7 +122,7 @@ pub trait UniswapV2Library<Storage: ContractStorage>: ContractContext<Storage> {
         path: Vec<ContractPackageHash>,
     ) -> Vec<U256> {
         if path.len() < 2 {
-            runtime::revert(Errors::InsufficientLiquidity);
+            runtime::revert(Errors::InsufficientLiquidity4);
         }
         let mut amounts: Vec<U256> = vec![0.into(); path.len()];
         amounts[0] = amount_in;
