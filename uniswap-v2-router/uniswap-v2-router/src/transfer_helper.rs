@@ -1,4 +1,4 @@
-pub mod transfer_helper {
+pub mod transfer_helper_mod {
     use common::{contract_api::runtime, *};
 
     pub fn safe_transfer(token: Key, to: Key, value: U256) {

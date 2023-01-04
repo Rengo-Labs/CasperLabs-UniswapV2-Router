@@ -97,8 +97,8 @@ fn add_and_remove_liquidity_with_tokens() {
     let router_package_hash: ContractPackageHash = router.package_hash().into();
     let token_a = Key::Hash(token1.package_hash());
     let token_b = Key::Hash(token2.package_hash());
-    let amount_a_desired: U256 = AMOUNT.into();
-    let amount_b_desired: U256 = AMOUNT.into();
+    let amount_a_desired: U256 = AMOUNT;
+    let amount_b_desired: U256 = AMOUNT;
     let amount_a_min: U256 = 1000000.into();
     let amount_b_min: U256 = 1000000.into();
     let to = Key::Account(owner);
@@ -166,8 +166,8 @@ fn add_and_remove_liquidity_with_cspr() {
     let (env, owner, router, _, pair, token1, _, _, _, _, now) = deploy();
     let router_package_hash: ContractPackageHash = router.package_hash().into();
     let token = Key::Hash(token1.package_hash());
-    let amount_token_desired: U256 = AMOUNT.into();
-    let amount_cspr_desired: U256 = AMOUNT.into();
+    let amount_token_desired: U256 = AMOUNT;
+    let amount_cspr_desired: U256 = AMOUNT;
     let amount_token_min: U256 = 1000000.into();
     let amount_cspr_min: U256 = 1000000.into();
     let to = Key::Account(owner);
@@ -237,8 +237,8 @@ fn swap_exact_tokens_for_tokens() {
     let router_package_hash: ContractPackageHash = router.package_hash().into();
     let token_a = Key::Hash(token1.package_hash());
     let token_b = Key::Hash(token2.package_hash());
-    let amount_a_desired: U256 = AMOUNT.into();
-    let amount_b_desired: U256 = AMOUNT.into();
+    let amount_a_desired: U256 = AMOUNT;
+    let amount_b_desired: U256 = AMOUNT;
     let amount_a_min: U256 = 1000000.into();
     let amount_b_min: U256 = 1000000.into();
     let to = Key::Account(owner);
@@ -298,8 +298,8 @@ fn swap_tokens_for_exact_tokens() {
     let router_package_hash: ContractPackageHash = router.package_hash().into();
     let token_a = Key::Hash(token1.package_hash());
     let token_b = Key::Hash(token2.package_hash());
-    let amount_a_desired: U256 = AMOUNT.into();
-    let amount_b_desired: U256 = AMOUNT.into();
+    let amount_a_desired: U256 = AMOUNT;
+    let amount_b_desired: U256 = AMOUNT;
     let amount_a_min: U256 = 1000000.into();
     let amount_b_min: U256 = 1000000.into();
     let to = Key::Account(owner);
@@ -358,8 +358,8 @@ fn swap_exact_cspr_for_tokens() {
     let (env, owner, router, _, pair, token1, _, _, wcspr, _, now) = deploy();
     let router_package_hash: ContractPackageHash = router.package_hash().into();
     let token = Key::Hash(token1.package_hash());
-    let amount_token_desired: U256 = AMOUNT.into();
-    let amount_cspr_desired: U256 = AMOUNT.into();
+    let amount_token_desired: U256 = AMOUNT;
+    let amount_cspr_desired: U256 = AMOUNT;
     let amount_token_min: U256 = 1000000.into();
     let amount_cspr_min: U256 = 1000000.into();
     let to = Key::Account(owner);
@@ -423,8 +423,8 @@ fn swap_cspr_for_exact_tokens() {
     let (env, owner, router, _, pair, token1, _, _, wcspr, _, now) = deploy();
     let router_package_hash: ContractPackageHash = router.package_hash().into();
     let token = Key::Hash(token1.package_hash());
-    let amount_token_desired: U256 = AMOUNT.into();
-    let amount_cspr_desired: U256 = AMOUNT.into();
+    let amount_token_desired: U256 = AMOUNT;
+    let amount_cspr_desired: U256 = AMOUNT;
     let amount_token_min: U256 = 1000000.into();
     let amount_cspr_min: U256 = 1000000.into();
     let to = Key::Account(owner);
@@ -488,8 +488,8 @@ fn swap_exact_tokens_for_cspr() {
     let (env, owner, router, _, pair, token1, _, _, wcspr, _, now) = deploy();
     let router_package_hash: ContractPackageHash = router.package_hash().into();
     let token = Key::Hash(token1.package_hash());
-    let amount_token_desired: U256 = AMOUNT.into();
-    let amount_cspr_desired: U256 = AMOUNT.into();
+    let amount_token_desired: U256 = AMOUNT;
+    let amount_cspr_desired: U256 = AMOUNT;
     let amount_token_min: U256 = 1000000.into();
     let amount_cspr_min: U256 = 1000000.into();
     let to = Key::Account(owner);
@@ -552,8 +552,8 @@ fn swap_tokens_for_exact_cspr() {
     let (env, owner, router, _, pair, token1, _, _, wcspr, _, now) = deploy();
     let router_package_hash: ContractPackageHash = router.package_hash().into();
     let token = Key::Hash(token1.package_hash());
-    let amount_token_desired: U256 = AMOUNT.into();
-    let amount_cspr_desired: U256 = AMOUNT.into();
+    let amount_token_desired: U256 = AMOUNT;
+    let amount_cspr_desired: U256 = AMOUNT;
     let amount_token_min: U256 = 1000000.into();
     let amount_cspr_min: U256 = 1000000.into();
     let to = Key::Account(owner);

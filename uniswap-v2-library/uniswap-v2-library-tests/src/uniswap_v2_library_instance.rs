@@ -135,6 +135,7 @@ impl LibraryInstance {
         );
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn add_liquidity(
         &self,
         sender: AccountHash,

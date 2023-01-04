@@ -125,8 +125,8 @@ fn test_uniswap_get_reserves() {
     let router_package_hash: ContractPackageHash = router.package_hash().into();
     let token_a = Key::Hash(token1.package_hash());
     let token_b = Key::Hash(token2.package_hash());
-    let amount_a_desired: U256 = AMOUNT.into();
-    let amount_b_desired: U256 = AMOUNT.into();
+    let amount_a_desired: U256 = AMOUNT;
+    let amount_b_desired: U256 = AMOUNT;
     let amount_a_min: U256 = 1000000.into();
     let amount_b_min: U256 = 1000000.into();
     let to = Key::Account(owner);
@@ -171,8 +171,8 @@ fn test_uniswap_get_amounts_out() {
     let router_package_hash: ContractPackageHash = router.package_hash().into();
     let token_a = Key::Hash(token1.package_hash());
     let token_b = Key::Hash(token2.package_hash());
-    let amount_a_desired: U256 = AMOUNT.into();
-    let amount_b_desired: U256 = AMOUNT.into();
+    let amount_a_desired: U256 = AMOUNT;
+    let amount_b_desired: U256 = AMOUNT;
     let amount_a_min: U256 = 1000000.into();
     let amount_b_min: U256 = 1000000.into();
     let to = Key::Account(owner);
@@ -203,9 +203,10 @@ fn test_uniswap_get_amounts_out() {
     let ret: (U256, U256, U256) = result_key(&env, owner, "add_liquidity");
     assert_ge!(ret.0, amount_a_min);
     assert_ge!(ret.1, amount_b_min);
-    let mut path: Vec<Key> = Vec::new();
-    path.push(Key::Hash(token1.package_hash()));
-    path.push(Key::Hash(token2.package_hash()));
+    let path: Vec<Key> = vec![
+        Key::Hash(token1.package_hash()),
+        Key::Hash(token2.package_hash()),
+    ];
     library_contract.get_amounts_out(owner, Key::Hash(factory.package_hash()), 100.into(), path);
 }
 
@@ -215,8 +216,8 @@ fn test_uniswap_get_amounts_in() {
     let router_package_hash: ContractPackageHash = router.package_hash().into();
     let token_a = Key::Hash(token1.package_hash());
     let token_b = Key::Hash(token2.package_hash());
-    let amount_a_desired: U256 = AMOUNT.into();
-    let amount_b_desired: U256 = AMOUNT.into();
+    let amount_a_desired: U256 = AMOUNT;
+    let amount_b_desired: U256 = AMOUNT;
     let amount_a_min: U256 = 1000000.into();
     let amount_b_min: U256 = 1000000.into();
     let to = Key::Account(owner);
@@ -247,8 +248,9 @@ fn test_uniswap_get_amounts_in() {
     let ret: (U256, U256, U256) = result_key(&env, owner, "add_liquidity");
     assert_ge!(ret.0, amount_a_min);
     assert_ge!(ret.1, amount_b_min);
-    let mut path: Vec<Key> = Vec::new();
-    path.push(Key::Hash(token1.package_hash()));
-    path.push(Key::Hash(token2.package_hash()));
+    let path: Vec<Key> = vec![
+        Key::Hash(token1.package_hash()),
+        Key::Hash(token2.package_hash()),
+    ];
     library_contract.get_amounts_in(owner, Key::Hash(factory.package_hash()), 100.into(), path);
 }

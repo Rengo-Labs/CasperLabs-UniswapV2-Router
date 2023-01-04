@@ -45,6 +45,7 @@ pub fn deploy_factory(
     )
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn deploy_wcspr(
     env: &TestEnv,
     contract_name: &str,
@@ -124,7 +125,7 @@ pub fn deploy_pair(
 
 pub fn deploy_library(env: &TestEnv, owner: AccountHash, time: u64) -> TestContract {
     TestContract::new(
-        &env,
+        env,
         "uniswap-v2-library.wasm",
         "library",
         owner,
@@ -142,7 +143,7 @@ pub fn deploy_router(
     time: u64,
 ) -> TestContract {
     TestContract::new(
-        &env,
+        env,
         "uniswap-v2-router.wasm",
         "Uniswap Router",
         owner,
@@ -162,13 +163,9 @@ pub fn deploy_dummy_tokens(
 ) -> (TestContract, TestContract, TestContract) {
     let decimals: u8 = 18;
     let init_total_supply: U256 = 1000.into();
-    let token1_owner = if owner.is_none() {
-        env.next_user()
-    } else {
-        owner.unwrap()
-    };
+    let token1_owner = owner.unwrap_or_else(|| env.next_user());
     let token1_contract = deploy_erc20(
-        &env,
+        env,
         "token1_contract",
         token1_owner,
         "token1",
@@ -177,13 +174,9 @@ pub fn deploy_dummy_tokens(
         init_total_supply,
         time,
     );
-    let token2_owner = if owner.is_none() {
-        env.next_user()
-    } else {
-        owner.unwrap()
-    };
+    let token2_owner = owner.unwrap_or_else(|| env.next_user());
     let token2_contract = deploy_erc20(
-        &env,
+        env,
         "token2_contract",
         token2_owner,
         "token2",
@@ -192,13 +185,9 @@ pub fn deploy_dummy_tokens(
         init_total_supply,
         time,
     );
-    let token3_owner = if owner.is_none() {
-        env.next_user()
-    } else {
-        owner.unwrap()
-    };
+    let token3_owner = owner.unwrap_or_else(|| env.next_user());
     let token3_contract = deploy_erc20(
-        &env,
+        env,
         "token3_contract",
         token3_owner,
         "token3",

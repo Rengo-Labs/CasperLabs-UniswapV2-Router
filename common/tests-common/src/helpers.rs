@@ -73,7 +73,7 @@ pub fn init(
         "mint",
         runtime_args! {
             "to" => Address::Account(owner),
-            "amount" => U256::from(AMOUNT * 2)
+            "amount" => AMOUNT * 2
         },
         now,
     );
@@ -82,7 +82,7 @@ pub fn init(
         "mint",
         runtime_args! {
             "to" => Address::Account(owner),
-            "amount" => U256::from(AMOUNT * 2)
+            "amount" => AMOUNT * 2
         },
         now,
     );
@@ -92,7 +92,7 @@ pub fn init(
         "approve",
         runtime_args! {
             "spender" => Address::Contract(uniswap_router.package_hash().into()),
-            "amount" => U256::from(AMOUNT * 2)
+            "amount" => AMOUNT * 2
         },
         now,
     );
@@ -101,7 +101,7 @@ pub fn init(
         "approve",
         runtime_args! {
             "spender" => Address::Contract(uniswap_router.package_hash().into()),
-            "amount" => U256::from(AMOUNT * 2)
+            "amount" => AMOUNT * 2
         },
         now,
     );

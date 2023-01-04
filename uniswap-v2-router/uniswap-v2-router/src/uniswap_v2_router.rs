@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use crate::{data::*, transfer_helper::transfer_helper};
+use crate::{data::*, transfer_helper::transfer_helper_mod};
 use common::{
     contract_api::{runtime, storage, system},
     errors::Errors,
@@ -86,6 +86,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         Whitelist::instance().set(&user, false);
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn add_liquidity(
         &self,
         token_a: ContractPackageHash,
@@ -127,8 +128,18 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
                 "token_b" => Key::from(token_b)
             },
         );
-        transfer_helper::safe_transfer_from(Key::from(token_a), self.get_caller(), pair, amount_a);
-        transfer_helper::safe_transfer_from(Key::from(token_b), self.get_caller(), pair, amount_b);
+        transfer_helper_mod::safe_transfer_from(
+            Key::from(token_a),
+            self.get_caller(),
+            pair,
+            amount_a,
+        );
+        transfer_helper_mod::safe_transfer_from(
+            Key::from(token_b),
+            self.get_caller(),
+            pair,
+            amount_b,
+        );
         // call mint function from IUniswapV2Pair contract
         let liquidity: U256 = runtime::call_versioned_contract(
             pair.into_hash().unwrap_or_revert().into(),
@@ -147,6 +158,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         (amount_a, amount_b, liquidity)
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn add_liquidity_cspr(
         &self,
         token: ContractPackageHash,
@@ -186,7 +198,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             runtime::revert(Errors::UniswapV2RouterAmountTokenIsZero);
         }
         // call safe_transfer_from from TransferHelper
-        transfer_helper::safe_transfer_from(
+        transfer_helper_mod::safe_transfer_from(
             Key::from(token),
             self.get_caller(),
             pair,
@@ -238,6 +250,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         (amount_token, amount_cspr, liquidity)
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn remove_liquidity(
         &self,
         token_a: ContractPackageHash,
@@ -310,6 +323,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         (amount_a, amount_b)
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn remove_liquidity_cspr(
         &self,
         token: ContractPackageHash,
@@ -334,7 +348,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             deadline,
         );
         // transfer token to 'to'
-        transfer_helper::safe_transfer(Key::from(token), to, amount_token);
+        transfer_helper_mod::safe_transfer(Key::from(token), to, amount_token);
         // call withdraw and transfer cspr to 'to'
         runtime::call_versioned_contract::<()>(
             wcspr(),
@@ -360,8 +374,8 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             runtime::revert(ApiError::User(Errors::UniswapV2RouterTimedOut9 as u16));
         }
         let mut path: Vec<Key> = Vec::new();
-        for i in 0..(_path.len()) {
-            path.push(Key::from_formatted_str(&_path[i]).unwrap());
+        for i in &_path {
+            path.push(Key::from_formatted_str(i).unwrap());
         }
         // call getAmountsOut from Library contract
         let amounts: Vec<U256> = runtime::call_versioned_contract(
@@ -388,7 +402,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
                 "token_b" => path[1],
             },
         );
-        transfer_helper::safe_transfer_from(path[0], self.get_caller(), pair, amounts[0]);
+        transfer_helper_mod::safe_transfer_from(path[0], self.get_caller(), pair, amounts[0]);
         Self::_swap(&amounts, &path, to);
         amounts
     }
@@ -405,8 +419,8 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             runtime::revert(ApiError::User(Errors::UniswapV2RouterTimedOut11 as u16));
         }
         let mut path: Vec<Key> = Vec::new();
-        for i in 0..(_path.len()) {
-            path.push(Key::from_formatted_str(&_path[i]).unwrap());
+        for i in &_path {
+            path.push(Key::from_formatted_str(i).unwrap());
         }
         // call getAmountIn from Library contract
         let amounts: Vec<U256> = runtime::call_versioned_contract(
@@ -432,7 +446,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
                 "token_b" => path[1],
             },
         );
-        transfer_helper::safe_transfer_from(path[0], self.get_caller(), pair, amounts[0]);
+        transfer_helper_mod::safe_transfer_from(path[0], self.get_caller(), pair, amounts[0]);
         Self::_swap(&amounts, &path, to);
         amounts
     }
@@ -450,10 +464,10 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             runtime::revert(ApiError::User(Errors::UniswapV2RouterTimedOut13 as u16));
         }
         let mut path: Vec<Key> = Vec::new();
-        for i in 0..(_path.len()) {
-            path.push(Key::from_formatted_str(&_path[i]).unwrap());
+        for i in &_path {
+            path.push(Key::from_formatted_str(i).unwrap());
         }
-        if !(path[0] == Key::from(wcspr())) {
+        if path[0] != Key::from(wcspr()) {
             runtime::revert(Errors::UniswapV2RouterAbort6);
         }
         // call get_amounts_out
@@ -522,10 +536,10 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             runtime::revert(ApiError::User(Errors::UniswapV2RouterTimedOut15 as u16));
         }
         let mut path: Vec<Key> = Vec::new();
-        for i in 0..(_path.len()) {
-            path.push(Key::from_formatted_str(&_path[i]).unwrap());
+        for i in &_path {
+            path.push(Key::from_formatted_str(i).unwrap());
         }
-        if !(path[path.len() - 1] == Key::from(wcspr())) {
+        if path[path.len() - 1] != Key::from(wcspr()) {
             runtime::revert(Errors::UniswapV2RouterAbort8);
         }
         // call getAmountIn from Library contract
@@ -553,7 +567,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
                 "token_b" => path[1],
             },
         );
-        transfer_helper::safe_transfer_from(path[0], self.get_caller(), pair, amounts[0]);
+        transfer_helper_mod::safe_transfer_from(path[0], self.get_caller(), pair, amounts[0]);
         Self::_swap(&amounts, &path, Key::from(get_package_hash()));
         // call withdraw from WCSPR and transfer cspr to 'to'
         runtime::call_versioned_contract::<()>(
@@ -580,10 +594,10 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             runtime::revert(ApiError::User(Errors::UniswapV2RouterTimedOut17 as u16));
         }
         let mut path: Vec<Key> = Vec::new();
-        for i in 0..(_path.len()) {
-            path.push(Key::from_formatted_str(&_path[i]).unwrap());
+        for i in &_path {
+            path.push(Key::from_formatted_str(i).unwrap());
         }
-        if !(path[path.len() - 1] == Key::from(wcspr())) {
+        if path[path.len() - 1] != Key::from(wcspr()) {
             runtime::revert(Errors::UniswapV2RouterAbort10);
         }
         // call get_amounts_out
@@ -611,7 +625,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
                 "token_b" => path[1],
             },
         );
-        transfer_helper::safe_transfer_from(path[0], self.get_caller(), pair, amounts[0]);
+        transfer_helper_mod::safe_transfer_from(path[0], self.get_caller(), pair, amounts[0]);
         Self::_swap(&amounts, &path, Key::from(get_package_hash()));
         // call withdraw from WCSPR and transfer cspr to 'to'
         runtime::call_versioned_contract::<()>(
@@ -639,10 +653,10 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             runtime::revert(ApiError::User(Errors::UniswapV2RouterTimedOut19 as u16));
         }
         let mut path: Vec<Key> = Vec::new();
-        for i in 0..(_path.len()) {
-            path.push(Key::from_formatted_str(&_path[i]).unwrap());
+        for i in &_path {
+            path.push(Key::from_formatted_str(i).unwrap());
         }
-        if !(path[0] == Key::from(wcspr())) {
+        if path[0] != Key::from(wcspr()) {
             runtime::revert(Errors::UniswapV2RouterAbort12);
         }
         // call get_amounts_out
@@ -769,6 +783,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
 
     // *************************************** Helper methods ****************************************
 
+    #[allow(clippy::too_many_arguments)]
     fn _add_liquidity(
         &self,
         token_a: ContractPackageHash,
@@ -799,12 +814,10 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             }
         }
         // If a pair is passed in, check if it exists already, if it does, no need to call factory's create_pair
-        if pair_received.is_some() {
-            if pair != zero_address() {
-                pair_already_exist = true;
-            }
+        if pair_received.is_some() && pair != zero_address() {
+            pair_already_exist = true;
         }
-        if pair_already_exist == false {
+        if !pair_already_exist {
             if !Whitelist::instance().get(&self.get_caller()) {
                 runtime::revert(Errors::UniswapV2RouterNotInWhitelist);
             }
@@ -831,7 +844,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             },
         );
         if reserve_a == 0.into() && reserve_b == 0.into() {
-            return (amount_a_desired, amount_b_desired);
+            (amount_a_desired, amount_b_desired)
         } else {
             let amount_b_optimal: U256 = runtime::call_versioned_contract(
                 library_hash(),
@@ -844,7 +857,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
                 },
             );
             if amount_b_optimal <= amount_b_desired && amount_b_optimal >= amount_b_min {
-                return (amount_a_desired, amount_b_optimal);
+                (amount_a_desired, amount_b_optimal)
             } else {
                 let amount_a_optimal: U256 = runtime::call_versioned_contract(
                     library_hash(),
@@ -860,15 +873,15 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
                     runtime::revert(Errors::UniswapV2RouterInvalidArguments);
                 }
                 if amount_a_optimal >= amount_a_min {
-                    return (amount_a_optimal, amount_b_desired);
+                    (amount_a_optimal, amount_b_desired)
                 } else {
-                    return (0.into(), 0.into());
+                    (0.into(), 0.into())
                 }
             }
         }
     }
 
-    fn _swap(amounts: &Vec<U256>, path: &Vec<Key>, _to: Key) {
+    fn _swap(amounts: &[U256], path: &Vec<Key>, _to: Key) {
         for i in 0..(path.len() - 1)
         // start ≤ x < end - 1
         {
