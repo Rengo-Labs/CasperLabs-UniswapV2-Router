@@ -18,10 +18,6 @@ pub enum Errors {
     UniswapV2RouterAmountTokenIsZero = 69,
     /// 65,606 for (UniswapV2 Router Abort1)
     UniswapV2RouterAbort1 = 70,
-    /// 65,607 for (UniswapV2 Router Abort2)
-    UniswapV2RouterAbort2 = 71,
-    /// 65,608 for (UniswapV2 Router Abort3)
-    UniswapV2RouterAbort3 = 72,
     /// 65,609 for (UniswapV2 Router Abort4)
     UniswapV2RouterAbort4 = 73,
     /// 65,610 for (UniswapV2 Router Abort5)
@@ -48,44 +44,24 @@ pub enum Errors {
     UniswapV2RouterInvalidArguments = 105,
     /// 65,642 for (UniswapV2 Router Timed Out1)
     UniswapV2RouterTimedOut1 = 106,
-    /// 65,643 for (UniswapV2 Router Timed Out2)
-    UniswapV2RouterTimedOut2 = 107,
     /// 65,644 for (UniswapV2 Router Timed Out3)
     UniswapV2RouterTimedOut3 = 108,
-    /// 65,645 for (UniswapV2 Router Timed Out4)
-    UniswapV2RouterTimedOut4 = 109,
     /// 65,646 for (UniswapV2 Router Timed Out5)
     UniswapV2RouterTimedOut5 = 110,
-    /// 65,647 for (UniswapV2 Router Timed Out6)
-    UniswapV2RouterTimedOut6 = 111,
     /// 65,648 for (UniswapV2 Router Timed Out7)
     UniswapV2RouterTimedOut7 = 112,
-    /// 65,649 for (UniswapV2 Router Timed Out8)
-    UniswapV2RouterTimedOut8 = 113,
     /// 65,650 for (UniswapV2 Router Timed Out9)
     UniswapV2RouterTimedOut9 = 114,
-    /// 65,651 for (UniswapV2 Router Timed Out10)
-    UniswapV2RouterTimedOut10 = 115,
     /// 65,652 for (UniswapV2 Router Timed Out11)
     UniswapV2RouterTimedOut11 = 116,
-    /// 65,653 for (UniswapV2 Router Timed Out12)
-    UniswapV2RouterTimedOut12 = 117,
     /// 65,654 for (UniswapV2 Router Timed Out13)
     UniswapV2RouterTimedOut13 = 118,
-    /// 65,655 for (UniswapV2 Router Timed Out14)
-    UniswapV2RouterTimedOut14 = 119,
     /// 65,656 for (UniswapV2 Router Timed Out15)
     UniswapV2RouterTimedOut15 = 120,
-    /// 65,657 for (UniswapV2 Router Timed Out16)
-    UniswapV2RouterTimedOut16 = 121,
     /// 65,658 for (UniswapV2 Router Timed Out17)
     UniswapV2RouterTimedOut17 = 122,
-    /// 65,659 for (UniswapV2 Router Timed Out18)
-    UniswapV2RouterTimedOut18 = 123,
     /// 65,660 for (UniswapV2 Router Timed Out19)
     UniswapV2RouterTimedOut19 = 124,
-    /// 65,661 for (UniswapV2 Router Timed Out20)
-    UniswapV2RouterTimedOut20 = 125,
 
     /// 65,662 for (UniswapV2 Library Multiplication Overflow 1)
     MultiplicationOverflow1 = 126,
@@ -93,8 +69,6 @@ pub enum Errors {
     AdditionOverflow1 = 127,
     /// 65,664 for (UniswapV2 Library Addition Overflow 2)
     AdditionOverflow2 = 128,
-    /// 65,665 for (UniswapV2 Library Underflow )
-    Underflow = 129,
     /// 65,666 for (UniswapV2 Library Zero Address)
     ZeroAddress = 130,
     /// 65,667 for (UniswapV2 Library Identical Addresses)
@@ -107,8 +81,14 @@ pub enum Errors {
     InsufficientOutputAmount = 134,
     /// 65,671 for (UniswapV2 Library Invalid Path)
     InvalidPath = 135,
-    /// 65,672 for (UniswapV2 Library Insufficient Liquidity)
-    InsufficientLiquidity = 136,
+    /// 65,672 for (UniswapV2 Library Insufficient Liquidity1)
+    InsufficientLiquidity1 = 136,
+    /// 65,672 for (UniswapV2 Library Insufficient Liquidity2)
+    InsufficientLiquidity2 = 137,
+    /// 65,672 for (UniswapV2 Library Insufficient Liquidity3)
+    InsufficientLiquidity3 = 138,
+    /// 65,672 for (UniswapV2 Library Insufficient Liquidity4)
+    InsufficientLiquidity4 = 139,
 }
 
 impl From<Errors> for ApiError {
