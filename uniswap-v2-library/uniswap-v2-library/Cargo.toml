@@ -5,7 +5,7 @@ authors = ["Muhammad Adrees <muhammad.adrees@scytalelabs.com>"]
 edition = "2018"
 
 [dependencies]
-common = { path = "../../common/common" }
+uniswap-v2-library-crate = { path = "../uniswap-v2-library-crate" }
 
 [[bin]]
 name = "uniswap-v2-library"

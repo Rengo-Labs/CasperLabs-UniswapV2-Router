@@ -1,13 +1,13 @@
 #![no_main]
 #![feature(slice_range)]
 
-use common::{
+use std::collections::BTreeSet;
+
+use uniswap_v2_library_crate::{
     contract_api::{runtime, storage},
     unwrap_or_revert::UnwrapOrRevert,
     *,
 };
-use std::collections::BTreeSet;
-use uniswap_v2_library::{self, UniswapV2Library};
 
 #[derive(Default)]
 struct Uniswap(OnChainContractStorage);

@@ -1484,6 +1484,13 @@ checksum = "f962df74c8c05a667b5ee8bcf162993134c104e96440b663c8daa176dc772d8c"
 name = "uniswap-v2-library"
 version = "0.2.0"
 dependencies = [
+ "uniswap-v2-library-crate",
+]
+
+[[package]]
+name = "uniswap-v2-library-crate"
+version = "0.2.0"
+dependencies = [
  "common",
 ]
 
@@ -1496,6 +1503,13 @@ dependencies = [
 
 [[package]]
 name = "uniswap-v2-router"
+version = "0.2.0"
+dependencies = [
+ "uniswap-v2-router-crate",
+]
+
+[[package]]
+name = "uniswap-v2-router-crate"
 version = "0.2.0"
 dependencies = [
  "casper-types",

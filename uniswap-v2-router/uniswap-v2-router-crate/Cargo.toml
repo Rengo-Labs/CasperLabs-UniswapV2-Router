@@ -1,11 +1,13 @@
 [package]
-name = "uniswap-v2-router"
+name = "uniswap-v2-router-crate"
 version = "0.2.0"
 authors = ["Muhammad Adrees <muhammad.adrees@scytalelabs.com>"]
 edition = "2018"
 
 [dependencies]
-uniswap-v2-router-crate = { path = "../uniswap-v2-router-crate" }
+casper-types = "1.5.0"
+casper_types_derive = "0.1.0"
+common = { path = "../../common/common" }
 
 [[bin]]
 name = "uniswap-v2-router"
