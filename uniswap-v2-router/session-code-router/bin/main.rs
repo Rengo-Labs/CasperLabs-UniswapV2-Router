@@ -31,7 +31,8 @@ fn purse(amount: U512) -> URef {
 #[no_mangle]
 pub extern "C" fn call() {
     let entrypoint: String = runtime::get_named_arg("entrypoint");
-    let package_hash: ContractPackageHash = runtime::get_named_arg("package_hash");
+    let package_hash: Key = runtime::get_named_arg("package_hash");
+    let package_hash: ContractPackageHash = package_hash.into_hash().unwrap_or_revert().into();
     match entrypoint.as_str() {
         DESTINATION_ADD_LIQUIDITY => {
             let token_a: Key = runtime::get_named_arg("token_a");

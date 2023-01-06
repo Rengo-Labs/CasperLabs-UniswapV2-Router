@@ -141,7 +141,7 @@ fn test_uniswap_get_reserves() {
         SESSION_CODE_ROUTER,
         runtime_args! {
             "entrypoint" => "add_liquidity",
-            "package_hash" => router_package_hash,
+            "package_hash" => Key::from(router_package_hash),
             "token_a" => token_a,
             "token_b" => token_b,
             "amount_a_desired" => amount_a_desired,
@@ -187,7 +187,7 @@ fn test_uniswap_get_amounts_out() {
         SESSION_CODE_ROUTER,
         runtime_args! {
             "entrypoint" => "add_liquidity",
-            "package_hash" => router_package_hash,
+            "package_hash" => Key::from(router_package_hash),
             "token_a" => token_a,
             "token_b" => token_b,
             "amount_a_desired" => amount_a_desired,
@@ -232,7 +232,7 @@ fn test_uniswap_get_amounts_in() {
         SESSION_CODE_ROUTER,
         runtime_args! {
             "entrypoint" => "add_liquidity",
-            "package_hash" => router_package_hash,
+            "package_hash" => Key::from(router_package_hash),
             "token_a" => token_a,
             "token_b" => token_b,
             "amount_a_desired" => amount_a_desired,

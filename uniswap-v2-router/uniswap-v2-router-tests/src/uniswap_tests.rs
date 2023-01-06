@@ -113,7 +113,7 @@ fn add_and_remove_liquidity_with_tokens() {
         SESSION_CODE_ROUTER,
         runtime_args! {
             "entrypoint" => "add_liquidity",
-            "package_hash" => router_package_hash,
+            "package_hash" => Key::from(router_package_hash),
             "token_a" => token_a,
             "token_b" => token_b,
             "amount_a_desired" => amount_a_desired,
@@ -145,7 +145,7 @@ fn add_and_remove_liquidity_with_tokens() {
         SESSION_CODE_ROUTER,
         runtime_args! {
             "entrypoint" => "remove_liquidity",
-            "package_hash" => router_package_hash,
+            "package_hash" => Key::from(router_package_hash),
             "token_a" => token_a,
             "token_b" => token_b,
             "liquidity" => liquidity,
@@ -182,7 +182,7 @@ fn add_and_remove_liquidity_with_cspr() {
         SESSION_CODE_ROUTER,
         runtime_args! {
             "entrypoint" => "add_liquidity_cspr",
-            "package_hash" => router_package_hash,
+            "package_hash" => Key::from(router_package_hash),
             "amount" => u256_to_u512(amount_cspr_desired),
             "token" => token,
             "amount_token_desired" => amount_token_desired,
@@ -214,7 +214,7 @@ fn add_and_remove_liquidity_with_cspr() {
         SESSION_CODE_ROUTER,
         runtime_args! {
             "entrypoint" => "remove_liquidity_cspr",
-            "package_hash" => router_package_hash,
+            "package_hash" => Key::from(router_package_hash),
             "amount" => u256_to_u512(liquidity),
             "token" => token,
             "liquidity" => liquidity,
@@ -253,7 +253,7 @@ fn swap_exact_tokens_for_tokens() {
         SESSION_CODE_ROUTER,
         runtime_args! {
             "entrypoint" => "add_liquidity",
-            "package_hash" => router_package_hash,
+            "package_hash" => Key::from(router_package_hash),
             "token_a" => token_a,
             "token_b" => token_b,
             "amount_a_desired" => amount_a_desired,
@@ -279,7 +279,7 @@ fn swap_exact_tokens_for_tokens() {
         SESSION_CODE_ROUTER,
         runtime_args! {
             "entrypoint" => "swap_exact_tokens_for_tokens",
-            "package_hash" => router_package_hash,
+            "package_hash" => Key::from(router_package_hash),
             "amount_in" => amount_in,
             "amount_out_min" => amount_out_min,
             "path" => path,
@@ -314,7 +314,7 @@ fn swap_tokens_for_exact_tokens() {
         SESSION_CODE_ROUTER,
         runtime_args! {
             "entrypoint" => "add_liquidity",
-            "package_hash" => router_package_hash,
+            "package_hash" => Key::from(router_package_hash),
             "token_a" => token_a,
             "token_b" => token_b,
             "amount_a_desired" => amount_a_desired,
@@ -340,7 +340,7 @@ fn swap_tokens_for_exact_tokens() {
         SESSION_CODE_ROUTER,
         runtime_args! {
             "entrypoint" => "swap_tokens_for_exact_tokens",
-            "package_hash" => router_package_hash,
+            "package_hash" => Key::from(router_package_hash),
             "amount_out" => amount_out,
             "amount_in_max" => amount_in_max,
             "path" => path,
@@ -374,7 +374,7 @@ fn swap_exact_cspr_for_tokens() {
         SESSION_CODE_ROUTER,
         runtime_args! {
             "entrypoint" => "add_liquidity_cspr",
-            "package_hash" => router_package_hash,
+            "package_hash" => Key::from(router_package_hash),
             "amount" => u256_to_u512(amount_cspr_desired),
             "token" => token,
             "amount_token_desired" => amount_token_desired,
@@ -404,7 +404,7 @@ fn swap_exact_cspr_for_tokens() {
         SESSION_CODE_ROUTER,
         runtime_args! {
             "entrypoint" => "swap_exact_cspr_for_tokens",
-            "package_hash" => router_package_hash,
+            "package_hash" => Key::from(router_package_hash),
             "amount" => u256_to_u512(amount_in),
             "amount_out_min" => amount_out_min,
             "amount_in" => amount_in,
@@ -439,7 +439,7 @@ fn swap_cspr_for_exact_tokens() {
         SESSION_CODE_ROUTER,
         runtime_args! {
             "entrypoint" => "add_liquidity_cspr",
-            "package_hash" => router_package_hash,
+            "package_hash" => Key::from(router_package_hash),
             "amount" => u256_to_u512(amount_cspr_desired),
             "token" => token,
             "amount_token_desired" => amount_token_desired,
@@ -469,7 +469,7 @@ fn swap_cspr_for_exact_tokens() {
         SESSION_CODE_ROUTER,
         runtime_args! {
             "entrypoint" => "swap_cspr_for_exact_tokens",
-            "package_hash" => router_package_hash,
+            "package_hash" => Key::from(router_package_hash),
             "amount" => u256_to_u512(amount_in_max),
             "amount_out" => amount_out,
             "amount_in_max" => amount_in_max,
@@ -504,7 +504,7 @@ fn swap_exact_tokens_for_cspr() {
         SESSION_CODE_ROUTER,
         runtime_args! {
             "entrypoint" => "add_liquidity_cspr",
-            "package_hash" => router_package_hash,
+            "package_hash" => Key::from(router_package_hash),
             "amount" => u256_to_u512(amount_cspr_desired),
             "token" => token,
             "amount_token_desired" => amount_token_desired,
@@ -534,7 +534,7 @@ fn swap_exact_tokens_for_cspr() {
         SESSION_CODE_ROUTER,
         runtime_args! {
             "entrypoint" => "swap_exact_tokens_for_cspr",
-            "package_hash" => router_package_hash,
+            "package_hash" => Key::from(router_package_hash),
             "amount" => u256_to_u512(amount_in),
             "amount_out_min" => amount_out_min,
             "amount_in" => amount_in,
@@ -568,7 +568,7 @@ fn swap_tokens_for_exact_cspr() {
         SESSION_CODE_ROUTER,
         runtime_args! {
             "entrypoint" => "add_liquidity_cspr",
-            "package_hash" => router_package_hash,
+            "package_hash" => Key::from(router_package_hash),
             "amount" => u256_to_u512(amount_cspr_desired),
             "token" => token,
             "amount_token_desired" => amount_token_desired,
@@ -598,7 +598,7 @@ fn swap_tokens_for_exact_cspr() {
         SESSION_CODE_ROUTER,
         runtime_args! {
             "entrypoint" => "swap_tokens_for_exact_cspr",
-            "package_hash" => router_package_hash,
+            "package_hash" => Key::from(router_package_hash),
             "amount" => u256_to_u512(amount_in_max),
             "amount_out" => amount_out,
             "amount_in_max" => amount_in_max,
