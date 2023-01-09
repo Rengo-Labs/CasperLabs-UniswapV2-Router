@@ -57,8 +57,8 @@ lint: clippy
 
 clean:
 	cargo clean
-	rm -rf uniswap-v2-library-tests/wasm/*.wasm
-	rm -rf uniswap-v2-router-tests/wasm/*.wasm
+	rm -rf Cargo.lock
+	find . -name "*.wasm" -delete
 
 git-clean:
 	git rm -rf --cached .
