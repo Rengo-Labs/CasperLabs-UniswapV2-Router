@@ -21,10 +21,10 @@ jobs:
           command: cd CasperLabs-UniswapV2-Router && rustup target add wasm32-unknown-unknown && make all   
       - run: 
           name: Run Tests Casper Core
-          command: cd CasperLabs-UniswapV2-Core && make test
+          command: cd CasperLabs-UniswapV2-Core && make test-all
       - run:
           name: Run Tests Casper Router
-          command: cd CasperLabs-UniswapV2-Router && make test
+          command: cd CasperLabs-UniswapV2-Router && make test-all
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows

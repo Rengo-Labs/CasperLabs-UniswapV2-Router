@@ -1,4 +1,5 @@
 # Uniswap V2 Router - Casper Blockchain
+[![Rengo-Labs/CasperLabs-UniswapV2-Core](https://circleci.com/gh/Rengo-Labs/CasperLabs-UniswapV2-Router.svg?style=svg)](https://circleci.com/gh/Rengo-Labs/CasperLabs-UniswapV2-Router)
 
 Router uses other contracts (factory, pair, library, etc) and add, remove, swap tokens from liquidity pools.
 
