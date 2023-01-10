@@ -1,4 +1,4 @@
-uniswap_core_directory = ../CasperLabs-UniswapV2-core/
+uniswap_core_directory = ../CasperLabs-UniswapV2-Core/
 
 wasm_src_path = target/wasm32-unknown-unknown/release/
 
