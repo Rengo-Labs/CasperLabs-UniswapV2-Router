@@ -223,10 +223,10 @@ pub extern "C" fn call() {
             store(DESTINATION_SWAP_CSPR_FOR_EXACT_TOKENS, ret);
         }
         DESTINATION_SWAP_EXACT_TOKENS_FOR_CSPR => {
-            let amount: U512 = runtime::get_named_arg(AMOUNT_RUNTIME_ARG);
             let amount_in: U256 = runtime::get_named_arg("amount_in");
             let amount_out_min: U256 = runtime::get_named_arg("amount_out_min");
             let path: Vec<String> = runtime::get_named_arg("path");
+            let to: URef = runtime::get_named_arg("to");
             let deadline: U256 = runtime::get_named_arg("deadline");
             let ret: Vec<U256> = runtime::call_versioned_contract(
                 package_hash,
@@ -236,17 +236,17 @@ pub extern "C" fn call() {
                     "amount_in" => amount_in,
                     "amount_out_min" => amount_out_min,
                     "path" => path,
-                    "to" => purse(amount),
+                    "to" => to,
                     "deadline" => deadline
                 },
             );
             store(DESTINATION_SWAP_EXACT_TOKENS_FOR_CSPR, ret);
         }
         DESTINATION_SWAP_TOKENS_FOR_EXACT_CSPR => {
-            let amount: U512 = runtime::get_named_arg(AMOUNT_RUNTIME_ARG);
             let amount_out: U256 = runtime::get_named_arg("amount_out");
             let amount_in_max: U256 = runtime::get_named_arg("amount_in_max");
             let path: Vec<String> = runtime::get_named_arg("path");
+            let to: URef = runtime::get_named_arg("to");
             let deadline: U256 = runtime::get_named_arg("deadline");
             let ret: Vec<U256> = runtime::call_versioned_contract(
                 package_hash,
@@ -256,7 +256,7 @@ pub extern "C" fn call() {
                     "amount_out" => amount_out,
                     "amount_in_max" => amount_in_max,
                     "path" => path,
-                    "to" => purse(amount),
+                    "to" => to,
                     "deadline" => deadline
                 },
             );
