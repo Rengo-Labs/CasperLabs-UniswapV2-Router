@@ -115,13 +115,13 @@ pub extern "C" fn call() {
             store(DESTINATION_REMOVE_LIQUIDITY, ret);
         }
         DESTINATION_REMOVE_LIQUIDITY_CSPR => {
-            let amount: U512 = runtime::get_named_arg(AMOUNT_RUNTIME_ARG);
             let token: Key = runtime::get_named_arg("token");
             let liquidity: U256 = runtime::get_named_arg("liquidity");
             let amount_token_min: U256 = runtime::get_named_arg("amount_token_min");
             let amount_cspr_min: U256 = runtime::get_named_arg("amount_cspr_min");
             let to: Key = runtime::get_named_arg("to");
             let deadline: U256 = runtime::get_named_arg("deadline");
+            let to_purse: URef = runtime::get_named_arg("to_purse");
             let ret: (U256, U256) = runtime::call_versioned_contract(
                 package_hash,
                 None,
@@ -133,7 +133,7 @@ pub extern "C" fn call() {
                     "amount_cspr_min" => amount_cspr_min,
                     "to" => to,
                     "deadline" => deadline,
-                    "to_purse" => purse(amount)
+                    "to_purse" => to_purse,
                 },
             );
             store(DESTINATION_REMOVE_LIQUIDITY_CSPR, ret);
