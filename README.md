@@ -7,7 +7,9 @@ Router uses other contracts (factory, pair, library, etc) and add, remove, swap 
 
 ![QuantstampSecured](https://s3-us-west-1.amazonaws.com/qsp-www-images/certificate-gh-badge.svg)
 
-[View Report - commit 237cf3fa15ee95843603ab3857789cf2b53d58b7](RengoLabs-Report.pdf)
+[Quantstamp - commit 237cf3fa15ee95843603ab3857789cf2b53d58b7](RengoLabs-Report.pdf)
+
+[Halborn](./audits//Casper_RengoLabs_Uniswap_Smart_Contract_Audit.pdf)
 
 ## Contents
 
