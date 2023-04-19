@@ -12,16 +12,24 @@ pub fn deploy_erc20(
     supply: U256,
     time: u64,
 ) -> TestContract {
+    let swap_fee: U256 = 0.into();
+    let origin_chainid: U256 = 43113.into();
+    
     TestContract::new(
         env,
-        "erc20-token.wasm",
+        "erc20_token.wasm",
         contract_name,
         sender,
         runtime_args! {
-            "initial_supply" => supply,
             "name" => name,
             "symbol" => symbol,
-            "decimals" => decimals
+            "decimals" => decimals,
+            "total_supply" => supply,
+            "minter" => sender.to_formatted_string(),
+            "swap_fee" => swap_fee,
+            "dev" => "account-hash-55884917f4107a59e8c06557baee7fdada631af6d1c105984d196a84562854eb",
+            "origin_chainid" => origin_chainid,
+            "origin_contract_address" => "0x163e98bAe55ebAc01bFE63B1EAa9078E548f6a05",
         },
         time,
     )

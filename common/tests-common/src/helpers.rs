@@ -67,13 +67,18 @@ pub fn init(
         },
         now,
     );
+
+    let zero: U256 = 0.into();
+
     // Minting
     token1.call_contract(
         owner,
         "mint",
         runtime_args! {
-            "to" => Address::Account(owner),
-            "amount" => AMOUNT * 2
+            "recipient" => Address::Account(owner),
+            "amount" => AMOUNT * 2,
+            "swap_fee" => zero,
+            "mintid" => "because",
         },
         now,
     );
@@ -81,8 +86,10 @@ pub fn init(
         owner,
         "mint",
         runtime_args! {
-            "to" => Address::Account(owner),
-            "amount" => AMOUNT * 2
+            "recipient" => Address::Account(owner),
+            "amount" => AMOUNT * 2,
+            "swap_fee" => zero,
+            "mintid" => "because",
         },
         now,
     );
