@@ -73,7 +73,10 @@ pub fn init(
         "mint",
         runtime_args! {
             "to" => Address::Account(owner),
-            "amount" => AMOUNT * 2
+            // "recipient" => Address::Account(owner),
+            "amount" => AMOUNT * 2,
+            "swap_fee" => U256::from(0),
+            "mintid" => String::from("0")
         },
         now,
     );
@@ -82,7 +85,10 @@ pub fn init(
         "mint",
         runtime_args! {
             "to" => Address::Account(owner),
-            "amount" => AMOUNT * 2
+            // "recipient" => Address::Account(owner),
+            "amount" => AMOUNT * 2,
+            "swap_fee" => U256::from(0),
+            "mintid" => String::from("0")
         },
         now,
     );

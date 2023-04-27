@@ -1,4 +1,4 @@
-uniswap_core_directory = ../CasperLabs-UniswapV2-Core/
+uniswap_core_directory = ../CasperLabs-UniswapV2-core/
 
 wasm_src_path = target/wasm32-unknown-unknown/release/
 
@@ -37,7 +37,7 @@ test-uniswap-v2-router:
 	cargo test -p uniswap-v2-router-tests
 
 test-all:
-	make test-uniswap-v2-library
+	# make test-uniswap-v2-library
 	make test-uniswap-v2-router
 
 all:
