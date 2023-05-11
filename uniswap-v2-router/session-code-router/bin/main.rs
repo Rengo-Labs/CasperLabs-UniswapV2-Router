@@ -121,7 +121,7 @@ pub extern "C" fn call() {
             let amount_cspr_min: U256 = runtime::get_named_arg("amount_cspr_min");
             let to: Key = runtime::get_named_arg("to");
             let deadline: U256 = runtime::get_named_arg("deadline");
-            let to_purse: URef = runtime::get_named_arg("to_purse");
+            // let to_purse: URef = runtime::get_named_arg("to_purse");
             let ret: (U256, U256) = runtime::call_versioned_contract(
                 package_hash,
                 None,
@@ -133,7 +133,8 @@ pub extern "C" fn call() {
                     "amount_cspr_min" => amount_cspr_min,
                     "to" => to,
                     "deadline" => deadline,
-                    "to_purse" => to_purse,
+                    // "to_purse" => to_purse,
+                    "to_purse" => account::get_main_purse(),
                 },
             );
             store(DESTINATION_REMOVE_LIQUIDITY_CSPR, ret);
@@ -226,7 +227,7 @@ pub extern "C" fn call() {
             let amount_in: U256 = runtime::get_named_arg("amount_in");
             let amount_out_min: U256 = runtime::get_named_arg("amount_out_min");
             let path: Vec<String> = runtime::get_named_arg("path");
-            let to: URef = runtime::get_named_arg("to");
+            // let to: URef = runtime::get_named_arg("to");
             let deadline: U256 = runtime::get_named_arg("deadline");
             let ret: Vec<U256> = runtime::call_versioned_contract(
                 package_hash,
@@ -236,7 +237,8 @@ pub extern "C" fn call() {
                     "amount_in" => amount_in,
                     "amount_out_min" => amount_out_min,
                     "path" => path,
-                    "to" => to,
+                    // "to" => to,
+                    "to" => account::get_main_purse(),
                     "deadline" => deadline
                 },
             );
@@ -246,7 +248,7 @@ pub extern "C" fn call() {
             let amount_out: U256 = runtime::get_named_arg("amount_out");
             let amount_in_max: U256 = runtime::get_named_arg("amount_in_max");
             let path: Vec<String> = runtime::get_named_arg("path");
-            let to: URef = runtime::get_named_arg("to");
+            // let to: URef = runtime::get_named_arg("to");
             let deadline: U256 = runtime::get_named_arg("deadline");
             let ret: Vec<U256> = runtime::call_versioned_contract(
                 package_hash,
@@ -256,7 +258,8 @@ pub extern "C" fn call() {
                     "amount_out" => amount_out,
                     "amount_in_max" => amount_in_max,
                     "path" => path,
-                    "to" => to,
+                    // "to" => to,
+                    "to" => account::get_main_purse(),
                     "deadline" => deadline
                 },
             );
