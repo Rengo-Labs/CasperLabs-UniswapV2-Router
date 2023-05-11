@@ -15,13 +15,20 @@ pub fn deploy_erc20(
     TestContract::new(
         env,
         "erc20-token.wasm",
+        // "erc20_token.wasm",
         contract_name,
         sender,
         runtime_args! {
             "initial_supply" => supply,
+            // "total_supply" => supply,
             "name" => name,
             "symbol" => symbol,
-            "decimals" => decimals
+            "decimals" => decimals,
+            "minter" => sender.to_formatted_string(),
+            "swap_fee" => U256::from(0),
+            "dev" => sender.to_formatted_string(),
+            "origin_chainid" => U256::from(0),
+            "origin_contract_address" => String::from("")
         },
         time,
     )
