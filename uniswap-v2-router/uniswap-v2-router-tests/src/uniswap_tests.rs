@@ -1,5 +1,5 @@
 use std::time::{SystemTime, UNIX_EPOCH};
-use tests_common::{account::AccountHash, deploys::*, functions::u256_to_u512, helpers::*, *};
+use tests_common::{account::AccountHash, deploys::*, functions::u256_to_u512, helpers::*, *, bytesrepr::ToBytes};
 
 fn deploy() -> (
     TestEnv,      // env
@@ -18,7 +18,7 @@ fn deploy() -> (
     let owner = env.next_user();
     let now = now();
     let (token1, token2, token3) = deploy_dummy_tokens(&env, Some(owner), now);
-    let factory_contract = deploy_factory(&env, owner, Key::Hash(token3.package_hash()), now);
+    let factory_contract = deploy_factory(&env, owner, Key::Account(owner), now);
     let wcspr = deploy_wcspr(
         &env,
         "WCSPR-1",
@@ -59,6 +59,14 @@ fn deploy() -> (
         Key::Hash(factory_contract.package_hash()),
         now,
     );
+    pair_contract.call_contract(
+        owner,
+        "set_treasury_fee_percent",
+        runtime_args! {
+            TREASURY_FEE => U256::from(5)
+        },
+        now,
+    );
     let library_contract = deploy_library(&env, owner, now);
     let router_contract = deploy_router(
         &env,
@@ -97,8 +105,8 @@ fn add_and_remove_liquidity_with_tokens() {
     let router_package_hash: ContractPackageHash = router.package_hash().into();
     let token_a = Key::Hash(token1.package_hash());
     let token_b = Key::Hash(token2.package_hash());
-    let amount_a_desired: U256 = AMOUNT;
-    let amount_b_desired: U256 = AMOUNT;
+    let amount_a_desired: U256 = AMOUNT / 2;
+    let amount_b_desired: U256 = AMOUNT / 2;
     let amount_a_min: U256 = 1000000.into();
     let amount_b_min: U256 = 1000000.into();
     let to = Key::Account(owner);
@@ -108,23 +116,97 @@ fn add_and_remove_liquidity_with_tokens() {
         Err(_) => 0.into(),
     };
     call(
+      &env,
+      owner,
+      SESSION_CODE_ROUTER,
+      runtime_args! {
+          "entrypoint" => "add_liquidity",
+          "package_hash" => Key::from(router_package_hash),
+          "token_a" => token_a,
+          "token_b" => token_b,
+          "amount_a_desired" => amount_a_desired,
+          "amount_b_desired" => amount_b_desired,
+          "amount_a_min" => amount_a_min,
+          "amount_b_min" => amount_b_min,
+          "to" => to,
+          "deadline" => deadline,
+          "pair" => pair_,
+      },
+      now,
+    );
+    let amount_in: U256 = 100000.into();
+    let amount_out_min: U256 = 1000.into();
+    let path1: Vec<String> = vec![token_a.to_formatted_string(), token_b.to_formatted_string()];
+    call(
         &env,
         owner,
         SESSION_CODE_ROUTER,
         runtime_args! {
-            "entrypoint" => "add_liquidity",
+            "entrypoint" => "swap_exact_tokens_for_tokens",
             "package_hash" => Key::from(router_package_hash),
-            "token_a" => token_a,
-            "token_b" => token_b,
-            "amount_a_desired" => amount_a_desired,
-            "amount_b_desired" => amount_b_desired,
-            "amount_a_min" => amount_a_min,
-            "amount_b_min" => amount_b_min,
+            "amount_in" => amount_in,
+            "amount_out_min" => amount_out_min,
+            "path" => path1,
             "to" => to,
             "deadline" => deadline,
-            "pair" => pair_,
         },
         now,
+    );
+    call(
+      &env,
+      owner,
+      SESSION_CODE_ROUTER,
+      runtime_args! {
+          "entrypoint" => "add_liquidity",
+          "package_hash" => Key::from(router_package_hash),
+          "token_a" => token_a,
+          "token_b" => token_b,
+          "amount_a_desired" => amount_a_desired,
+          "amount_b_desired" => amount_b_desired,
+          "amount_a_min" => amount_a_min,
+          "amount_b_min" => amount_b_min,
+          "to" => to,
+          "deadline" => deadline,
+          "pair" => pair_,
+      },
+      now,
+    );
+  let path2: Vec<String> = vec![token_a.to_formatted_string(), token_b.to_formatted_string()];
+  call(
+      &env,
+      owner,
+      SESSION_CODE_ROUTER,
+      runtime_args! {
+          "entrypoint" => "swap_exact_tokens_for_tokens",
+          "package_hash" => Key::from(router_package_hash),
+          "amount_in" => amount_in,
+          "amount_out_min" => amount_out_min,
+          "path" => path2,
+          "to" => to,
+          "deadline" => deadline,
+      },
+      now,
+  );
+  let ret: Vec<U256> = result_key(&env, owner, "swap_exact_tokens_for_tokens");
+  assert_eq!(ret, [100000.into(), 99699.into()]);
+    call(
+      &env,
+      owner,
+      SESSION_CODE_ROUTER,
+      runtime_args! {
+          "entrypoint" => "add_liquidity",
+          "package_hash" => Key::from(router_package_hash),
+          "token_a" => token_a,
+          "token_b" => token_b,
+          "amount_a_desired" => amount_a_desired,
+          "amount_b_desired" => amount_b_desired,
+          "amount_a_min" => amount_a_min,
+          "amount_b_min" => amount_b_min,
+          "to" => to,
+          "deadline" => deadline,
+          "pair" => pair_,
+      },
+      now,
     );
     let (amount_a, amount_b, liquidity): (U256, U256, U256) =
         result_key(&env, owner, "add_liquidity");
@@ -140,22 +222,22 @@ fn add_and_remove_liquidity_with_tokens() {
         now,
     );
     call(
-        &env,
-        owner,
-        SESSION_CODE_ROUTER,
-        runtime_args! {
-            "entrypoint" => "remove_liquidity",
-            "package_hash" => Key::from(router_package_hash),
-            "token_a" => token_a,
-            "token_b" => token_b,
-            "liquidity" => liquidity,
-            "amount_a_min" => amount_a_min,
-            "amount_b_min" => amount_b_min,
-            "to" => to,
-            "deadline" => deadline,
-        },
-        now,
-    );
+      &env,
+      owner,
+      SESSION_CODE_ROUTER,
+      runtime_args! {
+          "entrypoint" => "remove_liquidity",
+          "package_hash" => Key::from(router_package_hash),
+          "token_a" => token_a,
+          "token_b" => token_b,
+          "liquidity" => liquidity,
+          "amount_a_min" => amount_a_min,
+          "amount_b_min" => amount_b_min,
+          "to" => to,
+          "deadline" => deadline,
+      },
+      now,
+  );
     let (amount_a, amount_b): (U256, U256) = result_key(&env, owner, "remove_liquidity");
     assert_ge!(amount_a, amount_a_min);
     assert_ge!(amount_b, amount_b_min);
