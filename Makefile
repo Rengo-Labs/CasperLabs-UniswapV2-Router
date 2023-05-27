@@ -63,3 +63,6 @@ clean:
 git-clean:
 	git rm -rf --cached .
 	git add .
+
+run-critical-test:
+	make build-all && make copy-wasm-file-all && cargo test --package uniswap-v2-router-tests --lib -- uniswap_tests::add_and_remove_liquidity_with_tokens --exact --nocapture
