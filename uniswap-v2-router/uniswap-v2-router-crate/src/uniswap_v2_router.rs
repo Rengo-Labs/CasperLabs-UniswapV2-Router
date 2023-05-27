@@ -99,7 +99,6 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         pair: Option<Key>,
         deadline: U256,
     ) -> (U256, U256, U256) {
-        runtime::print("add_liquidity");
         if !(self.ensure(deadline)) {
             runtime::revert(ApiError::User(Errors::UniswapV2RouterTimedOut1 as u16));
         }
@@ -142,10 +141,6 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             amount_b,
         );
         
-        runtime::print(&format!("pair {:?}", pair));
-        runtime::print(&format!("amount_a {:?}", amount_a));
-        runtime::print(&format!("amount_b {:?}", amount_b));
-        runtime::print(&format!("to {:?}", to));
         // call mint function from IUniswapV2Pair contract
         let liquidity: U256 = runtime::call_versioned_contract(
             pair.into_hash().unwrap_or_revert().into(),
@@ -312,6 +307,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
                     "token_b" => Key::from(token_b)
                 },
             );
+            
         let (amount_a, amount_b): (U256, U256) = if token_a == token0 {
             (amount0, amount1)
         } else {
@@ -809,11 +805,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
                 "token1" => Key::from(token_b)
             },
         );
-        runtime::print("_add_liquidity");
-        runtime::print(&format!("factory {:?}", factory()));
-        runtime::print(&format!("token_0 {:?}", Key::from(token_a)));
-        runtime::print(&format!("token_1 {:?}", Key::from(token_b)));
-        runtime::print(&format!("pair {:?}", pair));
+
         let mut pair_already_exist: bool = false;
         // If a pair is not passed, check if it already exists, if it doesnot, revert
         if pair_received.is_none() {
