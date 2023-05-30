@@ -51,6 +51,7 @@ fn constructor() {
     Uniswap::default().constructor(factory, wcspr, library_hash, contract_hash, package_hash);
 }
 
+#[inline(always)]
 #[no_mangle]
 /// Add tokens to liquidity pool.
 ///
@@ -79,6 +80,7 @@ fn add_liquidity() {
     runtime::ret(CLValue::from_t((amount_a, amount_b, liquidity)).unwrap_or_revert());
 }
 
+#[inline(always)]
 #[no_mangle]
 /// Add cspr to liquidity pool.
 ///
@@ -108,6 +110,7 @@ fn add_liquidity_cspr() {
     runtime::ret(CLValue::from_t((amount_token, amount_cspr, liquidity)).unwrap_or_revert());
 }
 
+#[inline(always)]
 #[no_mangle]
 /// Remove from liquidity pool.
 ///
@@ -132,6 +135,7 @@ fn remove_liquidity() {
     runtime::ret(CLValue::from_t((amount_a, amount_b)).unwrap_or_revert());
 }
 
+#[inline(always)]
 #[no_mangle]
 /// Remove cspr from liquidity pool.
 ///
