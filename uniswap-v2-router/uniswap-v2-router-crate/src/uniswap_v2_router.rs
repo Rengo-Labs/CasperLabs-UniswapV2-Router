@@ -86,6 +86,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         Whitelist::instance().set(&user, false);
     }
 
+    #[inline(always)]
     #[allow(clippy::too_many_arguments)]
     fn add_liquidity(
         &self,
@@ -159,6 +160,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         (amount_a, amount_b, liquidity)
     }
 
+    #[inline(always)]
     #[allow(clippy::too_many_arguments)]
     fn add_liquidity_cspr(
         &self,
@@ -251,6 +253,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         (amount_token, amount_cspr, liquidity)
     }
 
+    #[inline(always)]
     #[allow(clippy::too_many_arguments)]
     fn remove_liquidity(
         &self,
@@ -296,6 +299,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
                 "to" => to,
             },
         );
+
         // call sortTokens from library contract
         let (token0, _): (ContractPackageHash, ContractPackageHash) =
             runtime::call_versioned_contract(
@@ -307,7 +311,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
                     "token_b" => Key::from(token_b)
                 },
             );
-            
+
         let (amount_a, amount_b): (U256, U256) = if token_a == token0 {
             (amount0, amount1)
         } else {
@@ -325,6 +329,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         (amount_a, amount_b)
     }
 
+    #[inline(always)]
     #[allow(clippy::too_many_arguments)]
     fn remove_liquidity_cspr(
         &self,
@@ -339,72 +344,18 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         if !(self.ensure(deadline)) {
             runtime::revert(ApiError::User(Errors::UniswapV2RouterTimedOut4 as u16));
         }
-        let token_a = token;
-        let token_b = wcspr();
         // calling self contract's removeLiquidity
-        if !(self.ensure(deadline)) {
-          runtime::revert(ApiError::User(Errors::UniswapV2RouterTimedOut3 as u16));
-        }
-        // call pair_for from library contract
-        let pair: Key = runtime::call_versioned_contract(
-            library_hash(),
-            None,
-            LIBRARY_PAIR_FOR,
-            runtime_args! {
-                "factory" => Key::from(factory()),
-                "token_a" => Key::from(token_a),
-                "token_b" => Key::from(token_b)
-            },
+        let (amount_token, amount_cspr): (U256, U256) = self.remove_liquidity(
+            token,
+            wcspr(),
+            liquidity,
+            amount_token_min,
+            amount_cspr_min,
+            Key::from(get_package_hash()),
+            deadline,
         );
-        // call transferFrom from IUniSwapV2Pair
-        runtime::call_versioned_contract::<()>(
-            pair.into_hash().unwrap_or_revert().into(),
-            None,
-            PAIR_TRANSFER_FROM,
-            runtime_args! {
-                "owner" => self.get_caller(),
-                "recipient" => pair,
-                "amount" => liquidity
-            },
-        );
-        // call burn from IUniSwapV2Pair
-        let (amount0, amount1): (U256, U256) = runtime::call_versioned_contract(
-            pair.into_hash().unwrap_or_revert().into(),
-            None,
-            PAIR_BURN,
-            runtime_args! {
-                "to" => Key::from(get_package_hash()),
-            },
-        );
-        // call sortTokens from library contract
-        let (token0, _): (ContractPackageHash, ContractPackageHash) =
-            runtime::call_versioned_contract(
-                library_hash(),
-                None,
-                LIBRARY_SORT_TOKENS,
-                runtime_args! {
-                    "token_a" => Key::from(token_a),
-                    "token_b" => Key::from(token_b)
-                },
-            );
-            
-        let (amount_a, amount_b): (U256, U256) = if token_a == token0 {
-            (amount0, amount1)
-        } else {
-            (amount1, amount0)
-        };
-        if amount_a < amount_token_min || amount_b < amount_cspr_min {
-            runtime::revert(Errors::UniswapV2RouterAbort1);
-        }
-        self.emit(&ROUTEREvent::RemoveReserves {
-            user: Key::from(runtime::get_caller()),
-            reserve0: amount_a,
-            reserve1: amount_b,
-            pair_contract_hash: pair.into_hash().unwrap_or_revert().into(),
-        });
-
         // transfer token to 'to'
-        transfer_helper_mod::safe_transfer(Key::from(token), to, amount_a);
+        transfer_helper_mod::safe_transfer(Key::from(token), to, amount_token);
         // call withdraw and transfer cspr to 'to'
         runtime::call_versioned_contract::<()>(
             wcspr(),
@@ -412,12 +363,13 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             WCSPR_WITHDRAW,
             runtime_args! {
                 "purse" => to_purse,
-                "amount" => u256_to_u512(amount_b)
+                "amount" => u256_to_u512(amount_cspr)
             },
         );
-        (amount_a, amount_b)
+        (amount_token, amount_cspr)
     }
 
+    #[inline(always)]
     fn swap_exact_tokens_for_tokens(
         &self,
         amount_in: U256,
@@ -463,6 +415,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         amounts
     }
 
+    #[inline(always)]
     fn swap_tokens_for_exact_tokens(
         &self,
         amount_out: U256,
@@ -507,6 +460,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         amounts
     }
 
+    #[inline(always)]
     fn swap_exact_cspr_for_tokens(
         &self,
         amount_out_min: U256,
@@ -580,6 +534,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         amounts
     }
 
+    #[inline(always)]
     fn swap_tokens_for_exact_cspr(
         &self,
         amount_out: U256,
@@ -638,6 +593,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         amounts
     }
 
+    #[inline(always)]
     fn swap_exact_tokens_for_cspr(
         &self,
         amount_in: U256,
@@ -696,6 +652,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         amounts
     }
 
+    #[inline(always)]
     fn swap_cspr_for_exact_tokens(
         &self,
         amount_out: U256,
@@ -838,7 +795,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
     }
 
     // *************************************** Helper methods ****************************************
-
+    #[inline(always)]
     #[allow(clippy::too_many_arguments)]
     fn _add_liquidity(
         &self,
@@ -937,7 +894,8 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             }
         }
     }
-
+    
+    #[inline(always)]
     fn _swap(amounts: &[U256], path: &Vec<Key>, _to: Key) {
         for i in 0..(path.len() - 1)
         // start ≤ x < end - 1
