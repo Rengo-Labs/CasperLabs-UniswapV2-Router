@@ -86,6 +86,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         Whitelist::instance().set(&user, false);
     }
 
+    #[inline(always)]
     #[allow(clippy::too_many_arguments)]
     fn add_liquidity(
         &self,
@@ -159,6 +160,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         (amount_a, amount_b, liquidity)
     }
 
+    #[inline(always)]
     #[allow(clippy::too_many_arguments)]
     fn add_liquidity_cspr(
         &self,
@@ -251,6 +253,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         (amount_token, amount_cspr, liquidity)
     }
 
+    #[inline(always)]
     #[allow(clippy::too_many_arguments)]
     fn remove_liquidity(
         &self,
@@ -296,6 +299,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
                 "to" => to,
             },
         );
+
         // call sortTokens from library contract
         let (token0, _): (ContractPackageHash, ContractPackageHash) =
             runtime::call_versioned_contract(
@@ -307,7 +311,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
                     "token_b" => Key::from(token_b)
                 },
             );
-            
+
         let (amount_a, amount_b): (U256, U256) = if token_a == token0 {
             (amount0, amount1)
         } else {
@@ -325,6 +329,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         (amount_a, amount_b)
     }
 
+    #[inline(always)]
     #[allow(clippy::too_many_arguments)]
     fn remove_liquidity_cspr(
         &self,
@@ -364,6 +369,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         (amount_token, amount_cspr)
     }
 
+    #[inline(always)]
     fn swap_exact_tokens_for_tokens(
         &self,
         amount_in: U256,
@@ -409,6 +415,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         amounts
     }
 
+    #[inline(always)]
     fn swap_tokens_for_exact_tokens(
         &self,
         amount_out: U256,
@@ -453,6 +460,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         amounts
     }
 
+    #[inline(always)]
     fn swap_exact_cspr_for_tokens(
         &self,
         amount_out_min: U256,
@@ -526,6 +534,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         amounts
     }
 
+    #[inline(always)]
     fn swap_tokens_for_exact_cspr(
         &self,
         amount_out: U256,
@@ -584,6 +593,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         amounts
     }
 
+    #[inline(always)]
     fn swap_exact_tokens_for_cspr(
         &self,
         amount_in: U256,
@@ -642,6 +652,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         amounts
     }
 
+    #[inline(always)]
     fn swap_cspr_for_exact_tokens(
         &self,
         amount_out: U256,
@@ -784,7 +795,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
     }
 
     // *************************************** Helper methods ****************************************
-
+    #[inline(always)]
     #[allow(clippy::too_many_arguments)]
     fn _add_liquidity(
         &self,
@@ -883,7 +894,8 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             }
         }
     }
-
+    
+    #[inline(always)]
     fn _swap(amounts: &[U256], path: &Vec<Key>, _to: Key) {
         for i in 0..(path.len() - 1)
         // start ≤ x < end - 1
