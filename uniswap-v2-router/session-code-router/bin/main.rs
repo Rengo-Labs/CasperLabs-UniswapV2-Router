@@ -134,7 +134,7 @@ pub extern "C" fn call() {
                     "to" => to,
                     "deadline" => deadline,
                     // "to_purse" => to_purse,
-                    "to_purse" => account::get_main_purse(),
+                    "to_purse" => account::get_main_purse().into_add(),
                 },
             );
             store(DESTINATION_REMOVE_LIQUIDITY_CSPR, ret);
@@ -238,7 +238,7 @@ pub extern "C" fn call() {
                     "amount_out_min" => amount_out_min,
                     "path" => path,
                     // "to" => to,
-                    "to" => account::get_main_purse(),
+                    "to" => account::get_main_purse().into_add(),
                     "deadline" => deadline
                 },
             );
@@ -259,7 +259,7 @@ pub extern "C" fn call() {
                     "amount_in_max" => amount_in_max,
                     "path" => path,
                     // "to" => to,
-                    "to" => account::get_main_purse(),
+                    "to" => account::get_main_purse().into_add(),
                     "deadline" => deadline
                 },
             );
