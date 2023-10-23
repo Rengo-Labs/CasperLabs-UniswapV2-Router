@@ -221,7 +221,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             WCSPR_DEPOSIT,
             runtime_args! {
                 "amount" => u256_to_u512(amount_cspr),
-                "purse" => get_purse().into_add()
+                "purse" => get_purse()
             },
         );
         // call transfer method from wcspr
@@ -507,7 +507,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             WCSPR_DEPOSIT,
             runtime_args! {
                 "amount" => u256_to_u512(amounts[0]),
-                "purse" => get_purse().into_add()
+                "purse" => get_purse()
             },
         );
         // call transfer method from IWETH, get pair
@@ -700,7 +700,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             WCSPR_DEPOSIT,
             runtime_args! {
                 "amount" => u256_to_u512(amounts[0]),
-                "purse" => get_purse().into_add()
+                "purse" => get_purse()
             },
         );
         // call transfer method from wcspr
