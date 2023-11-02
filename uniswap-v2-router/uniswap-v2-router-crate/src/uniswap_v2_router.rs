@@ -209,7 +209,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         );
         system::transfer_from_purse_to_purse(
             caller_purse,
-            get_purse(),
+            get_purse().into_add(),
             u256_to_u512(amount_cspr),
             None,
         )
@@ -496,7 +496,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         }
         system::transfer_from_purse_to_purse(
             caller_purse,
-            get_purse(),
+            get_purse().into_add(),
             u256_to_u512(amounts[0]),
             None,
         )
@@ -688,7 +688,7 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         }
         system::transfer_from_purse_to_purse(
             caller_purse,
-            get_purse(),
+            get_purse().into_add(),
             u256_to_u512(amounts[0]),
             None,
         )
